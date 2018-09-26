@@ -1,0 +1,89 @@
+variables:
+  TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
+
+before_script:
+  - curl -O https://bootstrap.pypa.io/get-pip.py
+  - python get-pip.py
+  - pip install -r requirements_dev.txt
+
+after_script:
+  - pip install codecov
+  # - codecov --token=<>
+
+stages:
+  - quick-checks
+  - build
+  - test
+  - challenges
+  - deploy
+  - cleanup
+
+linters:
+  image: python:3.5
+  stage: quick-checks
+  script:
+    - make lint
+    # - tox -e linters
+
+build:
+  stage: build
+  script:
+    - make install-dev
+    - make dist
+  artifacts:
+    paths:
+    - dist/
+    expire_in: 1 week
+
+python2:
+  image: python:2.7
+  stage: test
+  script: tox -e py27
+
+python36:
+  image: python:3.6
+  stage: test
+  script: tox -e py36
+
+python37:
+  image: python:3.7
+  stage: test
+  script: tox -e py37
+
+docs:
+  stage: test
+  script: make docs
+
+speed-challenge:
+  stage: challenges
+  script:
+    - mkdir -p challenges
+    - echo "Running speed challenges"
+    - python run.py --output-dir challenges
+    - echo "Evaluating results"
+  artifacts:
+    paths:
+      - challenges
+
+deploy_pypi:
+  image: python
+  stage: deploy
+  script:
+    - echo "[pypi]" >> ~/.pypirc
+    - echo "username =" $PYPI_USER >> ~/.pypirc
+    - echo "password =" $PYPI_PASSWORD >> ~/.pypirc
+    - pip install -U twine setuptools
+    # - python setup.py check sdist bdist_wheel
+    # - twine upload dist/*
+  only:
+    - tags
+  except:
+    - branches
+
+
+cleanup_pypirc:
+  image: python
+  stage: cleanup
+  when: always   # this is important; run even if preceding stages failed.
+  script:
+    - rm -vf ~/.pypirc  # we don't want to leave these around, but GitLab may clean up anyway.
