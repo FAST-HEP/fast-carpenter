@@ -37,11 +37,11 @@ setup(
         'Programming Language :: Python :: 3.7',
     ],
     description="F.A.S.T. package for summarizing ROOT TTrees",
-    #entry_points={
-    #    'console_scripts': [
-    #        'fast_project_template=fast_project_template.cli:main',
-    #    ],
-    #},
+    entry_points={
+        'console_scripts': [
+            'fast_chainsaw=fast_chainsaw.__main__:main',
+        ],
+    },
     install_requires=requirements,
     dependency_links=repositories,
     license="Apache Software License 2.0",
