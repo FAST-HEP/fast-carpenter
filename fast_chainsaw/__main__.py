@@ -2,7 +2,9 @@
 Summarize them trees into nice little dataframe
 """
 from __future__ import print_function
-from fast_flow.v1 import read_sequence_yaml
+import fast_flow.v1 as fast_flow
+import fast_curator
+from atuproot.AtUproot import AtUproot
 import logging
 logging.getLogger(__name__).setLevel(logging.INFO)
 
@@ -33,27 +35,25 @@ def process_args(args=None):
                         help="Profile the code")
     return parser.parse_args()
 
-def run(sequence, datasets, options):
-    from atuproot.AtUproot import AtUproot
-    process = AtUproot(options.outdir,
-        quiet = options.quiet,
-        parallel_mode = options.mode,
-        process = options.ncores,
-        max_blocks_per_dataset = options.nblocks_per_dataset,
-        max_blocks_per_process = options.nblocks_per_sample,
-        blocksize = options.blocksize,
-        profile = options.profile,
-        profile_out_path = "profile.txt",
-    )
-    return process.run(datasets, sequence)
-    
 
 def main(args=None):
     args = process_args(args)
 
-    sequence = read_sequence_yaml(sequence_cfg)
+    sequence = fast_flow.read_sequence_yaml(args.sequence_cfg)
 
-    
+    datasets = fast_curator.read.from_yaml(args.dataset_cfg)
+
+    process = AtUproot(args.outdir,
+        quiet = args.quiet,
+        parallel_mode = args.mode,
+        process = args.ncores,
+        max_blocks_per_dataset = args.nblocks_per_dataset,
+        max_blocks_per_process = args.nblocks_per_sample,
+        blocksize = args.blocksize,
+        profile = args.profile,
+        profile_out_path = "profile.txt",
+    )
+    return process.run(datasets, sequence)
 
 
 if __name__ == "__main__":
