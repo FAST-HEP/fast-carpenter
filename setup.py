@@ -11,9 +11,10 @@ with open('README.md') as readme_file:
 #with open('HISTORY.rst') as history_file:
 #    history = history_file.read()
 
-requirements = ['Click>=6.0', 'atuproot', 'fast-flow']
+requirements = ['atuproot', 'fast-flow', 'fast-curator']
 repositories = ['git+https://github.com/shane-breeze/atuproot.git@alphatwirl-adaptors#egg=atuproot',
 		'https://gitlab.cern.ch/fast-hep/public/fast-flow.git#egg=fast-flow'
+		'https://gitlab.cern.ch/fast-hep/public/fast-curator.git#egg=fast-curator'
 		]
 
 setup_requirements = ['pytest-runner', ]
@@ -55,5 +56,5 @@ setup(
     tests_require=test_requirements,
     url='https://github.com/fast-hep/public/fast-chainsaw',
     version='0.1.0',
-    zip_safe=False,
+    zip_safe=True,
 )

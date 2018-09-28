@@ -5,6 +5,7 @@ function Fast_set_cvmfs_vars(){
     Fast_cvmfs_RootSetup=/cvmfs/sft.cern.ch/lcg/releases/LCG_88/ROOT/6.08.06/x86_64-slc6-gcc62-opt/bin/thisroot.sh
     Fast_cvmfs_Libs=/cvmfs/sft.cern.ch/lcg/views/LCG_88/x86_64-slc6-gcc62-opt/
     Fast_cvmfs_LzmaDir=/cvmfs/cms.cern.ch/slc6_amd64_gcc620/external/xz/5.2.2/
+    Fast_cvmfs_Xrootd=/cvmfs/sft.cern.ch/lcg/releases/LCG_88/xrootd_python/0.3.0/x86_64-slc6-gcc62-opt/
 }
 export -f Fast_set_cvmfs_vars
 Fast_set_cvmfs_vars
@@ -50,7 +51,7 @@ FAST_build_python_path(){
   if "$FAST_RA1_HAVE_ALPHATOOLS"; then
     Dirs+=("${FAST_RA1_EXTERNALS_DIR}"/AlphaTools/analysis/{,Core,Configuration})
   fi
-  Dirs+=( {"$Fast_cvmfs_PythonDir","$Fast_cvmfs_PipDir"}/lib/python2.7/site-packages/)
+  Dirs+=( {"$Fast_cvmfs_PythonDir","$Fast_cvmfs_PipDir","$Fast_cvmfs_Xrootd"}/lib/python2.7/site-packages/)
 
   FAST_build_some_path "$PYTHONPATH" "${Dirs[@]}"
 }
