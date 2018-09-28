@@ -12,7 +12,7 @@ with open('README.md') as readme_file:
 #    history = history_file.read()
 
 requirements = ['atuproot', 'fast-flow', 'fast-curator']
-repositories = ['git+https://github.com/shane-breeze/atuproot.git@alphatwirl-adaptors#egg=atuproot',
+repositories = ['git+https://github.com/shane-breeze/atuproot.git#egg=atuproot',
 		'https://gitlab.cern.ch/fast-hep/public/fast-flow.git#egg=fast-flow'
 		'https://gitlab.cern.ch/fast-hep/public/fast-curator.git#egg=fast-curator'
 		]

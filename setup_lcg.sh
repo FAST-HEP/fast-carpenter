@@ -26,9 +26,9 @@ FAST_top_dir(){
   dirname "$($Canonicalize "${BASH_SOURCE[0]}")"
 }
 
-export FAST_RA1_ROOT="$(FAST_top_dir)"
-export FAST_RA1_EXTERNALS_DIR="$(FAST_top_dir)/external"
-export FAST_RA1_HAVE_ALPHATOOLS="$([ -r "$FAST_RA1_EXTERNALS_DIR/AlphaTools" ] && echo true || echo false)"
+export FAST_CHAINSAW_ROOT="$(FAST_top_dir)"
+export FAST_CHAINSAW_EXTERNALS_DIR="$(FAST_top_dir)/external"
+export FAST_CHAINSAW_HAVE_ALPHATOOLS="$([ -r "$FAST_CHAINSAW_EXTERNALS_DIR/AlphaTools" ] && echo true || echo false)"
 
 FAST_build_some_path(){
   local NewPath="$1" ;shift
@@ -41,15 +41,15 @@ FAST_build_some_path(){
 }
 
 FAST_build_path(){
-  local Dirs=( "${FAST_RA1_ROOT}"/bin "${FAST_RA1_EXTERNALS_DIR}"/pip/bin "${FAST_RA1_ROOT}"/external/cms-das-query/bin/ )
+  local Dirs=( "${FAST_CHAINSAW_ROOT}"/bin "${FAST_CHAINSAW_EXTERNALS_DIR}"/pip/bin "${FAST_CHAINSAW_ROOT}"/external/cms-das-query/bin/ )
   Dirs+=( {"$Fast_cvmfs_PythonDir","$Fast_cvmfs_PipDir"}/bin)
   FAST_build_some_path "$PATH" "${Dirs[@]}"
 }
 
 FAST_build_python_path(){
-  local Dirs=( "${FAST_RA1_ROOT}" "${FAST_RA1_EXTERNALS_DIR}"/{alphatwirl,alphatwirl-interface,aggregate,cms-das-query,pip/lib/python2.7/site-packages} )
-  if "$FAST_RA1_HAVE_ALPHATOOLS"; then
-    Dirs+=("${FAST_RA1_EXTERNALS_DIR}"/AlphaTools/analysis/{,Core,Configuration})
+  local Dirs=( "${FAST_CHAINSAW_ROOT}" "${FAST_CHAINSAW_EXTERNALS_DIR}"/{alphatwirl,alphatwirl-interface,aggregate,cms-das-query,pip/lib/python2.7/site-packages} )
+  if "$FAST_CHAINSAW_HAVE_ALPHATOOLS"; then
+    Dirs+=("${FAST_CHAINSAW_EXTERNALS_DIR}"/AlphaTools/analysis/{,Core,Configuration})
   fi
   Dirs+=( {"$Fast_cvmfs_PythonDir","$Fast_cvmfs_PipDir","$Fast_cvmfs_Xrootd"}/lib/python2.7/site-packages/)
 
@@ -60,11 +60,11 @@ export PYTHONPATH="$(FAST_build_python_path)"
 export PATH="$(FAST_build_path)"
 export LD_LIBRARY_PATH="$(FAST_build_some_path "$LD_LIBRARY_PATH" "${Fast_cvmfs_Libs}"{lib,lib64} "${Fast_cvmfs_LzmaDir}"/lib )"
 
-if "$FAST_RA1_HAVE_ALPHATOOLS";then
-  export ALPHATOOLSDIR="${FAST_RA1_EXTERNALS_DIR}/AlphaTools/analysis"
+if "$FAST_CHAINSAW_HAVE_ALPHATOOLS";then
+  export ALPHATOOLSDIR="${FAST_CHAINSAW_EXTERNALS_DIR}/AlphaTools/analysis"
 fi
 
-PS1_PREFIX=FAST-RA1
+PS1_PREFIX=FAST-CHAINSAW
 
 unset FAST_build_some_path
 unset FAST_build_path
