@@ -13,8 +13,8 @@ with open('README.md') as readme_file:
 
 requirements = ['atuproot', 'fast-flow', 'fast-curator']
 repositories = ['git+https://github.com/shane-breeze/atuproot.git#egg=atuproot',
-		'https://gitlab.cern.ch/fast-hep/public/fast-flow.git#egg=fast-flow'
-		'https://gitlab.cern.ch/fast-hep/public/fast-curator.git#egg=fast-curator'
+		'git+https://gitlab.cern.ch/fast-hep/public/fast-flow.git#egg=fast-flow',
+		'git+https://gitlab.cern.ch/fast-hep/public/fast-curator.git#egg=fast-curator'
 		]
 
 setup_requirements = ['pytest-runner', ]
