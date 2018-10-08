@@ -53,6 +53,9 @@ def main(args=None):
         profile = args.profile,
         profile_out_path = "profile.txt",
     )
+    def collect(module):
+        return module.collect()
+    sequence = [(s, s.collector()) for s in sequence]
     return process.run(datasets, sequence)
 
 
