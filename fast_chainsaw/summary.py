@@ -11,8 +11,9 @@ class BadBinnedDataframeConfig(Exception):
 
 
 class Collector():
-    def __init__(self, filename):
+    def __init__(self, filename, dataset_col):
         self.filename = filename
+        self.dataset_col = dataset_col
 
     def collect(self, dataset_readers_list):
         if len(dataset_readers_list) == 0:
@@ -30,23 +31,26 @@ class Collector():
         for dataset, readers in dataset_readers_list:
             for reader in readers:
                 df = reader.contents
+                if self.dataset_col:
+                    df = pd.concat([df], keys=[dataset], names=['dataset'])
                 if final_df is None:
                     final_df = df
                     continue
-                final_df.add(df, fill_value=0)
+                final_df = final_df.add(df, fill_value=0)
 
         return final_df
 
 
 class BinnedDataframe():
 
-    def __init__(self, name, out_dir, binning, weights=None):
+    def __init__(self, name, out_dir, binning, weights=None, dataset_col=False):
         self.name = name
         self.out_dir = out_dir
         ins, outs, binnings = _create_binning_list(self.name, binning)
         self._bin_dims = ins
         self._out_bin_dims = outs
         self._binnings = binnings
+        self._dataset_col = dataset_col
         self._weights = _create_weights(self.name, weights)
 
         self._all_inputs = self._bin_dims
@@ -59,7 +63,7 @@ class BinnedDataframe():
         outfilename += "--" + ".".join(self._weights.keys())
         outfilename += ".csv"
         outfilename = os.path.join(self.out_dir, outfilename)
-        return Collector(outfilename)
+        return Collector(outfilename, self._dataset_col)
 
     def begin(self, event):
         self.contents = None
