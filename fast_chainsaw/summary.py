@@ -59,6 +59,8 @@ class BinnedDataframe():
 
     def collector(self):
         outfilename = "tbl_"
+        if self._dataset_col:
+            outfilename += "dataset."
         outfilename += ".".join(self._out_bin_dims)
         outfilename += "--" + ".".join(self._weights.keys())
         outfilename += ".csv"
