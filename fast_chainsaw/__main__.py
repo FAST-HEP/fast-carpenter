@@ -19,8 +19,7 @@ def process_args(args=None):
     parser.add_argument("--outdir", default="output", type=str,
                         help="Where to save the results")
     parser.add_argument("--mode", default="multiprocessing", type=str,
-                        help="Which mode to run in (multiprocessing, htcondor, "
-                             "sge)")
+                        help="Which mode to run in (multiprocessing, htcondor, sge)")
     parser.add_argument("--ncores", default=0, type=int,
                         help="Number of cores to run on")
     parser.add_argument("--nblocks-per-dataset", default=-1, type=int,
@@ -44,17 +43,16 @@ def main(args=None):
     datasets = fast_curator.read.from_yaml(args.dataset_cfg)
 
     process = AtUproot(args.outdir,
-        quiet = args.quiet,
-        parallel_mode = args.mode,
-        process = args.ncores,
-        max_blocks_per_dataset = args.nblocks_per_dataset,
-        max_blocks_per_process = args.nblocks_per_sample,
-        blocksize = args.blocksize,
-        profile = args.profile,
-        profile_out_path = "profile.txt",
-    )
-    def collect(module):
-        return module.collect()
+                       quiet=args.quiet,
+                       parallel_mode=args.mode,
+                       process=args.ncores,
+                       max_blocks_per_dataset=args.nblocks_per_dataset,
+                       max_blocks_per_process=args.nblocks_per_sample,
+                       blocksize=args.blocksize,
+                       profile=args.profile,
+                       profile_out_path="profile.txt",
+                       )
+
     sequence = [(s, s.collector()) for s in sequence]
     return process.run(datasets, sequence)
 
