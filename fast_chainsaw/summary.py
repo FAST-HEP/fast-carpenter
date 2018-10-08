@@ -70,17 +70,13 @@ class BinnedDataframe():
     def begin(self, event):
         self.contents = None
 
-    #def end(self, event):
-    #    pass
-
-    # def merge(self, event):
-    #     pass
-
     def event(self, chunk):
         data = chunk.tree.pandas.df(self._all_inputs)
-        weight = self._weights.values()[0]
-        binned_values = _bin_values(data, self._bin_dims, self._out_bin_dims, 
-                                    self._binnings, weight)
+        binned_values = _bin_values(data, dimensions=self._bin_dims,
+                                    binnings=self._binnings,
+                                    weights=self._weights.values(),
+                                    out_weights=self._weights.keys(),
+                                    out_dimensions=self._out_bin_dims)
         if not self.contents:
             self.contents = binned_values
         else:
@@ -88,36 +84,43 @@ class BinnedDataframe():
         return True
 
 
-def _bin_values(data, bin_dim_names, out_dim_names, binnings, weight_dims):
-    # TODO: Optimise the for-loop to run pandas.cut
-    # TODO: Optimise out deduction of input and output binning and weight names
+def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_weights=None):
+    if not out_dimensions:
+        out_dimensions = dimensions
+    if not out_weights:
+        out_weights = weights
 
     final_bin_dims = []
-    for dimension, binning in zip(bin_dim_names, binnings):
-        if not binning:
+    for dimension, binning in zip(dimensions, binnings):
+        if binning is None:
             final_bin_dims.append(dimension)
             continue
         out_dimension = dimension + "_bins"
         data[out_dimension] = pd.cut(data[dimension], binning)
         final_bin_dims.append(out_dimension)
 
-    if weight_dims:
-        weight_sq_dims = weight_dims + "_squared"
-        data[weight_sq_dims] = data[weight_dims] * data[weight_dims]
+    if weights:
+        weight_sq_dims = [w + "_squared" for w in weights]
+        data[weight_sq_dims] = data[weights] ** 2
 
     bins = data.groupby(final_bin_dims)
     counts = bins.size()
 
-    if weight_dims:
-        sums = bins[weight_dims].sum()
+    if weights:
+        sums = bins[weights].sum()
         sum_sqs = bins[weight_sq_dims].sum()
     else:
         sums = counts
         sum_sqs = counts
 
-    histogram = pd.concat([counts, sums, sum_sqs], axis="columns")
-    histogram.columns=["count", "contents", "variance"]
-    histogram.index.set_names(out_dim_names, inplace=True)
+    histogram = pd.concat([counts, sums, sum_sqs], axis="columns").dropna(how="all")
+    if not weights or len(weights) == 1:
+        histogram.columns = ["count", "contents", "variance"]
+    else:
+        weight_labels = sum(([w] * 2 for w in out_weights), ["count"])
+        stats_labels = [""] + ["contents", "variance"] * len(out_weights)
+        histogram.columns = pd.MultiIndex.from_arrays((weight_labels, stats_labels), names=["weight", "statistic"])
+    histogram.index.set_names(out_dimensions, inplace=True)
     return histogram
 
 
@@ -185,6 +188,6 @@ def _create_weights(stage_name, weights):
     else:
         # else we've got a single, scalar value
         weights = {"weighted": weights}
-    if len(weights) > 1:
-        raise NotImplementedError("Multiply weighted binned dataframes aren't yet implemented I'm afraid...")
+    # if len(weights) > 1:
+    #     raise NotImplementedError("Multiply weighted binned dataframes aren't yet implemented I'm afraid...")
     return weights
