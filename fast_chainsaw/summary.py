@@ -103,7 +103,7 @@ def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_we
         weight_sq_dims = [w + "_squared" for w in weights]
         data[weight_sq_dims] = data[weights] ** 2
 
-    bins = data.groupby(final_bin_dims)
+    bins = data.groupby(final_bin_dims, observed=True)
     counts = bins.size()
 
     if weights:
@@ -113,7 +113,7 @@ def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_we
         sums = counts
         sum_sqs = counts
 
-    histogram = pd.concat([counts, sums, sum_sqs], axis="columns").dropna(how="all")
+    histogram = pd.concat([counts, sums, sum_sqs], axis="columns")
     if not weights or len(weights) == 1:
         histogram.columns = ["count", "contents", "variance"]
     else:
