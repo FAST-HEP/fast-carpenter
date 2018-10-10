@@ -58,7 +58,7 @@ class SingleCut(BaseFilter):
         df = data.pandas.df(branches)
 
         self.totals.increment(df)
-        mask = df.eval(self.selection)
+        mask = df.eval(self.selection).values
         self.passed.increment(df, mask)
         return mask
 
@@ -72,7 +72,7 @@ class All(BaseFilter):
         mask = np.ones(len(data), dtype=bool)
         for sel in self.selection:
             new_mask = sel(data)
-            mask &= new_mask.values
+            mask &= new_mask
         self.passed.increment(data, mask)
         return mask
 
@@ -87,7 +87,7 @@ class Any(BaseFilter):
         mask = np.zeros(len(data), dtype=bool)
         for sel in self.selection:
             new_mask = sel(data)
-            mask |= new_mask.values
+            mask |= new_mask
         self.passed.increment(data, mask)
         return mask
 

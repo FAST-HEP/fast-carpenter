@@ -13,14 +13,14 @@ def config_1():
     return "NMuon > 1"
 
 
-@pytest.fixture
-def config_2():
-    return {"Any": ["NMuon > 1", "NElectron > 1", "NJet > 1"]}
-
-
 def test_build_selection_1(config_1):
     selection = filters.build_selection("test_build_selection_1", config_1)
     assert isinstance(selection, filters.SingleCut)
+
+
+@pytest.fixture
+def config_2():
+    return {"Any": ["NMuon > 1", "NElectron > 1", "NJet > 1"]}
 
 
 def test_selection_1(config_1, filename):
@@ -30,8 +30,13 @@ def test_selection_1(config_1, filename):
     assert np.count_nonzero(mask) == 289
 
 
-def test_selection_2(config_2, filename):
-    selection = filters.build_selection("test_selection_2", config_2)
+@pytest.fixture
+def config_3():
+    return {"All": ["NMuon > 1", {"Any": ["NElectron > 1", "NJet > 1"]}]}
+
+
+def test_selection_3(config_3, filename):
+    selection = filters.build_selection("test_selection_3", config_3)
     infile = uproot.open(filename)["events"]
     mask = selection(infile)
-    assert np.count_nonzero(mask) == 1486
+    assert np.count_nonzero(mask) == 8
