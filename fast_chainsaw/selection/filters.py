@@ -1,5 +1,6 @@
 import six
 import numpy as np
+import pandas as pd
 import StringIO
 import tokenize
 
@@ -9,7 +10,7 @@ class BaseFilter():
     class Counter():
         def __init__(self, weights):
             self._weights = weights
-            self._w_counts = np.zeros_like(weights)
+            self._w_counts = np.zeros(len(weights))
             self._counts = 0
 
         def increment(self, data, mask=None):
@@ -24,7 +25,10 @@ class BaseFilter():
                 return
             if not isinstance(data, pd.DataFrame):
                 data = data.pandas.df(self._weights)
-            self._w_counts += data[self._weights].sum(axis=1)
+            if mask is not None:
+                data = data.iloc[mask]
+            summed = data[self._weights].sum(axis=0)
+            self._w_counts += summed
 
         @property
         def counts(self):

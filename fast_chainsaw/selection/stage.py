@@ -52,7 +52,6 @@ class Collector():
         return final_df
 
 
-
 def _load_selection_file(stage_name, selection_file):
     import yaml
     with open(selection_file, "r") as infile:
@@ -65,25 +64,25 @@ def _load_selection_file(stage_name, selection_file):
 
 def _create_weights(stage_name, weights):
     if weights is None:
-        return 1, "unweighted"
+        return {}
     if isinstance(weights, six.string_types):
-        return weights, weights
+        return {weights: weights}
 
     if isinstance(weights, (tuple, list)):
-        weights = [_create_weights(stage_name, w) for w in weights]
-        return {n: w for n, w in weights}
+        weights = {w: w for w in weights}
     if isinstance(weights, dict):
-        return {name: _create_weights(stage_name, w) for name, w in weights.items()}
+        if filter(lambda x: not isinstance(x, six.string_types), weights.values()):
+            raise BadCutflowConfig(stage_name + ": one weight is something other than a string")
+        return weights
 
     raise BadCutflowConfig("{}: Cannot process weight specification".format(stage_name))
 
 
 class CutFlow():
-    output_filename = "cut_flow{}.txt"
-
-    def __init__(self, name, out_dir, selection_file=None, selection=None, 
-                          lambda_arg="ev", counter=True, weights=None):
+    def __init__(self, name, out_dir, selection_file=None,
+                 selection=None, counter=True, weights=None):
         self.name = name
+        self.out_dir = out_dir
         if not selection and not selection_file:
             raise BadCutflowConfig("{}: Neither selection nor selection_file specified".format(self.name))
         if selection and selection_file:
@@ -93,9 +92,11 @@ class CutFlow():
             selection = _load_selection_file(self.name, selection_file)
 
         self._counter = counter
+        if not self._counter:
+            raise NotImplementedError(self.name + ": Optimisations for when no cut-flow counter is required aren't implemented")
         self._weights = None
         if self._counter:
-            self._weights = _create_weights(self.name, counter_weights)
+            self._weights = _create_weights(self.name, weights)
 
         self.selection = build_selection(self.name, selection, weights=self._weights.values())
 
@@ -112,7 +113,7 @@ class CutFlow():
         if hasattr(chunk, "event_mask"):
             mask = chunk.event_mask
 
-        data = MaskedUprootTree(chunk, mask)
+        data = MaskedUprootTree(chunk.tree, mask)
         new_mask = self.selection(data)
         data.apply_mask(new_mask)
         setattr(chunk, "event_mask", data.mask)

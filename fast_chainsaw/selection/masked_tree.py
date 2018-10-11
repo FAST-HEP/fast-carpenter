@@ -44,3 +44,6 @@ class MaskedUprootTree():
 
     def __len__(self):
         return len(self._mask)
+
+    def __getattr__(self, attr):
+        return getattr(self.tree, attr)

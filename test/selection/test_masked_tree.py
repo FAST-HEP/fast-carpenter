@@ -21,8 +21,8 @@ def tree_w_mask_bool(infile):
     n_events = len(infile)
     mask = np.ones(n_events, dtype=bool)
     mask[::2] = False
-    print("BEK", mask, len(mask))
     return m_tree.MaskedUprootTree(infile, mask)
+
 
 @pytest.fixture
 def tree_w_mask_int(infile):
@@ -32,9 +32,12 @@ def tree_w_mask_int(infile):
     mask = np.where(mask)[0]
     return m_tree.MaskedUprootTree(infile, mask)
 
+
 def test_no_mask(tree_no_mask, infile):
     assert len(tree_no_mask) == len(infile)
     assert np.all(tree_no_mask.mask == np.arange(len(infile)))
+    assert np.all(tree_no_mask.pandas.df("EventWeight") == infile.pandas.df("EventWeight"))
+
 
 def test_w_mask_bool(tree_w_mask_bool, infile):
     assert len(tree_w_mask_bool) == len(infile) // 2
@@ -44,6 +47,7 @@ def test_w_mask_bool(tree_w_mask_bool, infile):
     new_mask[::2] = False
     tree_w_mask_bool.apply_mask(new_mask)
     assert len(tree_w_mask_bool) == len(infile) // 4
+
 
 def test_w_mask_int(tree_w_mask_int, infile):
     assert len(tree_w_mask_int) == len(infile) // 2
