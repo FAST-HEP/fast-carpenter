@@ -27,7 +27,7 @@ class BaseFilter():
             self._w_counts += data[self._weights].sum(axis=1)
 
         @property
-        def counts():
+        def counts(self):
             return (self._counts,) + tuple(self._w_counts)
 
 
@@ -41,7 +41,7 @@ class BaseFilter():
     def results(self):
         output = [(self.depth, str(self)) + self.passed.counts + self.totals.counts]
         if isinstance(self.selection, list):
-            output += reduce([sel.results() for sel in self.selection], [])
+            output += sum([sel.results() for sel in self.selection], [])
         return output
 
     def results_header(self):
@@ -82,7 +82,6 @@ class All(BaseFilter):
 
 class Any(BaseFilter):
     def __call__(self, data):
-        df = data.pandas.df(self.weights)
         self.totals.increment(data)
         mask = np.zeros(len(data), dtype=bool)
         for sel in self.selection:
