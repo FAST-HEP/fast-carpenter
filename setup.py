@@ -19,7 +19,7 @@ repositories = ['git+https://github.com/shane-breeze/atuproot.git#egg=atuproot',
 
 setup_requirements = ['pytest-runner', ]
 
-test_requirements = ['pytest', 'flake8' ]
+test_requirements = ['pytest', 'flake8', 'pytest-cov']
 
 setup(
     author="F.A.S.T",
