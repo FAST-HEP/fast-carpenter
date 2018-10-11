@@ -14,7 +14,7 @@ def infile():
 @pytest.fixture
 def tree_no_mask(infile):
     return m_tree.MaskedUprootTree(infile)
-    
+
 
 @pytest.fixture
 def tree_w_mask_bool(infile):

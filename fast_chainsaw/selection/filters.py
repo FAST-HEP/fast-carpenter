@@ -34,7 +34,6 @@ class BaseFilter():
         def counts(self):
             return (self._counts,) + tuple(self._w_counts)
 
-
     def __init__(self, selection, depth, weights):
         self.selection = selection
         self.depth = depth

@@ -1,5 +1,4 @@
 import pytest
-import numpy as np
 import uproot
 import fast_chainsaw.selection.stage as stage
 import fast_chainsaw.selection.filters as filters
@@ -68,8 +67,4 @@ def test_cutflow_1_executes(cutflow_1, infile):
     collector = cutflow_1.collector()
     assert collector.filename == "somewhere/cuts_cutflow_1-NElectron.csv"
 
-# Test initialisation of class
-# Test event method
-# Test Collector is reasonable
-
-#def test__load_selection_file(stage_name, selection_file):
+# def test__load_selection_file(stage_name, selection_file):

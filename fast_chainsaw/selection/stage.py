@@ -3,7 +3,6 @@
 from __future__ import absolute_import
 import six
 import pandas as pd
-import numpy as np
 import os
 from .masked_tree import MaskedUprootTree
 from .filters import build_selection
@@ -59,7 +58,7 @@ def _load_selection_file(stage_name, selection_file):
     if len(cfg) > 1:
         msg = "{}: Selection file has more than one selection"
         raise BadSelectionFile(msg.format(stage_name, selection_file, cfg.keys()))
-    return selection
+    return cfg
 
 
 def _create_weights(stage_name, weights):
@@ -93,7 +92,9 @@ class CutFlow():
 
         self._counter = counter
         if not self._counter:
-            raise NotImplementedError(self.name + ": Optimisations for when no cut-flow counter is required aren't implemented")
+            msg = self.name + ": "
+            msg += "Optimisations for when no cut-flow counter is required aren't implemented"
+            raise NotImplementedError(msg)
         self._weights = None
         if self._counter:
             self._weights = _create_weights(self.name, weights)

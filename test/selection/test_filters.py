@@ -38,7 +38,7 @@ def config_2():
 
 
 def test_selection_2_weights(config_2, filename):
-    selection = filters.build_selection("test_selection_1", 
+    selection = filters.build_selection("test_selection_1",
                                         config_2, weights=["EventWeight"])
     infile = uproot.open(filename)["events"]
     mask = selection(infile)
