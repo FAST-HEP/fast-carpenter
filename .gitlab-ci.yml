@@ -1,14 +1,14 @@
 variables:
   TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
 
-before_script:
-  - curl -O https://bootstrap.pypa.io/get-pip.py
-  - python get-pip.py
-  - pip install -r requirements_dev.txt
+# before_script:
+#   - curl -O https://bootstrap.pypa.io/get-pip.py
+#   - python get-pip.py
+#   - pip install -r requirements_dev.txt
 
-after_script:
-  - pip install codecov
-  # - codecov --token=<>
+# after_script:
+#   - pip install codecov
+#   # - codecov --token=<>
 
 stages:
   - quick-checks
