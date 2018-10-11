@@ -1,7 +1,8 @@
 variables:
   TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
 
-# before_script:
+before_script:
+    - pip install .
 #   - curl -O https://bootstrap.pypa.io/get-pip.py
 #   - python get-pip.py
 #   - pip install -r requirements_dev.txt
