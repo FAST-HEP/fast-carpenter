@@ -2,6 +2,7 @@ import pytest
 import uproot
 import fast_chainsaw.selection.stage as stage
 import fast_chainsaw.selection.filters as filters
+import fast_chainsaw.selection.masked_tree as masked
 
 
 @pytest.fixture
@@ -55,14 +56,14 @@ def test_cutflow_1(cutflow_1):
 
 class FakeBEEvent(object):
     def __init__(self, tree):
-        self.tree = tree
+        self.tree = masked.MaskedUprootTree(tree)
 
 
 def test_cutflow_1_executes(cutflow_1, infile):
     chunk = FakeBEEvent(infile)
     cutflow_1.event(chunk)
 
-    assert len(chunk.event_mask) == 289
+    assert len(chunk.tree) == 289
 
     collector = cutflow_1.collector()
     assert collector.filename == "somewhere/cuts_cutflow_1-NElectron.csv"

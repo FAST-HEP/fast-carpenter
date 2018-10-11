@@ -110,11 +110,5 @@ class CutFlow():
         return Collector(outfilename)
 
     def event(self, chunk):
-        mask = None
-        if hasattr(chunk, "event_mask"):
-            mask = chunk.event_mask
-
-        data = MaskedUprootTree(chunk.tree, mask)
-        new_mask = self.selection(data)
-        data.apply_mask(new_mask)
-        setattr(chunk, "event_mask", data.mask)
+        new_mask = self.selection(chunk.tree)
+        chunk.tree.apply_mask(new_mask)
