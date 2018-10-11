@@ -10,7 +10,7 @@ class MaskedUprootTree():
             self.tree = tree
             self._mask = np.arange(len(tree))
 
-        if not mask:
+        if mask is None:
             return
         if isinstance(mask, (tuple, list)):
             mask = np.array(mask)
@@ -22,18 +22,18 @@ class MaskedUprootTree():
         elif mask.dtype.kind == "b":
             if len(mask) != len(tree):
                 raise RuntimeError("boolean mask has a different length to the input tree")
-            self._mask = np.where(mask)
+            self._mask = np.where(mask)[0]
 
     class pandas_wrap():
         def __init__(self, owner):
             self._owner = owner
 
         def df(self, *args, **kwargs):
-            return self.owner.tree.pandas.df(*args, **kwargs).iloc[self.owner._mask]
+            return self._owner.tree.pandas.df(*args, **kwargs).iloc[self._owner._mask]
 
     @property
     def pandas(self):
-        return pandas_wrap(self)
+        return MaskedUprootTree.pandas_wrap(self)
 
     @property
     def mask(self):
