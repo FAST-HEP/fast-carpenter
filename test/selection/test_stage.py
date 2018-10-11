@@ -54,9 +54,16 @@ def test_cutflow_1(cutflow_1):
     assert isinstance(cutflow_1.selection, filters.SingleCut)
 
 
+class FakeBEEvent(object):
+    def __init__(self, tree):
+        self.tree = tree
+
+
 def test_cutflow_1_executes(cutflow_1, infile):
-    cutflow_1.event(infile)
-    assert len(infile.event_mask) == 289
+    chunk = FakeBEEvent(infile)
+    cutflow_1.event(chunk)
+
+    assert len(chunk.event_mask) == 289
 
     collector = cutflow_1.collector()
     assert collector.filename == "somewhere/cuts_cutflow_1-NElectron.csv"

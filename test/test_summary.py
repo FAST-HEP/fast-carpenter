@@ -62,8 +62,11 @@ def test__create_one_dimension_HT(bins_pt):
 
 
 def test__create_binning_list(bins_region, bins_alphaT):
-    binning = summary._create_binning_list("test__create_binning_list", [bins_region, bins_alphaT])
+    ins, outs, binning = summary._create_binning_list("test__create_binning_list", [bins_region, bins_alphaT])
+    assert ins == ["REGION", "AlphaT"]
+    assert outs == ["region", "alphaT"]
     assert len(binning) == 2
+    assert binning[0] is None
 
 
 def test__create_weights_list(weight_list):
@@ -93,11 +96,13 @@ def config_2(bins_alphaT, bins_pt, bins_region, weight_dict):
 
 @pytest.fixture
 def binned_df_1(tmpdir, config_1):
-    return summary.BinnedDataframe("binned_df_1", **config_1)
+    return summary.BinnedDataframe("binned_df_1", out_dir="somewhere", **config_1)
 
 
 def test_BinnedDataframe(binned_df_1, tmpdir):
     assert binned_df_1.name == "binned_df_1"
-    assert len(binned_df_1._binning) == 2
-    assert len(binned_df_1._binning[0]) == 4
+    assert len(binned_df_1._binnings) == 2
+    # bin length for alphaT: nbins, plus 1 for edge, plus 2 for +-inf
+    assert binned_df_1._bin_dims[0] == "AlphaT"
+    assert len(binned_df_1._binnings[0]) == 10 + 1 + 2
     assert len(binned_df_1._weights) == 1
