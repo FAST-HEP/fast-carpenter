@@ -76,3 +76,15 @@ def test_selection_3(config_3, filename):
     assert result[1][0] == 1
     assert result[1][1] == "NMuon > 1"
     assert result[1][2] == 289
+
+
+@pytest.fixture
+def config_jagged():
+    return "subentry == 1 and Muon_Px > 0.3"
+
+
+def test_selection_jagged(config_jagged, filename):
+    selection = filters.build_selection("test_selection_jagged", config_jagged)
+    infile = uproot.open(filename)["events"]
+    mask = selection(infile)
+    assert np.count_nonzero(mask) == 144
