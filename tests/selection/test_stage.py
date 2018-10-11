@@ -6,7 +6,7 @@ import fast_chainsaw.selection.filters as filters
 
 @pytest.fixture
 def infile():
-    filename = "test/data/CMS_HEP_tutorial_ww.root"
+    filename = "tests/data/CMS_HEP_tutorial_ww.root"
     return uproot.open(filename)["events"]
 
 

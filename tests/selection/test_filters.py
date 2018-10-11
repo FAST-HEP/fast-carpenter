@@ -6,7 +6,7 @@ import fast_chainsaw.selection.filters as filters
 
 @pytest.fixture
 def filename():
-    return "test/data/CMS_HEP_tutorial_ww.root"
+    return "tests/data/CMS_HEP_tutorial_ww.root"
 
 
 @pytest.fixture

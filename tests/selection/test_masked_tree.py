@@ -7,7 +7,7 @@ import fast_chainsaw.selection.masked_tree as m_tree
 
 @pytest.fixture
 def infile():
-    filename = "test/data/CMS_HEP_tutorial_ww.root"
+    filename = "tests/data/CMS_HEP_tutorial_ww.root"
     return uproot.open(filename)["events"]
 
 
