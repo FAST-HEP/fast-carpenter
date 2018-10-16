@@ -1,8 +1,8 @@
 import uproot
-
 from atuproot.BEvents import BEvents
 from .masked_tree import MaskedUprootTree
 from .tree_wrapper import WrappedTree
+
 
 class EventBuilder(object):
     def __init__(self, config):
@@ -25,10 +25,10 @@ class EventBuilder(object):
         try:
             rootfile = uproot.open(self.config.inputPaths[0])
             tree = rootfile[self.config.treeName]
-        except:
+        except MemoryError:
             rootfile = uproot.open(self.config.inputPaths[0],
-                               localsource = uproot.FileSource.defaults)
-            tree = rootfile [self.config.treeName]
+                                   localsource=uproot.FileSource.defaults)
+            tree = rootfile[self.config.treeName]
 
         events = BEvents(MaskedUprootTree(WrappedTree(tree)),
                          self.config.nevents_per_block,

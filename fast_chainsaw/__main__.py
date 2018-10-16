@@ -1,13 +1,13 @@
 """
-Summarize them trees into nice little dataframe
+Chop up those trees into nice little tables and dataframes
 """
 from __future__ import print_function
 import fast_flow.v1 as fast_flow
 import fast_curator
+import logging
 import atuproot.atuproot_main as atup
 from .event_builder import EventBuilder
 atup.EventBuilder = EventBuilder
-import logging
 logging.getLogger(__name__).setLevel(logging.INFO)
 
 
@@ -45,15 +45,15 @@ def main(args=None):
     datasets = fast_curator.read.from_yaml(args.dataset_cfg)
 
     process = atup.AtUproot(args.outdir,
-                       quiet=args.quiet,
-                       parallel_mode=args.mode,
-                       process=args.ncores,
-                       max_blocks_per_dataset=args.nblocks_per_dataset,
-                       max_blocks_per_process=args.nblocks_per_sample,
-                       nevents_per_block=args.blocksize,
-                       profile=args.profile,
-                       profile_out_path="profile.txt",
-                       )
+                            quiet=args.quiet,
+                            parallel_mode=args.mode,
+                            process=args.ncores,
+                            max_blocks_per_dataset=args.nblocks_per_dataset,
+                            max_blocks_per_process=args.nblocks_per_sample,
+                            nevents_per_block=args.blocksize,
+                            profile=args.profile,
+                            profile_out_path="profile.txt",
+                            )
 
     sequence = [(s, s.collector()) for s in sequence]
     return process.run(datasets, sequence)

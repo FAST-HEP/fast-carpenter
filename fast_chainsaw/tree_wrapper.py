@@ -89,7 +89,6 @@ class WrappedTree(object):
         def __len__(self):
             return len(self._values)
 
-
     def new_variable(self, name, value):
         if isinstance(value, awkward.JaggedArray):
             length = len(value.content)

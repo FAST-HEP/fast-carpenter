@@ -18,5 +18,3 @@ def get_branches(cut, valid):
             branches.append(".".join(current_branch))
             current_branch = []
     return branches
-
-

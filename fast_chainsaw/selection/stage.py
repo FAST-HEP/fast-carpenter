@@ -4,7 +4,6 @@ from __future__ import absolute_import
 import six
 import pandas as pd
 import os
-from .masked_tree import MaskedUprootTree
 from .filters import build_selection
 
 
