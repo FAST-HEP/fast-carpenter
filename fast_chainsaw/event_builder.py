@@ -2,6 +2,7 @@ import uproot
 
 from atuproot.BEvents import BEvents
 from .masked_tree import MaskedUprootTree
+from .tree_wrapper import WrappedTree
 
 class EventBuilder(object):
     def __init__(self, config):
@@ -29,7 +30,7 @@ class EventBuilder(object):
                                localsource = uproot.FileSource.defaults)
             tree = rootfile [self.config.treeName]
 
-        events = BEvents(MaskedUprootTree(tree),
+        events = BEvents(MaskedUprootTree(WrappedTree(tree)),
                          self.config.nevents_per_block,
                          self.config.start_block,
                          self.config.stop_block)
