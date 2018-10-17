@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import uproot
-import fast_chainsaw.selection.filters as filters
+import fast_carpenter.selection.filters as filters
 
 
 @pytest.fixture

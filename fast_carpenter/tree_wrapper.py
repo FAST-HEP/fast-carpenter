@@ -17,7 +17,7 @@ def wrapped_interpret(branch, **kwargs):
     if result:
         return result
 
-    if isinstance(branch, (WrappedTree.FakeBranchJagged, WrappedTree.FakeBranch)):
+    if isinstance(branch, WrappedTree.FakeBranch):
         return (branch, branch._values)
 
     return None
@@ -67,27 +67,27 @@ class WrappedTree(object):
         def __len__(self):
             return len(self._values)
 
-    class FakeBranchJagged(asjagged):
-        def __init__(self, name, values):
-            self.name = name
-            self._values = values
-            self._fLeaves = []
-
-        def array(self, entrystart=None, entrystop=None, blocking=True, flatten=False, **kws):
-            if flatten:
-                array = self._values.content
-            else:
-                array = self._values
-
-            if not blocking:
-                return lambda: array[entrystart:entrystop]
-            return array[entrystart:entrystop]
-
-        def __getattr__(self, attr):
-            return getattr(self._values, attr)
-
-        def __len__(self):
-            return len(self._values)
+#    class FakeBranchJagged(asjagged):
+#        def __init__(self, name, values):
+#            self.name = name
+#            self._values = values
+#            self._fLeaves = []
+#
+#        def array(self, entrystart=None, entrystop=None, blocking=True, flatten=False, **kws):
+#            if flatten:
+#                array = self._values.content
+#            else:
+#                array = self._values
+#
+#            if not blocking:
+#                return lambda: array[entrystart:entrystop]
+#            return array[entrystart:entrystop]
+#
+#        def __getattr__(self, attr):
+#            return getattr(self._values, attr)
+#
+#        def __len__(self):
+#            return len(self._values)
 
     def new_variable(self, name, value):
         if isinstance(value, awkward.JaggedArray):

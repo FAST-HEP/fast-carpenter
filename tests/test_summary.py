@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-import fast_chainsaw.summary as summary
+import fast_carpenter.summary as summary
 
 
 @pytest.fixture

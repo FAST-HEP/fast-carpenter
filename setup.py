@@ -40,7 +40,7 @@ setup(
     description="F.A.S.T. package for summarizing ROOT TTrees",
     entry_points={
         'console_scripts': [
-            'fast_chainsaw=fast_chainsaw.__main__:main',
+            'fast_carpenter=fast_carpenter.__main__:main',
         ],
     },
     install_requires=requirements,
@@ -50,7 +50,7 @@ setup(
     include_package_data=True,
     keywords=['ROOT', 'pandas', 'analysis', 'particle physics', 'HEP', 'F.A.S.T'],
     name='fast-chainsaw',
-    packages=find_packages(include=['fast_chainsaw']),
+    packages=find_packages(include=['fast_carpenter']),
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,

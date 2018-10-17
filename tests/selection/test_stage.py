@@ -1,8 +1,8 @@
 import pytest
 import uproot
-import fast_chainsaw.selection.stage as stage
-import fast_chainsaw.selection.filters as filters
-from fast_chainsaw.masked_tree import MaskedUprootTree
+import fast_carpenter.selection.stage as stage
+import fast_carpenter.selection.filters as filters
+from fast_carpenter.masked_tree import MaskedUprootTree
 
 
 @pytest.fixture
