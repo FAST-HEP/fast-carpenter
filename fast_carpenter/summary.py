@@ -78,10 +78,15 @@ class BinnedDataframe():
                                     out_weights=self._weights.keys(),
                                     out_dimensions=self._out_bin_dims)
         self.contents = binned_values
+
+        # binned variables will have categorical indices but
+        # Pandas 0.23.4 (current version when writing) has
+        # problems with adding dfs with categorical indices
+        _categoricals_to_strings(self.contents)
         return True
 
     def merge(self, rhs):
-        self.contents = self.contents.add(rhs.contents, fill_value=0)
+        self.contents.radd(rhs.contents, fill_value=0)
 
 
 def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_weights=None):
@@ -122,6 +127,18 @@ def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_we
         histogram.columns = pd.MultiIndex.from_arrays((weight_labels, stats_labels), names=["weight", "statistic"])
     histogram.index.set_names(out_dimensions, inplace=True)
     return histogram
+
+
+def _categoricals_to_strings(df):
+    if not isinstance(df.index, pd.core.index.MultiIndex):
+        if pd.api.types.is_categorical_dtype(df.index):
+            df.index = df.index.astype(str)
+        return
+
+    for i in range(df.index.nlevels):
+        level = df.index.levels[i]
+        if pd.api.types.is_categorical_dtype(level):
+            df.index.levels[i] = level.astype(str)
 
 
 def _create_binning_list(name, bin_list):
