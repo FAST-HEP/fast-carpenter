@@ -2,8 +2,9 @@ import os
 import sys
 
 
-if sys.version_info < (3,2):
+if sys.version_info < (3, 2):
     import errno
+
     def mkdir_p(path):
         try:
             os.makedirs(path)
