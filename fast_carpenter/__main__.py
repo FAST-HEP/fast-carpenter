@@ -7,6 +7,7 @@ import fast_curator
 import logging
 import atuproot.atuproot_main as atup
 from .event_builder import EventBuilder
+from .utils import mkdir_p
 atup.EventBuilder = EventBuilder
 logging.getLogger(__name__).setLevel(logging.INFO)
 
@@ -39,8 +40,9 @@ def process_args(args=None):
 
 def main(args=None):
     args = process_args(args)
+    mkdir_p(args.outdir)
 
-    sequence = fast_flow.read_sequence_yaml(args.sequence_cfg)
+    sequence = fast_flow.read_sequence_yaml(args.sequence_cfg, output_dir=args.outdir)
 
     datasets = fast_curator.read.from_yaml(args.dataset_cfg)
 
