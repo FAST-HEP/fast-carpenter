@@ -1,3 +1,3 @@
-fast-chainsaw
+fast-carpenter
 =============
-Helping you cut down those (ROOT) Trees to something more manageable (ie. turns ROOT TTrees into summary Pandas dataframes).
+Turns your trees into tables (ie. reads ROOT TTrees, writes summary Pandas DataFrames)

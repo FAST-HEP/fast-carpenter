@@ -51,7 +51,7 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr .pytest_cache
 
 lint: ## check style with flake8
-	flake8 --max-line-length=120 fast_chainsaw tests
+	flake8 --max-line-length=120 fast_carpenter tests
 
 test: ## run tests quickly with the default Python
 	pytest -vvv tests/
@@ -60,12 +60,12 @@ test-all: ## run tests on every Python version with tox
 	tox
 
 coverage: ## check code coverage quickly with the default Python
-	pytest --cov=fast_chainsaw tests
+	pytest --cov=fast_carpenter tests
 
 docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs/fast_chainsaw.rst
+	rm -f docs/fast_carpenter.rst
 	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ fast_chainsaw
+	sphinx-apidoc -o docs/ fast_carpenter
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	$(BROWSER) docs/_build/html/index.html
