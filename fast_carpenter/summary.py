@@ -54,8 +54,7 @@ class BinnedDataframe():
         self._weights = _create_weights(self.name, weights)
 
         self._all_inputs = self._bin_dims
-        if self._weights:
-            self._all_inputs += self._weights.values()
+        self._all_inputs += self._weights.values()
 
     def collector(self):
         outfilename = "tbl_"
@@ -181,7 +180,7 @@ def _create_one_dimension(stage_name, _in, _out, _bins=None, _index=None):
 
 def _create_weights(stage_name, weights):
     if weights is None:
-        return None
+        return {}
     if isinstance(weights, list):
         weights = {str(w): w for w in weights}
     elif isinstance(weights, dict):
