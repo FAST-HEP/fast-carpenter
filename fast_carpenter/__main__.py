@@ -40,11 +40,12 @@ def process_args(args=None):
 
 def main(args=None):
     args = process_args(args)
-    mkdir_p(args.outdir)
 
     sequence = fast_flow.read_sequence_yaml(args.sequence_cfg, output_dir=args.outdir)
 
     datasets = fast_curator.read.from_yaml(args.dataset_cfg)
+
+    mkdir_p(args.outdir)
 
     process = atup.AtUproot(args.outdir,
                             quiet=args.quiet,
