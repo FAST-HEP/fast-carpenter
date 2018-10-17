@@ -4,40 +4,41 @@ import pandas as pd
 from ..expressions import get_branches
 
 
+class Counter():
+    def __init__(self, weights):
+        self._weights = weights
+        self._w_counts = np.zeros(len(weights))
+        self._counts = 0
+
+    def increment(self, data, mask=None):
+        if mask is None:
+            self._counts += len(data)
+        elif mask.dtype.kind == "b":
+            self._counts += np.count_nonzero(mask)
+        else:
+            self._counts += len(mask)
+
+        if not self._weights:
+            return
+        if not isinstance(data, pd.DataFrame):
+            data = data.pandas.df(self._weights)
+        if mask is not None:
+            data = data.iloc[mask]
+        summed = data[self._weights].sum(axis=0)
+        self._w_counts += summed
+
+    @property
+    def counts(self):
+        return (self._counts,) + tuple(self._w_counts)
+
+
 class BaseFilter():
-
-    class Counter():
-        def __init__(self, weights):
-            self._weights = weights
-            self._w_counts = np.zeros(len(weights))
-            self._counts = 0
-
-        def increment(self, data, mask=None):
-            if mask is None:
-                self._counts += len(data)
-            elif mask.dtype.kind == "b":
-                self._counts += np.count_nonzero(mask)
-            else:
-                self._counts += len(mask)
-
-            if not self._weights:
-                return
-            if not isinstance(data, pd.DataFrame):
-                data = data.pandas.df(self._weights)
-            if mask is not None:
-                data = data.iloc[mask]
-            summed = data[self._weights].sum(axis=0)
-            self._w_counts += summed
-
-        @property
-        def counts(self):
-            return (self._counts,) + tuple(self._w_counts)
 
     def __init__(self, selection, depth, weights):
         self.selection = selection
         self.depth = depth
-        self.totals = BaseFilter.Counter(weights)
-        self.passed = BaseFilter.Counter(weights)
+        self.totals = Counter(weights)
+        self.passed = Counter(weights)
         self.weights = weights
 
     def results(self):
