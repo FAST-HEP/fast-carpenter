@@ -31,6 +31,10 @@ class Counter():
     def counts(self):
         return (self._counts,) + tuple(self._w_counts)
 
+    def add(self, rhs):
+        self._w_counts += rhs._w_counts
+        self._counts += rhs._counts
+
 
 class BaseFilter():
 
@@ -52,6 +56,13 @@ class BaseFilter():
         header = [["depth", "cut"] + ["passed"] * nweights + ["totals"] * nweights]
         header += [["", "", "unweighted"] + self.weights + ["unweighted"] + self.weights]
         return header
+
+    def merge(self, rhs):
+        self.totals.add(rhs.totals)
+        self.passed.add(rhs.passed)
+        if isinstance(self.selection, list):
+            for sub_lhs, sub_rhs in zip(self.selection, rhs.selection):
+                sub_lhs.merge(sub_rhs)
 
 
 class SingleCut(BaseFilter):

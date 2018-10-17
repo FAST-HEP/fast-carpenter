@@ -77,11 +77,11 @@ class BinnedDataframe():
                                     weights=self._weights.values(),
                                     out_weights=self._weights.keys(),
                                     out_dimensions=self._out_bin_dims)
-        if not self.contents:
-            self.contents = binned_values
-        else:
-            self.contents = self.contents.add(binned_values, fill_value=0)
+        self.contents = binned_values
         return True
+
+    def merge(self, rhs):
+        self.contents = self.contents.add(rhs.contents, fill_value=0)
 
 
 def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_weights=None):

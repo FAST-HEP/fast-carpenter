@@ -111,3 +111,6 @@ class CutFlow():
     def event(self, chunk):
         new_mask = self.selection(chunk.tree)
         chunk.tree.apply_mask(new_mask)
+
+    def merge(self, rhs):
+        self.selection.merge(rhs.selection)
