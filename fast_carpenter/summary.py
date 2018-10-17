@@ -62,7 +62,8 @@ class BinnedDataframe():
         if self._dataset_col:
             outfilename += "dataset."
         outfilename += ".".join(self._out_bin_dims)
-        outfilename += "--" + ".".join(self._weights.keys())
+        if self._weights:
+            outfilename += "--" + ".".join(self._weights.keys())
         outfilename += ".csv"
         outfilename = os.path.join(self.out_dir, outfilename)
         return Collector(outfilename, self._dataset_col)
