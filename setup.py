@@ -8,14 +8,11 @@ from setuptools import setup, find_packages
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
-#with open('HISTORY.rst') as history_file:
-#    history = history_file.read()
+# with open('HISTORY.rst') as history_file:
+#     history = history_file.read()
 
-requirements = ['atuproot', 'fast-flow', 'fast-curator']
-repositories = ['git+https://github.com/shane-breeze/atuproot.git#egg=atuproot',
-		'git+https://gitlab.cern.ch/fast-hep/public/fast-flow.git#egg=fast-flow',
-		'git+https://gitlab.cern.ch/fast-hep/public/fast-curator.git#egg=fast-curator'
-		]
+requirements = ['atuproot', 'fast-flow', 'fast-curator', 'awkward']
+repositories = []
 
 setup_requirements = ['pytest-runner', ]
 
@@ -46,7 +43,7 @@ setup(
     install_requires=requirements,
     dependency_links=repositories,
     license="Apache Software License 2.0",
-    long_description=readme, #+ '\n\n' + history,
+    long_description=readme,  # + '\n\n' + history,
     include_package_data=True,
     keywords=['ROOT', 'pandas', 'analysis', 'particle physics', 'HEP', 'F.A.S.T'],
     name='fast-carpenter',
