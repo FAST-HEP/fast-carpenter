@@ -11,7 +11,7 @@ with open('README.md') as readme_file:
 # with open('HISTORY.rst') as history_file:
 #     history = history_file.read()
 
-requirements = ['atuproot', 'fast-flow', 'fast-curator', 'awkward', 'pandas', 'numpy', 'numba']
+requirements = ['atuproot', 'fast-flow', 'fast-curator', 'awkward', 'pandas', 'numpy', 'numba', 'six']
 repositories = []
 
 setup_requirements = ['pytest-runner', ]

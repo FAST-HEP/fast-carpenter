@@ -1,10 +1,10 @@
-import StringIO
+from six import StringIO
 import tokenize
 
 
 def get_branches(cut, valid):
     branches = []
-    string = StringIO.StringIO(cut).readline
+    string = StringIO(cut).readline
     tokens = tokenize.generate_tokens(string)
     current_branch = []
     for toknum, tokval, _, _, _ in tokens:
