@@ -53,6 +53,7 @@ class WrappedTree(object):
             if isinstance(values, (awkward.JaggedArray, asjagged)):
                 self._values = values.content
             self._fLeaves = []
+            self.fLeaves = []
 
         def array(self, entrystart=None, entrystop=None, blocking=True, **kws):
             array = self._values
@@ -97,7 +98,8 @@ class WrappedTree(object):
             length = len(value)
             outputtype = WrappedTree.FakeBranch
         if length != len(self.tree):
-            raise ValueError("New array does not have the right length: %d not %d" % (length, len(self.tree)))
+            msg = "New array %s does not have the right length: %d not %d"
+            raise ValueError(msg % (name, length, len(self.tree)))
         self.extras[name] = outputtype(name, value)
 
     def __getattr__(self, attr):
