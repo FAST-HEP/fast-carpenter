@@ -31,7 +31,6 @@ linters:
 build:
   stage: build
   script:
-    - make install-dev
     - make dist
   artifacts:
     paths:
