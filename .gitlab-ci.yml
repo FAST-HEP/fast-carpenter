@@ -53,9 +53,9 @@ python37:
   stage: test
   script: tox -e py37
 
-docs:
-  stage: test
-  script: make docs
+# docs:
+#   stage: test
+#   script: make docs
 
 speed-challenge:
   stage: challenges
