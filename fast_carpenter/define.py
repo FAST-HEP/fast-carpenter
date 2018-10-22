@@ -35,10 +35,10 @@ def parents2startsstops(parents):
 
 class Define():
 
-    def __init__(self, name, out_dir, **variables):
+    def __init__(self, name, out_dir, variables):
         self.name = name
         self.out_dir = out_dir
-        self._variables = _build_calculations(variables)
+        self._variables = _build_calculations(name, variables)
 
     def collector(self):
         return Collector()
@@ -47,9 +47,8 @@ class Define():
         self.contents = None
 
     def event(self, chunk):
-        allkeys = chunk.tree.allkeys()
-        for output, (expression, reduction, fill_missing) in self._variables.items():
-            branches = get_branches(expression, allkeys)
+        for output, expression, reduction, fill_missing in self._variables:
+            branches = get_branches(expression, chunk.tree.allkeys())
             data = chunk.tree.pandas.df(branches)
             result = data.eval(expression)
             if reduction:
@@ -65,16 +64,28 @@ class Define():
         return True
 
 
-def _build_calculations(variables):
-    return {name: _build_one_calc(name, config) for name, config in variables.items()}
+def _build_calculations(stage_name, variables):
+    calculations = []
+    for var in variables:
+        if not isinstance(var, dict):
+            msg = "{}: To define a variable, give me a dictionary for each variable."
+            raise RuntimeError(msg.format(stage_name))
+        if len(var) != 1:
+            msg = "{}: Dictionary to define a variable should have only 1 key-value pair"
+            raise RuntimeError(msg.format(stage_name))
+        name, config = list(var.items())[0]
+        calculations.append(_build_one_calc(stage_name, name, config))
+    return calculations
 
 
-def _build_one_calc(name, config):
+def _build_one_calc(stage_name, name, config):
     if isinstance(config, six.string_types):
-        return (config, None, None)
+        return (name, config, None, None)
     if not isinstance(config, dict):
-        raise RuntimeError("To define a new variable need either a string for just a formula or a dictionary")
+        msg = "{}: To define a new variable need either a string for just a formula or a dictionary"
+        raise RuntimeError(msg.format(stage_name))
     if [key for key in config.keys() if key not in ("reduce", "formula", "fill_missing")]:
-        raise RuntimeError("unknown parameter parsed defining variable '{}'".format(name))
+        msg = "{}: Unknown parameter parsed defining variable '{}'"
+        raise RuntimeError(msg.format(stage_name, name))
     reduction = getattr(reductions, config["reduction"]) if "reduction" in config else None
-    return config["formula"], reduction, config.get("fill_missing", float("NaN"))
+    return name, config["formula"], reduction, config.get("fill_missing", float("NaN"))
