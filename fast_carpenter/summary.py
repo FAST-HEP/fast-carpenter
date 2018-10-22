@@ -86,7 +86,7 @@ class BinnedDataframe():
         return True
 
     def merge(self, rhs):
-        self.contents.radd(rhs.contents, fill_value=0)
+        self.contents = self.contents.add(rhs.contents, fill_value=0)
 
 
 def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_weights=None):
