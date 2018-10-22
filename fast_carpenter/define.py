@@ -54,14 +54,27 @@ class Define():
             if reduction:
                 groups = result.groupby(level=0)
                 result = groups.aggregate(reduction)
-                result.index.set_levels(np.concatenate(groups.indices.values()), 0)
-                result = result.reindex(np.arange(len(data))).fillna(fill_missing)
-                starts, stops = parents2startsstops()
+                result = _pad_empty_events(result, groups, fill_missing)
+                starts, stops = parents2startsstops(result.index.values)
             else:
                 starts, stops = parents2startsstops(result.index.get_level_values(0).values)
             array = JaggedArray(starts, stops, result.values)
             chunk.tree.new_variable(output, array)
         return True
+
+
+def _pad_empty_events(result, groups, fill_missing):
+    values = np.concatenate(groups.indices.values())
+    # Pandas GroupBy objects absorb empty events into the proceeding one
+    empty = [v[1:] for v in groups.indices.values() if len(v) != 1]
+    if empty:
+        empty = np.concatenate(empty)
+        contained = np.setdiff1d(values, empty)
+        result.index = contained
+        result = result.reindex(values)
+    if fill_missing is not None:
+        result = result.fillna(fill_missing)
+    return result
 
 
 def _build_calculations(stage_name, variables):
@@ -87,5 +100,5 @@ def _build_one_calc(stage_name, name, config):
     if [key for key in config.keys() if key not in ("reduce", "formula", "fill_missing")]:
         msg = "{}: Unknown parameter parsed defining variable '{}'"
         raise RuntimeError(msg.format(stage_name, name))
-    reduction = getattr(reductions, config["reduction"]) if "reduction" in config else None
-    return name, config["formula"], reduction, config.get("fill_missing", float("NaN"))
+    reduction = getattr(reductions, config["reduce"]) if "reduce" in config else None
+    return name, config["formula"], reduction, config.get("fill_missing", None)
