@@ -12,11 +12,6 @@ class BadVariablesConfig(Exception):
     pass
 
 
-class Collector():
-    def collect(self, *args, **kwargs):
-        pass
-
-
 @numba.njit
 def parents2startsstops(parents):
     changes = np.zeros(parents.max() + 2, dtype=numba.int32)
@@ -39,12 +34,6 @@ class Define():
         self.name = name
         self.out_dir = out_dir
         self._variables = _build_calculations(name, variables)
-
-    def collector(self):
-        return Collector()
-
-    def begin(self, event):
-        self.contents = None
 
     def event(self, chunk):
         for output, expression, reduction, fill_missing in self._variables:

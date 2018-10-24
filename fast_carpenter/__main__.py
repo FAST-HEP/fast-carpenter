@@ -12,6 +12,11 @@ atup.EventBuilder = EventBuilder
 logging.getLogger(__name__).setLevel(logging.INFO)
 
 
+class DummyCollector():
+    def collect(self, *args, **kwargs):
+        pass
+
+
 def process_args(args=None):
     from argparse import ArgumentParser
     parser = ArgumentParser(description=__doc__)
@@ -58,7 +63,7 @@ def main(args=None):
                             profile_out_path="profile.txt",
                             )
 
-    sequence = [(s, s.collector()) for s in sequence]
+    sequence = [(s, s.collector() if hasattr(s, "collector") else DummyCollector()) for s in sequence ]
     return process.run(datasets, sequence)
 
 
