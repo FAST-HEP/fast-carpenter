@@ -43,7 +43,7 @@ class Define():
             if reduction:
                 groups = result.groupby(level=0)
                 result = groups.aggregate(reduction)
-                result = _pad_empty_events(result, groups, fill_missing)
+                # result = _pad_empty_events(result, groups, fill_missing)
                 starts, stops = parents2startsstops(result.index.values)
             else:
                 starts, stops = parents2startsstops(result.index.get_level_values(0).values)
