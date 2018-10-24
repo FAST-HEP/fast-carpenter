@@ -8,7 +8,7 @@ class MaskedUprootTree():
             self._mask = tree._mask
         else:
             self.tree = tree
-            self._mask = np.arange(len(tree))
+            self._mask = mask
 
         if mask is None:
             return
@@ -30,6 +30,8 @@ class MaskedUprootTree():
 
         def df(self, *args, **kwargs):
             df = self._owner.tree.pandas.df(*args, **kwargs)
+            if self._owner._mask is None:
+                return df
             return df.loc[self._owner._mask]
 
     @property
@@ -41,9 +43,14 @@ class MaskedUprootTree():
         return self._mask
 
     def apply_mask(self, new_mask):
-        self._mask = self._mask[new_mask]
+        if self._mask is None:
+            self._mask = new_mask
+        else:
+            self._mask = self._mask[new_mask]
 
     def __len__(self):
+        if self._mask is None:
+            return len(self.tree)
         return len(self._mask)
 
     def __getattr__(self, attr):
