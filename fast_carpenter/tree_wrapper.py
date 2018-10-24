@@ -6,13 +6,13 @@ a branch to uproot trees with no changes to actual code in uproot and with
 minimal coding on my side...
 """
 import uproot
-from uproot.interp.auto import interpret
 from uproot.interp.jagged import asjagged
 import copy
 import awkward
 
 
 def wrapped_interpret(branch, **kwargs):
+    from uproot.interp.auto import interpret
     result = interpret(branch, **kwargs)
     if result:
         return result
@@ -68,38 +68,12 @@ class WrappedTree(object):
         def __len__(self):
             return len(self._values)
 
-#    class FakeBranchJagged(asjagged):
-#        def __init__(self, name, values):
-#            self.name = name
-#            self._values = values
-#            self._fLeaves = []
-#
-#        def array(self, entrystart=None, entrystop=None, blocking=True, flatten=False, **kws):
-#            if flatten:
-#                array = self._values.content
-#            else:
-#                array = self._values
-#
-#            if not blocking:
-#                return lambda: array[entrystart:entrystop]
-#            return array[entrystart:entrystop]
-#
-#        def __getattr__(self, attr):
-#            return getattr(self._values, attr)
-#
-#        def __len__(self):
-#            return len(self._values)
-
     def new_variable(self, name, value):
-        if isinstance(value, awkward.JaggedArray):
-            length = len(value.content)
-            outputtype = WrappedTree.FakeBranch
-        else:
-            length = len(value)
-            outputtype = WrappedTree.FakeBranch
-        if length != len(self.tree):
+        if len(value) != len(self.tree):
             msg = "New array %s does not have the right length: %d not %d"
-            raise ValueError(msg % (name, length, len(self.tree)))
+            raise ValueError(msg % (name, len(value), len(self.tree)))
+
+        outputtype = WrappedTree.FakeBranch
         self.extras[name] = outputtype(name, value)
 
     def __getattr__(self, attr):
