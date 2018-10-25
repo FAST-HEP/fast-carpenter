@@ -69,8 +69,10 @@ def _create_weights(stage_name, weights):
     if isinstance(weights, (tuple, list)):
         weights = {w: w for w in weights}
     if isinstance(weights, dict):
-        if filter(lambda x: not isinstance(x, six.string_types), weights.values()):
-            raise BadCutflowConfig(stage_name + ": one weight is something other than a string")
+        non_strings = tuple(filter(lambda x: not isinstance(x, six.string_types), weights.values()))
+        if non_strings:
+            msg = "{}: weight not all string, '{}'"
+            raise BadCutflowConfig(msg.format(stage_name, non_strings))
         return weights
 
     raise BadCutflowConfig("{}: Cannot process weight specification".format(stage_name))
@@ -98,7 +100,7 @@ class CutFlow():
         if self._counter:
             self._weights = _create_weights(self.name, weights)
 
-        self.selection = build_selection(self.name, selection, weights=self._weights.values())
+        self.selection = build_selection(self.name, selection, weights=list(self._weights.values()))
 
     def collector(self):
         outfilename = "cuts_"
