@@ -1,3 +1,5 @@
+image: python
+
 variables:
   TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
 
@@ -28,7 +30,6 @@ linters:
     # - tox -e linters
 
 build:
-  image: python
   stage: build
   script:
     - make install
