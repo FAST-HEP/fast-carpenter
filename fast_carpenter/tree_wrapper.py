@@ -29,13 +29,12 @@ uproot.tree.interpret = wrapped_interpret
 class WrappedTree(object):
     def __init__(self, tree, event_ranger):
         self.tree = copy.copy(tree)
-        self.extras = {}
         self.tree.old_itervalues = self.tree.itervalues
         self.tree.itervalues = self.itervalues
         self.tree.old_arrays = self.tree.arrays
         self.tree.arrays = self.arrays
-        self.branch_cache = {}
         self.event_ranger = event_ranger
+        self.reset_cache()
 
     def itervalues(self, *args, **kwargs):
         for array in self.extras.values():
@@ -48,7 +47,7 @@ class WrappedTree(object):
         return self.tree.old_arrays(*args, **kwargs)
 
     def update_array_args(self, kwargs):
-        # kwargs.setdefault("cache", self.branch_cache)
+        kwargs.setdefault("cache", self.branch_cache)
         kwargs.setdefault("entrystart", self.event_ranger.start_entry)
         kwargs.setdefault("entrystop", self.event_ranger.stop_entry)
 
@@ -112,3 +111,7 @@ class WrappedTree(object):
         if chunk_size:
             return chunk_size
         return len(self.tree)
+
+    def reset_cache(self):
+        self.branch_cache = {}
+        self.extras = {}

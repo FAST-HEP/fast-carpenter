@@ -28,6 +28,29 @@ class EventRanger():
         return None
 
 
+class BEventsWrapped(BEvents):
+    def __init__(self, tree, *args, **kwargs):
+        ranges = EventRanger()
+        tree = MaskedUprootTree(WrappedTree(tree, ranges))
+        super(BEventsWrapped, self).__init__(tree, *args, **kwargs)
+        ranges.set_owner(self)
+
+    def _block_changed(self):
+        self.tree.reset_mask()
+        self.tree.reset_cache()
+
+    def __getitem__(self, i):
+        result = super(BEventsWrapped, self).__getitem__(self, i)
+        self._block_changed()
+        return result
+
+    def __iter__(self):
+        for value in super(BEventsWrapped, self).__iter__():
+            self._block_changed()
+            yield value
+        self._block_changed()
+
+
 class EventBuilder(object):
     def __init__(self, config):
         self.config = config
@@ -55,11 +78,9 @@ class EventBuilder(object):
             tree = rootfile[self.config.treeName]
 
 
-        ranges = EventRanger()
-        events = BEvents(MaskedUprootTree(WrappedTree(tree, ranges)),
+        events = BEventsWrapped(tree,
                          self.config.nevents_per_block,
                          self.config.start_block,
                          self.config.stop_block)
         events.config = self.config
-        ranges.set_owner(events)
         return events

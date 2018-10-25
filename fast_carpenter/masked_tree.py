@@ -56,3 +56,6 @@ class MaskedUprootTree():
 
     def __getattr__(self, attr):
         return getattr(self.tree, attr)
+
+    def reset_mask(self):
+        self._mask = None
