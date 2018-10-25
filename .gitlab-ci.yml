@@ -28,9 +28,10 @@ linters:
     # - tox -e linters
 
 build:
+  image: python
   stage: build
   script:
-    - make install-dev
+    - make install
     - make dist
   artifacts:
     paths:
