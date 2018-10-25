@@ -6,23 +6,15 @@ class MaskedUprootTree():
         if isinstance(tree, MaskedUprootTree):
             self.tree = tree.tree
             self._mask = tree._mask
-        else:
-            self.tree = tree
-            self._mask = mask
+            return
+
+        self.tree = tree
 
         if mask is None:
+            self._mask = None
             return
-        if isinstance(mask, (tuple, list)):
-            mask = np.array(mask)
-        elif not isinstance(mask, np.ndarray):
-            raise RuntimeError("mask is not a numpy array, a list, or a tuple")
 
-        if np.issubdtype(mask.dtype, np.integer):
-            self._mask = mask
-        elif mask.dtype.kind == "b":
-            if len(mask) != len(tree):
-                raise RuntimeError("boolean mask has a different length to the input tree")
-            self._mask = np.where(mask)[0]
+        self._mask = _normalise_mask(mask, len(self.tree))
 
     class pandas_wrap():
         def __init__(self, owner):
@@ -45,7 +37,7 @@ class MaskedUprootTree():
 
     def apply_mask(self, new_mask):
         if self._mask is None:
-            self._mask = new_mask
+            self._mask = _normalise_mask(new_mask, len(self.tree))
         else:
             self._mask = self._mask[new_mask]
 
@@ -59,3 +51,17 @@ class MaskedUprootTree():
 
     def reset_mask(self):
         self._mask = None
+
+
+def _normalise_mask(mask, tree_length):
+    if isinstance(mask, (tuple, list)):
+        mask = np.array(mask)
+    elif not isinstance(mask, np.ndarray):
+        raise RuntimeError("mask is not a numpy array, a list, or a tuple")
+
+    if np.issubdtype(mask.dtype, np.integer):
+        return mask
+    elif mask.dtype.kind == "b":
+        if len(mask) != tree_length:
+            raise RuntimeError("boolean mask has a different length to the input tree")
+        return np.where(mask)[0]
