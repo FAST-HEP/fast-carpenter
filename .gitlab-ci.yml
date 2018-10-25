@@ -18,7 +18,6 @@ stages:
   - quick-checks
   - build
   - test
-  - challenges
   - deploy
   - cleanup
 
@@ -54,20 +53,9 @@ python37:
   stage: test
   script: tox -e py37
 
-docs:
-  stage: test
-  script: make docs
-
-speed-challenge:
-  stage: challenges
-  script:
-    - mkdir -p challenges
-    - echo "Running speed challenges"
-    - python run.py --output-dir challenges
-    - echo "Evaluating results"
-  artifacts:
-    paths:
-      - challenges
+# docs:
+#   stage: test
+#   script: make docs
 
 deploy_pypi:
   image: python
