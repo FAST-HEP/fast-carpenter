@@ -116,7 +116,7 @@ def build_selection(stage_name, config, weights=[], depth=0):
     if len(config) != 1:
         raise RuntimeError(stage_name + ":Selection config has too many keys")
 
-    method, selections = config.items()[0]
+    method, selections = tuple(config.items())[0]
     if method not in ("All", "Any"):
         raise RuntimeError(stage_name + ": Unknown selection combination method," + method)
 

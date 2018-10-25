@@ -35,7 +35,7 @@ def tree_w_mask_int(infile):
 
 def test_no_mask(tree_no_mask, infile):
     assert len(tree_no_mask) == len(infile)
-    assert np.all(tree_no_mask.mask == np.arange(len(infile)))
+    assert tree_no_mask.mask is None
     assert np.all(tree_no_mask.pandas.df("EventWeight") == infile.pandas.df("EventWeight"))
 
 

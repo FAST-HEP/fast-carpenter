@@ -22,8 +22,8 @@ def test__create_weights_single_string():
     weights = stage._create_weights("test__create_weights_none", weights)
     assert isinstance(weights, dict)
     assert len(weights) == 1
-    assert weights.keys() == ["dummy_weight"]
-    assert weights.keys() == weights.values()
+    assert list(weights.keys()) == ["dummy_weight"]
+    assert all([k == v for k, v in weights.items()])
 
 
 def test__create_weights_list():
@@ -31,8 +31,8 @@ def test__create_weights_list():
     weights = stage._create_weights("test__create_weights_none", weights)
     assert isinstance(weights, dict)
     assert len(weights) == 2
-    assert sorted(weights.keys()) == sorted(["hello", "world"])
-    assert weights.keys() == weights.values()
+    assert list(sorted(weights.keys())) == sorted(["hello", "world"])
+    assert all([k == v for k, v in weights.items()])
 
 
 def test__create_weights_dict():
@@ -40,8 +40,8 @@ def test__create_weights_dict():
     weights = stage._create_weights("test__create_weights_none", weights)
     assert isinstance(weights, dict)
     assert len(weights) == 2
-    assert sorted(weights.keys()) == sorted(["HEY", "EARTH"])
-    assert sorted(weights.values()) == sorted(["hello", "world"])
+    assert list(sorted(weights.keys())) == sorted(["HEY", "EARTH"])
+    assert list(sorted(weights.values())) == sorted(["hello", "world"])
 
 
 @pytest.fixture
