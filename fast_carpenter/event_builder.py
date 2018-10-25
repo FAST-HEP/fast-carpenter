@@ -77,10 +77,9 @@ class EventBuilder(object):
                                    localsource=uproot.FileSource.defaults)
             tree = rootfile[self.config.treeName]
 
-
         events = BEventsWrapped(tree,
-                         self.config.nevents_per_block,
-                         self.config.start_block,
-                         self.config.stop_block)
+                                self.config.nevents_per_block,
+                                self.config.start_block,
+                                self.config.stop_block)
         events.config = self.config
         return events

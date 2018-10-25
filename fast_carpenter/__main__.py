@@ -65,7 +65,7 @@ def main(args=None):
                             profile_out_path="profile.txt",
                             )
 
-    sequence = [(s, s.collector() if hasattr(s, "collector") else DummyCollector()) for s in sequence ]
+    sequence = [(s, s.collector() if hasattr(s, "collector") else DummyCollector()) for s in sequence]
     return process.run(datasets, sequence)
 
 
