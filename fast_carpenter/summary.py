@@ -71,7 +71,7 @@ class BinnedDataframe():
         self.contents = None
 
     def event(self, chunk):
-        data = chunk.tree.pandas.df(self._all_inputs, flatten=True)
+        data = chunk.tree.pandas.df(self._all_inputs)
         binned_values = _bin_values(data, dimensions=self._bin_dims,
                                     binnings=self._binnings,
                                     weights=self._weights.values(),

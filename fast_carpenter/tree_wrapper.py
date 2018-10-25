@@ -48,7 +48,7 @@ class WrappedTree(object):
         return self.tree.old_arrays(*args, **kwargs)
 
     def update_array_args(self, kwargs):
-        kwargs.setdefault("cache", self.branch_cache)
+        # kwargs.setdefault("cache", self.branch_cache)
         kwargs.setdefault("entrystart", self.event_ranger.start_entry)
         kwargs.setdefault("entrystop", self.event_ranger.stop_entry)
 
@@ -66,20 +66,29 @@ class WrappedTree(object):
         return WrappedTree.pandas_wrap(self)
 
     class FakeBranch(object):
-        def __init__(self, name, values):
+        def __init__(self, name, values, event_ranger):
             self.name = name
             self._values = values
             if isinstance(values, (awkward.JaggedArray, asjagged)):
                 self._values = values.content
             self._fLeaves = []
             self.fLeaves = []
+            self.event_ranger = event_ranger
 
         def array(self, entrystart=None, entrystop=None, blocking=True, **kws):
             array = self._values
+            if entrystart:
+                entrystart -= self.event_ranger.start_entry
+            if entrystop:
+                entrystop -= self.event_ranger.start_entry
+
+            def wait():
+                values = array[entrystart:entrystop]
+                return values
 
             if not blocking:
-                return lambda: array[entrystart:entrystop]
-            return array[entrystart:entrystop]
+                return wait
+            return wait()
 
         def __getattr__(self, attr):
             return getattr(self._values, attr)
@@ -88,13 +97,12 @@ class WrappedTree(object):
             return len(self._values)
 
     def new_variable(self, name, value):
-        entries_in_block = self.event_ranger.entries_in_block
-        if len(value) != entries_in_block:
+        if len(value) != len(self):
             msg = "New array %s does not have the right length: %d not %d"
-            raise ValueError(msg % (name, len(value), entries_in_block))
+            raise ValueError(msg % (name, len(value), len(self)))
 
         outputtype = WrappedTree.FakeBranch
-        self.extras[name] = outputtype(name, value)
+        self.extras[name] = outputtype(name, value, self.event_ranger)
 
     def __getattr__(self, attr):
         return getattr(self.tree, attr)

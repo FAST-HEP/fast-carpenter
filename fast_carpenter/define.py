@@ -14,9 +14,9 @@ class BadVariablesConfig(Exception):
 
 @numba.njit
 def parents2startsstops(parents):
-    changes = np.zeros(parents.max() + 2, dtype=numba.int32)
-    count = 0
-    last_parent = 0
+    start = parents.min()
+    changes = np.zeros(parents.max() + 2 - start, dtype=numba.int32)
+    last_parent = start
     out_change = 1
     for count, parent in enumerate(parents):
         step_parent = parent - last_parent
