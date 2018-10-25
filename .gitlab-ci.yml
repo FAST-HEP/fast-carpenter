@@ -18,6 +18,7 @@ stages:
   - quick-checks
   - build
   - test
+  - coverage
   - deploy
   - cleanup
 
@@ -53,6 +54,10 @@ python37:
   stage: test
   script: tox -e py37
 
+coverage:
+  stage: coverage
+  script: make coverage
+
 # docs:
 #   stage: test
 #   script: make docs
@@ -71,7 +76,6 @@ deploy_pypi:
     - tags
   except:
     - branches
-
 
 cleanup_pypirc:
   image: python
