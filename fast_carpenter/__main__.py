@@ -10,6 +10,7 @@ from .event_builder import EventBuilder
 from atsge.build_parallel import build_parallel
 from .utils import mkdir_p
 atup.EventBuilder = EventBuilder
+atup.build_parallel = build_parallel
 logging.getLogger(__name__).setLevel(logging.INFO)
 
 
@@ -54,22 +55,15 @@ def main(args=None):
     mkdir_p(args.outdir)
 
     process = atup.AtUproot(args.outdir,
-                            quiet=True,
-                            parallel_mode="multiprocessing",
-                            process=0,
+                            quiet=args.quiet,
+                            parallel_mode=args.mode,
+                            process=args.ncores,
                             max_blocks_per_dataset=args.nblocks_per_dataset,
                             max_blocks_per_process=args.nblocks_per_sample,
                             nevents_per_block=args.blocksize,
                             profile=args.profile,
                             profile_out_path="profile.txt",
                             )
-    process.parallel = build_parallel(
-        parallel_mode=args.mode,
-        quiet=args.quiet,
-        processes=args.ncores,
-        user_modules=(),
-        dispatcher_options={}
-    )
 
     sequence = [(s, s.collector() if hasattr(s, "collector") else DummyCollector()) for s in sequence ]
     return process.run(datasets, sequence)
