@@ -32,7 +32,8 @@ class MaskedUprootTree():
             df = self._owner.tree.pandas.df(*args, **kwargs)
             if self._owner._mask is None:
                 return df
-            return df.loc[self._owner._mask]
+            masked = df.loc[self._owner._mask]
+            return masked
 
     @property
     def pandas(self):
