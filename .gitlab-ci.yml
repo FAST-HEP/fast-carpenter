@@ -70,8 +70,8 @@ deploy_pypi:
     - echo "username =" $PYPI_USER >> ~/.pypirc
     - echo "password =" $PYPI_PASSWORD >> ~/.pypirc
     - pip install -U twine setuptools
-    # - python setup.py check sdist bdist_wheel
-    # - twine upload dist/*
+    - python setup.py check sdist bdist_wheel
+    - twine upload dist/*
   only:
     - tags
   except:
