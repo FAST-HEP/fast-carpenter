@@ -19,7 +19,7 @@ setup_requirements = ['pytest-runner', ]
 test_requirements = ['pytest', 'flake8', 'pytest-cov']
 
 setup(
-    author="F.A.S.T",
+    author="Ben Krikler",
     author_email='fast-hep@cern.ch',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

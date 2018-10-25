@@ -1,3 +1,8 @@
+[![pypi package](https://img.shields.io/pypi/v/fast-carpenter.svg)](https://pypi.org/project/fast-carpenter/)
+[![pipeline status](https://gitlab.cern.ch/fast-hep/public/fast-carpenter/badges/master/pipeline.svg)](https://gitlab.cern.ch/fast-hep/public/fast-carpenter/commits/master)
+[![coverage report](https://gitlab.cern.ch/fast-hep/public/fast-carpenter/badges/master/coverage.svg)](https://gitlab.cern.ch/fast-hep/public/fast-carpenter/commits/master)
+
+
 fast-carpenter
 =============
 Turns your trees into tables (ie. reads ROOT TTrees, writes summary Pandas DataFrames)
@@ -24,12 +29,12 @@ pip install --user fast-carpenter
 ```
 or if you want to be able to edit code in this repo:
 ```
-git clone ssh://git@gitlab.cern.ch:7999/fast-hep/public/fast-carpenter.git 
-cd fast-carpenter
-pip install --user -e .
+pip install --user -e git+https://gitlab.cern.ch/fast-hep/public/fast-carpenter.git#egg=fast_carpenter --src .
 ```
 Note that to use this repository and the main `fast_carpenter` command, you normally shouldn't need to be able to edit this codebase;
-in most instances the full analysis should be describable with just a config file, and in some cases custom, analysis-specific stages for instance to create more tricky variables.
+in most instances the full analysis should be describable with just a config file, and in some cases custom, analysis-specific stages to create more tricky variables for example.
+
+Also note that if you install this with pip, the main executable, `fast_carpenter`, will only be available everywhere if include the directory `~/.local/bin` in your `PATH` variable.
 
 ## Documentation
 ### Basic usage:
@@ -38,6 +43,11 @@ in most instances the full analysis should be describable with just a config fil
 3. Run things:
 ```bash
 fast_carpenter datasets.yaml processing.yaml
+```
+
+You can use the built-in help as well for more info:
+```
+fast_carpenter --help
 ```
 
 ### The processing config file
