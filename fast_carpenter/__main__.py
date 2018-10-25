@@ -7,8 +7,10 @@ import fast_curator
 import logging
 import atuproot.atuproot_main as atup
 from .event_builder import EventBuilder
+from atsge.build_parallel import build_parallel
 from .utils import mkdir_p
 atup.EventBuilder = EventBuilder
+atup.build_parallel = build_parallel
 logging.getLogger(__name__).setLevel(logging.INFO)
 
 
@@ -63,7 +65,7 @@ def main(args=None):
                             profile_out_path="profile.txt",
                             )
 
-    sequence = [(s, s.collector() if hasattr(s, "collector") else DummyCollector()) for s in sequence ]
+    sequence = [(s, s.collector() if hasattr(s, "collector") else DummyCollector()) for s in sequence]
     return process.run(datasets, sequence)
 
 
