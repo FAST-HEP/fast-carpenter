@@ -18,7 +18,10 @@ def wrapped_interpret(branch, **kwargs):
         return result
 
     if isinstance(branch, WrappedTree.FakeBranch):
-        return (branch, branch._values)
+        if isinstance(branch._values, awkward.JaggedArray):
+            return asjagged(branch._values.content)
+        else:
+            return branch._values
 
     return None
 
@@ -68,8 +71,6 @@ class WrappedTree(object):
         def __init__(self, name, values, event_ranger):
             self.name = name
             self._values = values
-            if isinstance(values, (awkward.JaggedArray, asjagged)):
-                self._values = values.content
             self._fLeaves = []
             self.fLeaves = []
             self.event_ranger = event_ranger
