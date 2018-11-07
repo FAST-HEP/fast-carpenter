@@ -87,6 +87,8 @@ class BinnedDataframe():
 
 _count_label = "n"
 _weight_labels = ["sumw", "sumw2"]
+
+
 def _make_column_labels(weights):
     weight_labels = [w + ":" + l for l in _weight_labels for w in weights]
     return [_count_label] + weight_labels
