@@ -85,6 +85,15 @@ class BinnedDataframe():
         self.contents = self.contents.add(rhs.contents, fill_value=0)
 
 
+_count_label = "n"
+_weight_labels = ["sumw", "sumw2"]
+
+
+def _make_column_labels(weights):
+    weight_labels = [w + ":" + l for l in _weight_labels for w in weights]
+    return [_count_label] + weight_labels
+
+
 def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_weights=None):
     if not out_dimensions:
         out_dimensions = dimensions
@@ -110,17 +119,11 @@ def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_we
     if weights:
         sums = bins[weights].sum()
         sum_sqs = bins[weight_sq_dims].sum()
+        histogram = pd.concat([counts, sums, sum_sqs], axis="columns")
+        histogram.columns = _make_column_labels(out_weights)
     else:
-        sums = counts
-        sum_sqs = counts
+        histogram = counts.to_frame(_count_label)
 
-    histogram = pd.concat([counts, sums, sum_sqs], axis="columns")
-    if not weights or len(weights) == 1:
-        histogram.columns = ["count", "contents", "variance"]
-    else:
-        weight_labels = sum(([w] * 2 for w in out_weights), ["count"])
-        stats_labels = [""] + ["contents", "variance"] * len(out_weights)
-        histogram.columns = pd.MultiIndex.from_arrays((weight_labels, stats_labels), names=["weight", "statistic"])
     histogram.index.set_names(out_dimensions, inplace=True)
     return histogram
 
