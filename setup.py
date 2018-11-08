@@ -48,7 +48,7 @@ setup(
     include_package_data=True,
     keywords=['ROOT', 'pandas', 'analysis', 'particle physics', 'HEP', 'F.A.S.T'],
     name='fast-carpenter',
-    packages=find_packages(include=['fast_carpenter']),
+    packages=find_packages(include=['fast_carpenter*']),
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
