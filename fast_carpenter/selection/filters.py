@@ -69,7 +69,7 @@ class SingleCut(BaseFilter):
     def __call__(self, data):
         branches = get_branches(self.selection, data.allkeys())
         branches += self.weights
-        df = data.pandas.df(branches, flatten=True)
+        df = data.pandas.df(branches)
 
         self.totals.increment(df)
         mask = df.eval(self.selection).values
