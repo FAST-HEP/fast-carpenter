@@ -1,7 +1,7 @@
 """
 """
 import six
-from .expressions import get_branches
+from ..expressions import get_branches
 from awkward import JaggedArray
 from . import reductions
 
