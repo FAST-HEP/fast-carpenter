@@ -14,7 +14,7 @@ _numpy_ops = ["count_zero"]
 
 
 def get_pandas_reduction(stage_name, reduction):
-    if not isinstance(reduction, six.string_types):
+    if not isinstance(reduction, (six.string_types, six.integer_types)):
         msg = "{}: requested reduce method is not a string"
         raise BadReductionConfig(msg.format(stage_name))
 

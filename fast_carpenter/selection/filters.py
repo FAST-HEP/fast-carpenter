@@ -2,6 +2,7 @@ import six
 import numpy as np
 import pandas as pd
 from ..expressions import get_branches
+from ..define.reductions import get_pandas_reduction
 
 
 class Counter():
@@ -36,7 +37,7 @@ class Counter():
         self._counts += rhs._counts
 
 
-class BaseFilter():
+class BaseFilter(object):
 
     def __init__(self, selection, depth, weights):
         self.selection = selection
@@ -63,6 +64,27 @@ class BaseFilter():
         if isinstance(self.selection, list):
             for sub_lhs, sub_rhs in zip(self.selection, rhs.selection):
                 sub_lhs.merge(sub_rhs)
+
+
+class ReduceSingleCut(BaseFilter):
+    def __init__(self, stage_name, depth, weights, **selection):
+        super(ReduceSingleCut, self).__init__(selection, depth, weights)
+        self._str = str(selection)
+        self.reduction = get_pandas_reduction(stage_name, selection.pop("reduce"))
+        self.formula = selection.pop("formula")
+
+    def __call__(self, data):
+        branches = get_branches(self.formula, data.allkeys())
+        branches += self.weights
+        df = data.pandas.df(branches)
+        self.totals.increment(data)
+        mask = df.eval(self.formula)
+        mask = self.reduction(mask.groupby(level=0)).values
+        self.passed.increment(data, mask)
+        return mask
+
+    def __str__(self):
+        return self._str
 
 
 class SingleCut(BaseFilter):
@@ -113,7 +135,9 @@ def build_selection(stage_name, config, weights=[], depth=0):
         return SingleCut(config, depth, weights)
     if not isinstance(config, dict):
         raise RuntimeError(stage_name + ": Selection config not a dict")
-    if len(config) != 1:
+    if len(config) == 2:
+        return ReduceSingleCut(stage_name, depth, weights, **config)
+    elif len(config) != 1:
         raise RuntimeError(stage_name + ":Selection config has too many keys")
 
     method, selections = tuple(config.items())[0]
