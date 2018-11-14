@@ -1,6 +1,5 @@
 import numpy as np
 import six
-import awkward
 
 
 __all__ = ["get_pandas_reduction"]
@@ -19,6 +18,27 @@ class JaggedNth():
         return array[mask, self.index]
 
 
+class JaggedMethod():
+    def __init__(self, method):
+        self.method_name = method
+
+    def __call__(self, array):
+        return getattr(array, self.method_name)()
+
+
+class JaggedProperty():
+    def __init__(self, prop_name):
+        self.prop_name = prop_name
+
+    def __call__(self, array):
+        return getattr(array, self.prop_name)
+
+
+_jagged_methods = ["sum", "prod", "any", "all", "count_nonzero",
+                   "max", "min", "argmin", "argmax"]
+_jagged_properties = ["counts"]
+
+
 def get_awkward_reduction(stage_name, reduction):
     if isinstance(reduction, six.integer_types):
         return JaggedNth(int(reduction))
@@ -27,9 +47,10 @@ def get_awkward_reduction(stage_name, reduction):
         msg = "{}: requested reduce method is not a string or an int"
         raise BadReductionConfig(msg.format(stage_name))
 
-    jagged_method = getattr(awkward.JaggedArray, reduction, None)
-    if jagged_method:
-        return jagged_method
+    if reduction in _jagged_methods:
+        return JaggedMethod(reduction)
+    if reduction in _jagged_properties:
+        return JaggedProperty(reduction)
 
     msg = "{}: Unknown method to reduce: '{}'"
     raise BadReductionConfig(msg.format(stage_name, reduction))
