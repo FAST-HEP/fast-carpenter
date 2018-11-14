@@ -15,7 +15,8 @@ class JaggedNth():
         self.index = index
 
     def __call__(self, array):
-        return array[:, self.index]
+        mask = array.counts > self.index
+        return array[mask, self.index]
 
 
 def get_awkward_reduction(stage_name, reduction):

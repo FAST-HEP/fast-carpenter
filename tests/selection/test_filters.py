@@ -79,12 +79,25 @@ def test_selection_3(config_3, filename):
 
 
 @pytest.fixture
-def config_jagged():
-    return "subentry == 1 and Muon_Px > 0.3"
+def config_jagged_index():
+    return dict(reduce=1, formula="Muon_Px > 0.3")
 
 
-def test_selection_jagged(config_jagged, filename):
-    selection = filters.build_selection("test_selection_jagged", config_jagged)
+def test_selection_jagged_index(config_jagged_index, filename):
+    selection = filters.build_selection("test_selection_jagged", config_jagged_index)
     infile = uproot.open(filename)["events"]
     mask = selection(infile)
     assert np.count_nonzero(mask) == 144
+
+
+@pytest.fixture
+def config_jagged_count_nonzero():
+    return dict(reduce="any", formula="Muon_Px > 0.3")
+
+
+def test_selection_jagged_count_nonzero(config_jagged_count_nonzero, filename):
+    selection = filters.build_selection("test_selection_jagged", config_jagged_count_nonzero)
+    infile = uproot.open(filename)["events"]
+    mask = selection(infile)
+    # Compare to: events->Draw("", "Sum$(Muon_Px > 0.300) > 0")
+    assert np.count_nonzero(mask) == 2225
