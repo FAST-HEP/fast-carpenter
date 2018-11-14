@@ -82,6 +82,8 @@ class BinnedDataframe():
         return True
 
     def merge(self, rhs):
+        if rhs.contents is None or len(rhs.contents) == 0:
+            return
         self.contents = self.contents.add(rhs.contents, fill_value=0)
 
 
