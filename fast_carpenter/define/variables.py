@@ -1,9 +1,9 @@
 """
 """
 import six
-from ..expressions import get_branches
+from ..expressions import get_branches, evaluate
 from awkward import JaggedArray
-from .reductions import get_pandas_reduction
+from .reductions import get_pandas_reduction, get_awkward_reduction
 
 
 class BadVariablesConfig(Exception):
@@ -15,7 +15,24 @@ class Define():
     def __init__(self, name, out_dir, variables):
         self.name = name
         self.out_dir = out_dir
-        self._variables = _build_calculations(name, variables)
+        self._variables = _build_calculations(name, variables, approach="awkward")
+
+    def event(self, chunk):
+        for output, expression, reduction, fill_missing in self._variables:
+            result = evaluate(chunk.tree, expression)
+            if reduction:
+                result = reduction(result)
+
+            chunk.tree.new_variable(output, result)
+        return True
+
+
+class DefinePandas():
+
+    def __init__(self, name, out_dir, variables):
+        self.name = name
+        self.out_dir = out_dir
+        self._variables = _build_calculations(name, variables, approach="pandas")
 
     def event(self, chunk):
         for output, expression, reduction, fill_missing in self._variables:
@@ -35,7 +52,7 @@ class Define():
         return True
 
 
-def _build_calculations(stage_name, variables):
+def _build_calculations(stage_name, variables, approach):
     calculations = []
     for var in variables:
         if not isinstance(var, dict):
@@ -45,11 +62,11 @@ def _build_calculations(stage_name, variables):
             msg = "{}: Dictionary to define a variable should have only 1 key-value pair"
             raise RuntimeError(msg.format(stage_name))
         name, config = list(var.items())[0]
-        calculations.append(_build_one_calc(stage_name, name, config))
+        calculations.append(_build_one_calc(stage_name, name, config, approach))
     return calculations
 
 
-def _build_one_calc(stage_name, name, config):
+def _build_one_calc(stage_name, name, config, approach):
     reduction = None
     fill_missing = None
     if isinstance(config, six.string_types):
@@ -61,6 +78,9 @@ def _build_one_calc(stage_name, name, config):
         msg = "{}: Unknown parameter parsed defining variable '{}'"
         raise RuntimeError(msg.format(stage_name, name))
     if "reduce" in config:
-        reduction = get_pandas_reduction(stage_name, config["reduce"])
+        if approach == "pandas":
+            reduction = get_pandas_reduction(stage_name, config["reduce"])
+        else:
+            reduction = get_awkward_reduction(stage_name, config["reduce"])
     fill_missing = config.get("fill_missing", fill_missing)
     return name, config["formula"], reduction, fill_missing

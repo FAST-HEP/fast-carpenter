@@ -1,5 +1,6 @@
 import numpy as np
 import six
+import awkward
 
 
 __all__ = ["get_pandas_reduction"]
@@ -7,6 +8,30 @@ __all__ = ["get_pandas_reduction"]
 
 class BadReductionConfig(Exception):
     pass
+
+
+class JaggedNth():
+    def __init__(self, index):
+        self.index = index
+
+    def __call__(self, array):
+        return array[:, self.index]
+
+
+def get_awkward_reduction(stage_name, reduction):
+    if isinstance(reduction, six.integer_types):
+        return JaggedNth(int(reduction))
+
+    if not isinstance(reduction, six.string_types):
+        msg = "{}: requested reduce method is not a string or an int"
+        raise BadReductionConfig(msg.format(stage_name))
+
+    jagged_method = getattr(awkward.JaggedArray, reduction, None)
+    if jagged_method:
+        return jagged_method
+
+    msg = "{}: Unknown method to reduce: '{}'"
+    raise BadReductionConfig(msg.format(stage_name, reduction))
 
 
 _pandas_aggregates = ["sum", "prod", "max", "min", "argmax", "argmin"]
@@ -31,7 +56,7 @@ class PandasNth():
 
 def get_pandas_reduction(stage_name, reduction):
     if not isinstance(reduction, (six.string_types, six.integer_types)):
-        msg = "{}: requested reduce method is not a string"
+        msg = "{}: requested reduce method is not a string or an int"
         raise BadReductionConfig(msg.format(stage_name))
 
     if reduction in _pandas_aggregates:
