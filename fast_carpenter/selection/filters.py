@@ -1,8 +1,8 @@
 import six
 import numpy as np
 import pandas as pd
-from ..expressions import get_branches
-from ..define.reductions import get_pandas_reduction
+from ..expressions import evaluate
+from ..define.reductions import get_awkward_reduction
 
 
 class Counter():
@@ -70,16 +70,13 @@ class ReduceSingleCut(BaseFilter):
     def __init__(self, stage_name, depth, weights, **selection):
         super(ReduceSingleCut, self).__init__(selection, depth, weights)
         self._str = str(selection)
-        self.reduction = get_pandas_reduction(stage_name, selection.pop("reduce"))
+        self.reduction = get_awkward_reduction(stage_name, selection.pop("reduce"))
         self.formula = selection.pop("formula")
 
     def __call__(self, data):
-        branches = get_branches(self.formula, data.allkeys())
-        branches += self.weights
-        df = data.pandas.df(branches)
         self.totals.increment(data)
-        mask = df.eval(self.formula)
-        mask = self.reduction(mask.groupby(level=0)).values
+        mask = evaluate(data, self.formula)
+        mask = self.reduction(mask)
         self.passed.increment(data, mask)
         return mask
 
@@ -89,13 +86,9 @@ class ReduceSingleCut(BaseFilter):
 
 class SingleCut(BaseFilter):
     def __call__(self, data):
-        branches = get_branches(self.selection, data.allkeys())
-        branches += self.weights
-        df = data.pandas.df(branches)
-
-        self.totals.increment(df)
-        mask = df.eval(self.selection).values
-        self.passed.increment(df, mask)
+        self.totals.increment(data)
+        mask = evaluate(data, self.selection)
+        self.passed.increment(data, mask)
         return mask
 
     def __str__(self):
