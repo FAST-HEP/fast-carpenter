@@ -87,6 +87,7 @@ def test_selection_jagged_index(config_jagged_index, filename):
     selection = filters.build_selection("test_selection_jagged", config_jagged_index)
     infile = uproot.open(filename)["events"]
     mask = selection(infile)
+    # Compare to: events->Draw("", "Muon_Px[1] > 0.300")
     assert np.count_nonzero(mask) == 144
 
 
