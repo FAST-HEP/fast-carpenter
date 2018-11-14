@@ -55,7 +55,7 @@ class TreeToDictAdaptor():
             yield i
 
     def set_starts_stop(self, starts, stops):
-        if self.starts:
+        if self.starts is not None:
             if any(self.starts != starts) or any(self.stops != stops):
                 raise RuntimeError("Mismatched starts and stops")
         else:
