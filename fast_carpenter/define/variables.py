@@ -1,8 +1,9 @@
 """
 """
 import six
-from ..expressions import get_branches, evaluate
+import numpy as np
 from awkward import JaggedArray
+from ..expressions import get_branches, evaluate
 from .reductions import get_pandas_reduction, get_awkward_reduction
 
 
@@ -68,7 +69,7 @@ def _build_calculations(stage_name, variables, approach):
 
 def _build_one_calc(stage_name, name, config, approach):
     reduction = None
-    fill_missing = None
+    fill_missing = np.nan
     if isinstance(config, six.string_types):
         return name, config, reduction, fill_missing
     if not isinstance(config, dict):
