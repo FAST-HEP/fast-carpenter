@@ -10,12 +10,15 @@ class BadReductionConfig(Exception):
 
 
 class JaggedNth():
-    def __init__(self, index):
+    def __init__(self, index, fill_missing):
         self.index = index
+        self.fill_missing = fill_missing
 
     def __call__(self, array):
         mask = array.counts > self.index
-        return array[mask, self.index]
+        output = np.full(len(array), self.fill_missing)
+        output[mask] = array[mask, self.index]
+        return output
 
 
 class JaggedMethod():
@@ -39,9 +42,9 @@ _jagged_methods = ["sum", "prod", "any", "all", "count_nonzero",
 _jagged_properties = ["counts"]
 
 
-def get_awkward_reduction(stage_name, reduction):
+def get_awkward_reduction(stage_name, reduction, fill_missing=np.nan):
     if isinstance(reduction, six.integer_types):
-        return JaggedNth(int(reduction))
+        return JaggedNth(int(reduction), fill_missing)
 
     if not isinstance(reduction, six.string_types):
         msg = "{}: requested reduce method is not a string or an int"
