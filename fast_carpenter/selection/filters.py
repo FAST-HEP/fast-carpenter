@@ -70,7 +70,7 @@ class ReduceSingleCut(BaseFilter):
     def __init__(self, stage_name, depth, weights, **selection):
         super(ReduceSingleCut, self).__init__(selection, depth, weights)
         self._str = str(selection)
-        self.reduction = get_awkward_reduction(stage_name, selection.pop("reduce"))
+        self.reduction = get_awkward_reduction(stage_name, selection.pop("reduce"), fill_missing=False)
         self.formula = selection.pop("formula")
 
     def __call__(self, data):
