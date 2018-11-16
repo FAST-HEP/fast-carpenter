@@ -59,13 +59,31 @@ class FakeBEEvent(object):
         self.tree = MaskedUprootTree(tree)
 
 
-def test_cutflow_1_executes(cutflow_1, infile):
+class Namespace():
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
+
+def test_cutflow_1_executes_mc(cutflow_1, infile):
     chunk = FakeBEEvent(infile)
+    chunk.config = Namespace(dataset=Namespace(eventtype="mc"))
     cutflow_1.event(chunk)
 
     assert len(chunk.tree) == 289
 
     collector = cutflow_1.collector()
     assert collector.filename == "somewhere/cuts_cutflow_1-NElectron.csv"
+
+
+def test_cutflow_1_executes_data(cutflow_1, infile):
+    chunk = FakeBEEvent(infile)
+    chunk.config = Namespace(dataset=Namespace(eventtype="data"))
+    cutflow_1.event(chunk)
+
+    assert len(chunk.tree) == 289
+
+    collector = cutflow_1.collector()
+    assert collector.filename == "somewhere/cuts_cutflow_1-NElectron.csv"
+
 
 # def test__load_selection_file(stage_name, selection_file):

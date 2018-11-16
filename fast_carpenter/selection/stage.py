@@ -111,7 +111,8 @@ class CutFlow():
         return Collector(outfilename)
 
     def event(self, chunk):
-        new_mask = self.selection(chunk.tree)
+        is_mc = chunk.config.dataset.eventtype == "mc"
+        new_mask = self.selection(chunk.tree, is_mc)
         chunk.tree.apply_mask(new_mask)
 
     def merge(self, rhs):
