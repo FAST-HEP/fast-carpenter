@@ -53,9 +53,6 @@ class BinnedDataframe():
         self._dataset_col = dataset_col
         self._weights = _create_weights(self.name, weights)
 
-        self._all_inputs = self._bin_dims
-        self._all_inputs += self._weights.values()
-
     def collector(self):
         outfilename = "tbl_"
         if self._dataset_col:
@@ -71,10 +68,13 @@ class BinnedDataframe():
         self.contents = None
 
     def event(self, chunk):
-        data = chunk.tree.pandas.df(self._all_inputs)
+        all_inputs = self._bin_dims
         weights = None
         if chunk.config.dataset.eventtype == "mc":
+            all_inputs += self._weights.values()
             weights = self._weights.values()
+
+        data = chunk.tree.pandas.df(all_inputs)
 
         binned_values = _bin_values(data, dimensions=self._bin_dims,
                                     binnings=self._binnings,
@@ -200,7 +200,7 @@ def _create_weights(stage_name, weights):
         weights = {k: w for k, w in weights.items()}
     else:
         # else we've got a single, scalar value
-        weights = {"weighted": weights}
+        weights = {weights: weights}
     # if len(weights) > 1:
     #     raise NotImplementedError("Multiply weighted binned dataframes aren't yet implemented I'm afraid...")
     return weights
