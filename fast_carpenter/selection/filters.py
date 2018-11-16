@@ -11,7 +11,7 @@ class Counter():
         self._w_counts = np.zeros(len(weights))
         self._counts = 0
 
-    def increment(self, data, mask=None):
+    def increment(self, data, is_mc, mask=None):
         if mask is None:
             self._counts += len(data)
         elif mask.dtype.kind == "b":
@@ -20,6 +20,8 @@ class Counter():
             self._counts += len(mask)
 
         if not self._weights:
+            return
+        if not is_mc:
             return
         if not isinstance(data, pd.DataFrame):
             data = data.pandas.df(self._weights)
@@ -70,14 +72,16 @@ class ReduceSingleCut(BaseFilter):
     def __init__(self, stage_name, depth, weights, **selection):
         super(ReduceSingleCut, self).__init__(selection, depth, weights)
         self._str = str(selection)
-        self.reduction = get_awkward_reduction(stage_name, selection.pop("reduce"), fill_missing=False)
+        self.reduction = get_awkward_reduction(stage_name,
+                                               selection.pop("reduce"),
+                                               fill_missing=False)
         self.formula = selection.pop("formula")
 
-    def __call__(self, data):
-        self.totals.increment(data)
+    def __call__(self, data, is_mc):
+        self.totals.increment(data, is_mc)
         mask = evaluate(data, self.formula)
         mask = self.reduction(mask)
-        self.passed.increment(data, mask)
+        self.passed.increment(data, is_mc, mask)
         return mask
 
     def __str__(self):
@@ -85,10 +89,10 @@ class ReduceSingleCut(BaseFilter):
 
 
 class SingleCut(BaseFilter):
-    def __call__(self, data):
-        self.totals.increment(data)
+    def __call__(self, data, is_mc):
+        self.totals.increment(data, is_mc)
         mask = evaluate(data, self.selection)
-        self.passed.increment(data, mask)
+        self.passed.increment(data, is_mc, mask)
         return mask
 
     def __str__(self):
@@ -96,13 +100,13 @@ class SingleCut(BaseFilter):
 
 
 class All(BaseFilter):
-    def __call__(self, data):
-        self.totals.increment(data)
+    def __call__(self, data, is_mc):
+        self.totals.increment(data, is_mc)
         mask = np.ones(len(data), dtype=bool)
         for sel in self.selection:
-            new_mask = sel(data)
+            new_mask = sel(data, is_mc)
             mask &= new_mask
-        self.passed.increment(data, mask)
+        self.passed.increment(data, is_mc, mask)
         return mask
 
     def __str__(self):
@@ -110,13 +114,13 @@ class All(BaseFilter):
 
 
 class Any(BaseFilter):
-    def __call__(self, data):
-        self.totals.increment(data)
+    def __call__(self, data, is_mc):
+        self.totals.increment(data, is_mc)
         mask = np.zeros(len(data), dtype=bool)
         for sel in self.selection:
-            new_mask = sel(data)
+            new_mask = sel(data, is_mc)
             mask |= new_mask
-        self.passed.increment(data, mask)
+        self.passed.increment(data, is_mc, mask)
         return mask
 
     def __str__(self):
