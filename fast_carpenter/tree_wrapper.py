@@ -36,6 +36,8 @@ class WrappedTree(object):
         self.tree.itervalues = self.itervalues
         self.tree.old_arrays = self.tree.arrays
         self.tree.arrays = self.arrays
+        self.tree.old_array = self.tree.array
+        self.tree.array = self.array
         self.event_ranger = event_ranger
         self.reset_cache()
 
@@ -48,6 +50,10 @@ class WrappedTree(object):
     def arrays(self, *args, **kwargs):
         self.update_array_args(kwargs)
         return self.tree.old_arrays(*args, **kwargs)
+
+    def array(self, *args, **kwargs):
+        self.update_array_args(kwargs)
+        return self.tree.old_array(*args, **kwargs)
 
     def update_array_args(self, kwargs):
         kwargs.setdefault("cache", self.branch_cache)
