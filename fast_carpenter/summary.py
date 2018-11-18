@@ -68,11 +68,12 @@ class BinnedDataframe():
         self.contents = None
 
     def event(self, chunk):
-        all_inputs = self._bin_dims
-        weights = None
         if chunk.config.dataset.eventtype == "mc":
-            all_inputs += self._weights.values()
             weights = self._weights.values()
+            all_inputs = self._bin_dims + weights
+        else:
+            weights = None
+            all_inputs = self._bin_dims
 
         data = chunk.tree.pandas.df(all_inputs)
 
