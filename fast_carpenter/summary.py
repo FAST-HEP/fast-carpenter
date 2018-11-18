@@ -200,10 +200,8 @@ def _create_weights(stage_name, weights):
     if isinstance(weights, list):
         weights = {str(w): w for w in weights}
     elif isinstance(weights, dict):
-        weights = {k: w for k, w in weights.items()}
+        pass
     else:
         # else we've got a single, scalar value
         weights = {weights: weights}
-    # if len(weights) > 1:
-    #     raise NotImplementedError("Multiply weighted binned dataframes aren't yet implemented I'm afraid...")
     return weights
