@@ -69,7 +69,7 @@ class BinnedDataframe():
 
     def event(self, chunk):
         if chunk.config.dataset.eventtype == "mc":
-            weights = self._weights.values()
+            weights = list(self._weights.values())
             all_inputs = self._bin_dims + weights
         else:
             weights = None
