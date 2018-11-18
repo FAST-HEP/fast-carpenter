@@ -4,8 +4,8 @@ import fast_carpenter.summary as summary
 
 
 @pytest.fixture
-def bins_alphaT():
-    return {"in": "AlphaT", "out": "alphaT", "bins": dict(nbins=10, low=0, high=2.5)}
+def bins_met_px():
+    return {"in": "MET_px", "out": "met_px", "bins": dict(nbins=10, low=0, high=100)}
 
 
 @pytest.fixture
@@ -37,14 +37,14 @@ def test__create_one_region(bins_region):
     assert _bins is None
 
 
-def test__create_one_dimension_aT(bins_alphaT):
-    cfg = {"_" + k: v for k, v in bins_alphaT.items()}
+def test__create_one_dimension_aT(bins_met_px):
+    cfg = {"_" + k: v for k, v in bins_met_px.items()}
     _in, _out, _bins, _index = summary._create_one_dimension("test__create_one_dimension_aT", **cfg)
-    assert _in == "AlphaT"
-    assert _out == "alphaT"
+    assert _in == "MET_px"
+    assert _out == "met_px"
     assert _index is None
     assert isinstance(_bins, np.ndarray)
-    assert np.all(_bins[1:-1] == np.linspace(0, 2.5, 11))
+    assert np.all(_bins[1:-1] == np.linspace(0, 100, 11))
     assert _bins[0] == float("-inf")
     assert _bins[-1] == float("inf")
 
@@ -61,10 +61,10 @@ def test__create_one_dimension_HT(bins_pt):
     assert _bins[-1] == float("inf")
 
 
-def test__create_binning_list(bins_region, bins_alphaT):
-    ins, outs, binning = summary._create_binning_list("test__create_binning_list", [bins_region, bins_alphaT])
-    assert ins == ["REGION", "AlphaT"]
-    assert outs == ["region", "alphaT"]
+def test__create_binning_list(bins_region, bins_met_px):
+    ins, outs, binning = summary._create_binning_list("test__create_binning_list", [bins_region, bins_met_px])
+    assert ins == ["REGION", "MET_px"]
+    assert outs == ["region", "met_px"]
     assert len(binning) == 2
     assert binning[0] is None
 
@@ -85,13 +85,13 @@ def test__create_weights_dict(weight_dict):
 
 
 @pytest.fixture
-def config_1(bins_alphaT, bins_pt, weight_list):
-    return dict(binning=[bins_alphaT, bins_pt], weights=weight_list)
+def config_1(bins_met_px, bins_pt, weight_list):
+    return dict(binning=[bins_met_px, bins_pt], weights=weight_list)
 
 
 @pytest.fixture
-def config_2(bins_alphaT, bins_pt, bins_region, weight_dict):
-    return dict(binning=[bins_pt, bins_alphaT, bins_region], weights=weight_dict)
+def config_2(bins_met_px, bins_pt, bins_region, weight_dict):
+    return dict(binning=[bins_pt, bins_met_px, bins_region], weights=weight_dict)
 
 
 @pytest.fixture
@@ -99,10 +99,10 @@ def binned_df_1(tmpdir, config_1):
     return summary.BinnedDataframe("binned_df_1", out_dir="somewhere", **config_1)
 
 
-def test_BinnedDataframe(binned_df_1, tmpdir):
+def test_BinnedDataframe(binned_df_1, tmpdir, infile):
     assert binned_df_1.name == "binned_df_1"
     assert len(binned_df_1._binnings) == 2
-    # bin length for alphaT: nbins, plus 1 for edge, plus 2 for +-inf
-    assert binned_df_1._bin_dims[0] == "AlphaT"
+    # bin length for met_px: nbins, plus 1 for edge, plus 2 for +-inf
+    assert binned_df_1._bin_dims[0] == "MET_px"
     assert len(binned_df_1._binnings[0]) == 10 + 1 + 2
     assert len(binned_df_1._weights) == 1
