@@ -157,11 +157,13 @@ def _create_binning_list(name, bin_list):
     return ins, outs, binnings
 
 
-def _create_one_dimension(stage_name, _in, _out, _bins=None, _index=None):
+def _create_one_dimension(stage_name, _in, _out=None, _bins=None, _index=None):
     if not isinstance(_in, six.string_types):
         msg = "{}: binning dictionary contains non-string value for 'in'"
         raise BadBinnedDataframeConfig(msg.format(stage_name))
-    if not isinstance(_out, six.string_types):
+    if _out is None:
+        _out = _in
+    elif not isinstance(_out, six.string_types):
         msg = "{}: binning dictionary contains non-string value for 'out'"
         raise BadBinnedDataframeConfig(msg.format(stage_name))
     if _index and not isinstance(_index, six.string_types):
