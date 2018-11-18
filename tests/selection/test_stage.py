@@ -2,7 +2,7 @@ import pytest
 import fast_carpenter.selection.stage as stage
 from fast_carpenter.masked_tree import MaskedUprootTree
 import fast_carpenter.selection.filters as filters
-from ..input_files import FakeBEEvent
+from ..conftest import FakeBEEvent
 
 
 def test__create_weights_none():
