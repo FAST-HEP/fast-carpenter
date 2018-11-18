@@ -1,14 +1,8 @@
 import pytest
-import uproot
 import fast_carpenter.selection.stage as stage
-import fast_carpenter.selection.filters as filters
 from fast_carpenter.masked_tree import MaskedUprootTree
-
-
-@pytest.fixture
-def infile():
-    filename = "tests/data/CMS_HEP_tutorial_ww.root"
-    return uproot.open(filename)["events"]
+import fast_carpenter.selection.filters as filters
+from ..conftest import FakeBEEvent
 
 
 def test__create_weights_none():
@@ -54,19 +48,8 @@ def test_cutflow_1(cutflow_1):
     assert isinstance(cutflow_1.selection, filters.SingleCut)
 
 
-class FakeBEEvent(object):
-    def __init__(self, tree):
-        self.tree = MaskedUprootTree(tree)
-
-
-class Namespace():
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
-
-
 def test_cutflow_1_executes_mc(cutflow_1, infile):
-    chunk = FakeBEEvent(infile)
-    chunk.config = Namespace(dataset=Namespace(eventtype="mc"))
+    chunk = FakeBEEvent(MaskedUprootTree(infile), "mc")
     cutflow_1.event(chunk)
 
     assert len(chunk.tree) == 289
@@ -76,8 +59,7 @@ def test_cutflow_1_executes_mc(cutflow_1, infile):
 
 
 def test_cutflow_1_executes_data(cutflow_1, infile):
-    chunk = FakeBEEvent(infile)
-    chunk.config = Namespace(dataset=Namespace(eventtype="data"))
+    chunk = FakeBEEvent(MaskedUprootTree(infile), "data")
     cutflow_1.event(chunk)
 
     assert len(chunk.tree) == 289

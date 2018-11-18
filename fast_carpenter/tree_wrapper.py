@@ -39,7 +39,8 @@ class WrappedTree(object):
         self.tree.old_array = self.tree.array
         self.tree.array = self.array
         self.event_ranger = event_ranger
-        self.reset_cache()
+        self.branch_cache = {}
+        self.extras = {}
 
     def itervalues(self, *args, **kwargs):
         for array in self.extras.values():
@@ -120,5 +121,8 @@ class WrappedTree(object):
         return len(self.tree)
 
     def reset_cache(self):
-        self.branch_cache = {}
-        self.extras = {}
+        self.branch_cache.clear()
+        for k in self.extras.keys():
+            if k in self.tree._branchlookup:
+                del self.tree._branchlookup[k]
+        self.extras.clear()

@@ -68,11 +68,12 @@ class BinnedDataframe():
         self.contents = None
 
     def event(self, chunk):
-        all_inputs = self._bin_dims
-        weights = None
         if chunk.config.dataset.eventtype == "mc":
-            all_inputs += self._weights.values()
-            weights = self._weights.values()
+            weights = list(self._weights.values())
+            all_inputs = self._bin_dims + weights
+        else:
+            weights = None
+            all_inputs = self._bin_dims
 
         data = chunk.tree.pandas.df(all_inputs)
 
@@ -156,11 +157,13 @@ def _create_binning_list(name, bin_list):
     return ins, outs, binnings
 
 
-def _create_one_dimension(stage_name, _in, _out, _bins=None, _index=None):
+def _create_one_dimension(stage_name, _in, _out=None, _bins=None, _index=None):
     if not isinstance(_in, six.string_types):
         msg = "{}: binning dictionary contains non-string value for 'in'"
         raise BadBinnedDataframeConfig(msg.format(stage_name))
-    if not isinstance(_out, six.string_types):
+    if _out is None:
+        _out = _in
+    elif not isinstance(_out, six.string_types):
         msg = "{}: binning dictionary contains non-string value for 'out'"
         raise BadBinnedDataframeConfig(msg.format(stage_name))
     if _index and not isinstance(_index, six.string_types):
@@ -197,10 +200,8 @@ def _create_weights(stage_name, weights):
     if isinstance(weights, list):
         weights = {str(w): w for w in weights}
     elif isinstance(weights, dict):
-        weights = {k: w for k, w in weights.items()}
+        pass
     else:
         # else we've got a single, scalar value
         weights = {weights: weights}
-    # if len(weights) > 1:
-    #     raise NotImplementedError("Multiply weighted binned dataframes aren't yet implemented I'm afraid...")
     return weights

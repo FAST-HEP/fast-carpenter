@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class MaskedUprootTree():
+class MaskedUprootTree(object):
     def __init__(self, tree, mask=None):
         if isinstance(tree, MaskedUprootTree):
             self.tree = tree.tree
