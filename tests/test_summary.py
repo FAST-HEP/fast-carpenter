@@ -2,8 +2,6 @@ import pytest
 import numpy as np
 import fast_carpenter.summary as summary
 from .conftest import FakeBEEvent
-from fast_carpenter.tree_wrapper import WrappedTree
-from collections import namedtuple
 
 
 @pytest.fixture
@@ -156,4 +154,3 @@ def test_BinnedDataframe_run_twice(binned_df_1, tmpdir, infile):
     # events->Draw("EventWeight * (Jet_Py/Jet_Py)>>htemp", "", "goff")
     # htemp->GetMean() * htemp->GetEntries()
     assert totals["EventWeight:sumw"] == pytest.approx(231.91339 * 2)
-
