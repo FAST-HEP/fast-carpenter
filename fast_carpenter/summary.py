@@ -19,12 +19,15 @@ class Collector():
         if len(dataset_readers_list) == 0:
             return None
 
+        output = self._prepare_output(dataset_readers_list)
+        output.to_csv(self.filename)
+
+    def _prepare_output(self, dataset_readers_list):
         dataset_readers_list = [(d, r) for d, r in dataset_readers_list if r]
         if len(dataset_readers_list) == 0:
             return None
 
-        output = self._merge_dataframes(dataset_readers_list)
-        output.to_csv(self.filename)
+        return self._merge_dataframes(dataset_readers_list)
 
     def _merge_dataframes(self, dataset_readers_list):
         final_df = None
@@ -52,6 +55,7 @@ class BinnedDataframe():
         self._binnings = binnings
         self._dataset_col = dataset_col
         self._weights = _create_weights(self.name, weights)
+        self.contents = None
 
     def collector(self):
         outfilename = "tbl_"
@@ -63,9 +67,6 @@ class BinnedDataframe():
         outfilename += ".csv"
         outfilename = os.path.join(self.out_dir, outfilename)
         return Collector(outfilename, self._dataset_col)
-
-    def begin(self, event):
-        self.contents = None
 
     def event(self, chunk):
         if chunk.config.dataset.eventtype == "mc":
@@ -82,7 +83,10 @@ class BinnedDataframe():
                                     weights=weights,
                                     out_weights=self._weights.keys(),
                                     out_dimensions=self._out_bin_dims)
-        self.contents = binned_values
+        if self.contents is None:
+            self.contents = binned_values
+        else:
+            self.contents = self.contents.add(binned_values, fill_value=0)
 
         return True
 

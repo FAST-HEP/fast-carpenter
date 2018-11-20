@@ -2,6 +2,8 @@ import pytest
 import numpy as np
 import fast_carpenter.summary as summary
 from .conftest import FakeBEEvent
+from fast_carpenter.tree_wrapper import WrappedTree
+from collections import namedtuple
 
 
 @pytest.fixture
@@ -115,7 +117,20 @@ def binned_df_2(tmpdir, config_2):
 
 def test_BinnedDataframe_run_mc(binned_df_1, tmpdir, infile):
     chunk = FakeBEEvent(infile, "mc")
+    collector = binned_df_1.collector()
+
     binned_df_1.event(chunk)
+    dataset_readers_list = (("test_dataset", (binned_df_1,)),)
+    results = collector._prepare_output(dataset_readers_list)
+
+    totals = results.sum()
+    # Based on: events->Draw("Jet_Py", "", "goff")
+    assert totals["n"] == 4616
+
+    # Based on:
+    # events->Draw("EventWeight * (Jet_Py/Jet_Py)>>htemp", "", "goff")
+    # htemp->GetMean() * htemp->GetEntries()
+    assert totals["EventWeight:sumw"] == pytest.approx(231.91339)
 
 
 def test_BinnedDataframe_run_data(binned_df_2, tmpdir, infile):
@@ -123,7 +138,22 @@ def test_BinnedDataframe_run_data(binned_df_2, tmpdir, infile):
     binned_df_2.event(chunk)
 
 
-def test_BinnedDataframe_run_twice(binned_df_2, tmpdir, infile):
+def test_BinnedDataframe_run_twice(binned_df_1, tmpdir, infile):
     chunk = FakeBEEvent(infile, "mc")
-    binned_df_2.event(chunk)
-    binned_df_2.event(chunk)
+    collector = binned_df_1.collector()
+
+    binned_df_1.event(chunk)
+    binned_df_1.event(chunk)
+
+    dataset_readers_list = (("test_dataset", (binned_df_1,)),)
+    results = collector._prepare_output(dataset_readers_list)
+
+    totals = results.sum()
+    # Based on: events->Draw("Jet_Py", "", "goff")
+    assert totals["n"] == 4616 * 2
+
+    # Based on:
+    # events->Draw("EventWeight * (Jet_Py/Jet_Py)>>htemp", "", "goff")
+    # htemp->GetMean() * htemp->GetEntries()
+    assert totals["EventWeight:sumw"] == pytest.approx(231.91339 * 2)
+
