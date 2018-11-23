@@ -78,7 +78,7 @@ def _create_weights(stage_name, weights):
     raise BadCutflowConfig("{}: Cannot process weight specification".format(stage_name))
 
 
-class CutFlow():
+class CutFlow(object):
     def __init__(self, name, out_dir, selection_file=None,
                  selection=None, counter=True, weights=None):
         self.name = name
@@ -117,3 +117,14 @@ class CutFlow():
 
     def merge(self, rhs):
         self.selection.merge(rhs.selection)
+
+
+class SelectPhaseSpace(CutFlow):
+    def __init__(self, name, out_dir, region_name, **kwargs):
+        super(SelectPhaseSpace, self).__init__(name, out_dir, **kwargs)
+        self.region_name = region_name
+
+    def event(self, chunk):
+        is_mc = chunk.config.dataset.eventtype == "mc"
+        new_mask = self.selection(chunk.tree, is_mc)
+        chunk.tree.new_variable(self.region_name, new_mask)

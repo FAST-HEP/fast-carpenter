@@ -1,3 +1,3 @@
-from .stage import CutFlow
+from .stage import CutFlow, SelectPhaseSpace
 
-__all__ = ["CutFlow"]
+__all__ = ["CutFlow", "SelectPhaseSpace"]
