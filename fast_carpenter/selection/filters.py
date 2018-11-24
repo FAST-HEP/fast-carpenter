@@ -23,11 +23,10 @@ class Counter():
             return
         if not is_mc:
             return
-        if not isinstance(data, pd.DataFrame):
-            data = data.pandas.df(self._weights)
+        weights = data.arrays(self._weights, outputtype=lambda *args: np.array(args))
         if mask is not None:
-            data = data.iloc[mask]
-        summed = data[self._weights].sum(axis=0)
+            weights = weights[:, mask]
+        summed = weights.sum(axis=1)
         self._w_counts += summed
 
     @property
