@@ -189,9 +189,9 @@ def _create_one_dimension(stage_name, _in, _out=None, _bins=None, _index=None):
         else:
             msg = "{}: No way to infer binning edges for in={}"
             raise BadBinnedDataframeConfig(msg.format(stage_name, _in))
-        if not _bins.get("disable_underlow", False):
+        if not _bins.get("disable_underflow", False):
             bin_obj = np.insert(bin_obj, 0, float("-inf"))
-        if not _bins.get("disable_overlow", False):
+        if not _bins.get("disable_overflow", False):
             bin_obj = np.append(bin_obj, float("inf"))
     else:
         msg = "{}: bins is neither None nor a dictionary for in={}"
