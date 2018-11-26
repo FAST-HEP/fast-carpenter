@@ -1,6 +1,5 @@
 import six
 import numpy as np
-import pandas as pd
 from ..expressions import evaluate
 from ..define.reductions import get_awkward_reduction
 
