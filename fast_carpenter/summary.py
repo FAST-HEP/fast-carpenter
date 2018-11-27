@@ -185,7 +185,8 @@ def _create_one_dimension(stage_name, _in, _out=None, _bins=None, _index=None):
             nbins = _bins["nbins"]
             bin_obj = np.linspace(low, high, nbins + 1)
         elif "edges" in _bins:
-            bin_obj = np.array(_bins["edges"])
+            # array are fixed to float type, to be consistent with the float-type underflow and overflow bins
+            bin_obj = np.array(_bins["edges"], "f")
         else:
             msg = "{}: No way to infer binning edges for in={}"
             raise BadBinnedDataframeConfig(msg.format(stage_name, _in))
