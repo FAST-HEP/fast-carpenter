@@ -1,7 +1,6 @@
 """
 Chop up those trees into nice little tables and dataframes
 """
-from __future__ import print_function
 import fast_flow.v1 as fast_flow
 import fast_curator
 import logging
