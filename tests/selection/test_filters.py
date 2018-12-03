@@ -57,6 +57,26 @@ def test_selection_2_weights(config_2, filename):
     assert result[0][3] == np.sum(infile.array("EventWeight")[mask])
 
 
+def test_selection_2_weights_data(config_2, filename):
+    selection = filters.build_selection("test_selection_1",
+                                        config_2, weights=["EventWeight"])
+    infile = uproot.open(filename)["events"]
+    mask = selection(infile, is_mc=False)
+    assert np.count_nonzero(mask) == 1486
+
+    header = selection.results_header()
+    assert len(header) == 2
+    assert len(header[0]) == 6
+
+    result = selection.results()
+
+    assert len(result) == 4
+    assert result[0][0] == 0
+    assert result[0][1] == "Any"
+    assert result[0][2] == 1486
+    assert result[0][3] == 1486
+
+
 @pytest.fixture
 def config_3():
     return {"All": ["NMuon > 1", {"Any": ["NElectron > 1", "NJet > 1"]}]}
