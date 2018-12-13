@@ -12,15 +12,17 @@ class Counter():
 
     def increment(self, data, is_mc, mask=None):
         if mask is None:
-            self._counts += len(data)
+            unweighted_increment = len(data)
         elif mask.dtype.kind == "b":
-            self._counts += np.count_nonzero(mask)
+            unweighted_increment = np.count_nonzero(mask)
         else:
-            self._counts += len(mask)
+            unweighted_increment = len(mask)
+        self._counts += unweighted_increment
 
         if not self._weights:
             return
         if not is_mc:
+            self._w_counts += unweighted_increment
             return
         weights = data.arrays(self._weights, outputtype=lambda *args: np.array(args))
         if mask is not None:
