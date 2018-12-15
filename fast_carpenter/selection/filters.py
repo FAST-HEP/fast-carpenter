@@ -55,11 +55,11 @@ class BaseFilter(object):
         self.selection = selection
         self.depth = depth
         self.totals = Counter(weights)
-        self.passed = Counter(weights)
+        self.passed_incl = Counter(weights)
         self.weights = weights
 
     def results(self):
-        output = [(self.depth, str(self)) + self.passed.counts + self.totals.counts]
+        output = [(self.depth, str(self)) + self.passed_incl.counts + self.totals.counts]
         if isinstance(self.selection, list):
             output += sum([sel.results() for sel in self.selection], [])
         return output
@@ -72,7 +72,7 @@ class BaseFilter(object):
 
     def merge(self, rhs):
         self.totals.add(rhs.totals)
-        self.passed.add(rhs.passed)
+        self.passed_incl.add(rhs.passed_incl)
         if isinstance(self.selection, list):
             for sub_lhs, sub_rhs in zip(self.selection, rhs.selection):
                 sub_lhs.merge(sub_rhs)
@@ -87,11 +87,11 @@ class ReduceSingleCut(BaseFilter):
                                                fill_missing=False)
         self.formula = selection.pop("formula")
 
-    def __call__(self, data, is_mc):
-        self.totals.increment(data, is_mc)
+    def __call__(self, data, is_mc, current_mask=None):
+        self.totals.increment(data, is_mc, mask=current_mask)
         mask = evaluate(data, self.formula)
         mask = self.reduction(mask)
-        self.passed.increment(data, is_mc, mask)
+        self.passed_incl.increment(data, is_mc, mask)
         return mask
 
     def __str__(self):
@@ -99,10 +99,10 @@ class ReduceSingleCut(BaseFilter):
 
 
 class SingleCut(BaseFilter):
-    def __call__(self, data, is_mc):
-        self.totals.increment(data, is_mc)
+    def __call__(self, data, is_mc, current_mask=None):
+        self.totals.increment(data, is_mc, mask=current_mask)
         mask = evaluate(data, self.selection)
-        self.passed.increment(data, is_mc, mask)
+        self.passed_incl.increment(data, is_mc, mask)
         return mask
 
     def __str__(self):
@@ -110,13 +110,13 @@ class SingleCut(BaseFilter):
 
 
 class All(BaseFilter):
-    def __call__(self, data, is_mc):
-        self.totals.increment(data, is_mc)
+    def __call__(self, data, is_mc, current_mask=None):
+        self.totals.increment(data, is_mc, mask=current_mask)
         mask = np.ones(len(data), dtype=bool)
         for sel in self.selection:
-            new_mask = sel(data, is_mc)
+            new_mask = sel(data, is_mc, current_mask=current_mask)
             mask &= new_mask
-        self.passed.increment(data, is_mc, mask)
+        self.passed_incl.increment(data, is_mc, mask)
         return mask
 
     def __str__(self):
@@ -124,13 +124,13 @@ class All(BaseFilter):
 
 
 class Any(BaseFilter):
-    def __call__(self, data, is_mc):
-        self.totals.increment(data, is_mc)
+    def __call__(self, data, is_mc, current_mask=None):
+        self.totals.increment(data, is_mc, mask=current_mask)
         mask = np.zeros(len(data), dtype=bool)
         for sel in self.selection:
-            new_mask = sel(data, is_mc)
+            new_mask = sel(data, is_mc, current_mask=current_mask)
             mask |= new_mask
-        self.passed.increment(data, is_mc, mask)
+        self.passed_incl.increment(data, is_mc, mask)
         return mask
 
     def __str__(self):
