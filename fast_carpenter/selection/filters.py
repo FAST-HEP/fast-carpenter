@@ -10,25 +10,35 @@ class Counter():
         self._w_counts = np.zeros(len(weights))
         self._counts = 0
 
-    def increment(self, data, is_mc, mask=None):
+    @staticmethod
+    def get_unweighted_increment(data, mask):
         if mask is None:
-            unweighted_increment = len(data)
+            return len(data)
         elif mask.dtype.kind == "b":
-            unweighted_increment = np.count_nonzero(mask)
+            return np.count_nonzero(mask)
         else:
-            unweighted_increment = len(mask)
+            return len(mask)
+
+    @staticmethod
+    def get_weighted_increment(weights, data, mask):
+        weights = data.arrays(weights, outputtype=lambda *args: np.array(args))
+        if mask is not None:
+            weights = weights[:, mask]
+        return weights.sum(axis=1)
+
+    def increment(self, data, is_mc, mask=None):
+        unweighted_increment = self.get_unweighted_increment(data, mask)
         self._counts += unweighted_increment
 
         if not self._weights:
             return
+
         if not is_mc:
             self._w_counts += unweighted_increment
             return
-        weights = data.arrays(self._weights, outputtype=lambda *args: np.array(args))
-        if mask is not None:
-            weights = weights[:, mask]
-        summed = weights.sum(axis=1)
-        self._w_counts += summed
+
+        weighted_increments = self.get_weighted_increment(self._weights, data, mask)
+        self._w_counts += weighted_increments
 
     @property
     def counts(self):
