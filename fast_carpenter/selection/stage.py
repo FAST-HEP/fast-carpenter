@@ -35,9 +35,13 @@ class Collector():
 
     def _merge_data(self, dataset_readers_list):
         final_df = None
+        header = None
+        order = None
         for dataset, readers in dataset_readers_list:
             for reader in readers:
-                header = reader.selection.results_header()
+                if header is None:
+                    header = reader.selection.results_header()
+                    order = reader.selection.cut_order()
                 results = reader.selection.results()
                 df = pd.DataFrame(results, columns=pd.MultiIndex.from_arrays(header))
                 df.set_index(["depth", "cut"], inplace=True, drop=True)
@@ -46,6 +50,8 @@ class Collector():
                     final_df = df
                     continue
                 final_df = final_df.add(df, fill_value=0)
+
+        final_df = final_df.reindex(order, level="cut", axis=0)
 
         return final_df
 
