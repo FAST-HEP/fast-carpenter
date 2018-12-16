@@ -10,25 +10,35 @@ class Counter():
         self._w_counts = np.zeros(len(weights))
         self._counts = 0
 
-    def increment(self, data, is_mc, mask=None):
+    @staticmethod
+    def get_unweighted_increment(data, mask):
         if mask is None:
-            unweighted_increment = len(data)
+            return len(data)
         elif mask.dtype.kind == "b":
-            unweighted_increment = np.count_nonzero(mask)
+            return np.count_nonzero(mask)
         else:
-            unweighted_increment = len(mask)
+            return len(mask)
+
+    @staticmethod
+    def get_weighted_increment(weight_names, data, mask):
+        weights = data.arrays(weight_names, outputtype=lambda *args: np.array(args))
+        if mask is not None:
+            weights = weights[:, mask]
+        return weights.sum(axis=1)
+
+    def increment(self, data, is_mc, mask=None):
+        unweighted_increment = self.get_unweighted_increment(data, mask)
         self._counts += unweighted_increment
 
         if not self._weights:
             return
+
         if not is_mc:
             self._w_counts += unweighted_increment
             return
-        weights = data.arrays(self._weights, outputtype=lambda *args: np.array(args))
-        if mask is not None:
-            weights = weights[:, mask]
-        summed = weights.sum(axis=1)
-        self._w_counts += summed
+
+        weighted_increments = self.get_weighted_increment(self._weights, data, mask)
+        self._w_counts += weighted_increments
 
     @property
     def counts(self):
@@ -44,25 +54,37 @@ class BaseFilter(object):
     def __init__(self, selection, depth, weights):
         self.selection = selection
         self.depth = depth
-        self.totals = Counter(weights)
-        self.passed = Counter(weights)
+        self.passed_incl = Counter(weights)
+        self.totals_excl = Counter(weights)
+        self.passed_excl = Counter(weights)
         self.weights = weights
 
     def results(self):
-        output = [(self.depth, str(self)) + self.passed.counts + self.totals.counts]
+        output = (self.depth, str(self))
+        output += self.passed_incl.counts + self.passed_excl.counts + self.totals_excl.counts
+        output = [output]
         if isinstance(self.selection, list):
             output += sum([sel.results() for sel in self.selection], [])
         return output
 
     def results_header(self):
         nweights = len(self.weights) + 1
-        header = [["depth", "cut"] + ["passed"] * nweights + ["totals"] * nweights]
-        header += [["", "", "unweighted"] + self.weights + ["unweighted"] + self.weights]
-        return header
+        row1 = ["depth", "cut"]
+        row1 += ["passed_incl"] * nweights
+        row1 += ["passed_excl"] * nweights
+        row1 += ["totals_excl"] * nweights
+        row2 = ["", ""] + (["unweighted"] + self.weights) * 3
+        return [row1, row2]
+
+    def cut_order(self):
+        output = [str(self)]
+        if isinstance(self.selection, list):
+            output += sum([sel.cut_order() for sel in self.selection], [])
+        return output
 
     def merge(self, rhs):
-        self.totals.add(rhs.totals)
-        self.passed.add(rhs.passed)
+        self.totals_excl.add(rhs.totals_excl)
+        self.passed_incl.add(rhs.passed_incl)
         if isinstance(self.selection, list):
             for sub_lhs, sub_rhs in zip(self.selection, rhs.selection):
                 sub_lhs.merge(sub_rhs)
@@ -77,11 +99,15 @@ class ReduceSingleCut(BaseFilter):
                                                fill_missing=False)
         self.formula = selection.pop("formula")
 
-    def __call__(self, data, is_mc):
-        self.totals.increment(data, is_mc)
+    def __call__(self, data, is_mc, current_mask=None):
+        self.totals_excl.increment(data, is_mc, mask=current_mask)
         mask = evaluate(data, self.formula)
         mask = self.reduction(mask)
-        self.passed.increment(data, is_mc, mask)
+
+        self.passed_incl.increment(data, is_mc, mask)
+
+        excl_mask = mask if current_mask is None else mask & current_mask
+        self.passed_excl.increment(data, is_mc, excl_mask)
         return mask
 
     def __str__(self):
@@ -89,10 +115,14 @@ class ReduceSingleCut(BaseFilter):
 
 
 class SingleCut(BaseFilter):
-    def __call__(self, data, is_mc):
-        self.totals.increment(data, is_mc)
+    def __call__(self, data, is_mc, current_mask=None):
+        self.totals_excl.increment(data, is_mc, mask=current_mask)
         mask = evaluate(data, self.selection)
-        self.passed.increment(data, is_mc, mask)
+
+        self.passed_incl.increment(data, is_mc, mask)
+
+        excl_mask = mask if current_mask is None else mask & current_mask
+        self.passed_excl.increment(data, is_mc, excl_mask)
         return mask
 
     def __str__(self):
@@ -100,13 +130,16 @@ class SingleCut(BaseFilter):
 
 
 class All(BaseFilter):
-    def __call__(self, data, is_mc):
-        self.totals.increment(data, is_mc)
+    def __call__(self, data, is_mc, current_mask=None):
+        self.totals_excl.increment(data, is_mc, mask=current_mask)
         mask = np.ones(len(data), dtype=bool)
+        excl_mask = mask if current_mask is None else current_mask
         for sel in self.selection:
-            new_mask = sel(data, is_mc)
+            new_mask = sel(data, is_mc, current_mask=excl_mask)
             mask &= new_mask
-        self.passed.increment(data, is_mc, mask)
+            excl_mask = mask if current_mask is None else mask & current_mask
+        self.passed_excl.increment(data, is_mc, excl_mask)
+        self.passed_incl.increment(data, is_mc, mask)
         return mask
 
     def __str__(self):
@@ -114,13 +147,13 @@ class All(BaseFilter):
 
 
 class Any(BaseFilter):
-    def __call__(self, data, is_mc):
-        self.totals.increment(data, is_mc)
+    def __call__(self, data, is_mc, current_mask=None):
+        self.totals_excl.increment(data, is_mc, mask=current_mask)
         mask = np.zeros(len(data), dtype=bool)
         for sel in self.selection:
-            new_mask = sel(data, is_mc)
+            new_mask = sel(data, is_mc, current_mask=mask)
             mask |= new_mask
-        self.passed.increment(data, is_mc, mask)
+        self.passed_incl.increment(data, is_mc, mask)
         return mask
 
     def __str__(self):

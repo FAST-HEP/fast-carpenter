@@ -9,7 +9,7 @@ class BadReductionConfig(Exception):
     pass
 
 
-class JaggedNth():
+class JaggedNth(object):
     def __init__(self, index, fill_missing):
         self.index = index
         self.fill_missing = fill_missing
@@ -21,7 +21,7 @@ class JaggedNth():
         return output
 
 
-class JaggedMethod():
+class JaggedMethod(object):
     def __init__(self, method):
         self.method_name = method
 
@@ -29,7 +29,7 @@ class JaggedMethod():
         return getattr(array, self.method_name)()
 
 
-class JaggedProperty():
+class JaggedProperty(object):
     def __init__(self, prop_name):
         self.prop_name = prop_name
 
@@ -63,7 +63,7 @@ _pandas_aggregates = ["sum", "prod", "max", "min", "argmax", "argmin"]
 _numpy_ops = ["count_zero"]
 
 
-class PandasAggregate():
+class PandasAggregate(object):
     def __init__(self, method):
         self.method = method
 
@@ -71,7 +71,7 @@ class PandasAggregate():
         return groups.agg(self.method)
 
 
-class PandasNth():
+class PandasNth(object):
     def __init__(self, index):
         self.index = index
 

@@ -46,7 +46,7 @@ def test_selection_2_weights(config_2, filename):
 
     header = selection.results_header()
     assert len(header) == 2
-    assert len(header[0]) == 6
+    assert len(header[0]) == 8
 
     result = selection.results()
 
@@ -66,7 +66,7 @@ def test_selection_2_weights_data(config_2, filename):
 
     header = selection.results_header()
     assert len(header) == 2
-    assert len(header[0]) == 6
+    assert len(header[0]) == 8
 
     result = selection.results()
 
