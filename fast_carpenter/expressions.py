@@ -2,9 +2,9 @@ import numexpr
 import tokenize
 import awkward
 try:
-        from StringIO import StringIO
+    from StringIO import StringIO
 except ImportError:
-        from io import StringIO
+    from io import StringIO
 
 
 __all__ = ["get_branches", "evaluate"]
