@@ -11,9 +11,9 @@ import copy
 import awkward
 
 
-def wrapped_interpret(branch, **kwargs):
+def wrapped_interpret(branch, *args, **kwargs):
     from uproot.interp.auto import interpret
-    result = interpret(branch, **kwargs)
+    result = interpret(branch, *args, **kwargs)
     if result:
         return result
 
