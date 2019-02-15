@@ -21,6 +21,28 @@ def test_jagged_nth(jagged_1):
     assert np.isnan(reduced[5])
 
 
+def test_jagged_nth_default_int(jagged_1):
+    get_first_second = reductions.JaggedNth(1, 0, force_float=False)
+    reduced = get_first_second(jagged_1)
+    assert reduced[0] == 1
+    assert reduced[1] == 4
+    assert reduced[2] == 0
+    assert reduced[3] == 7
+    assert reduced[4] == 10
+    assert reduced[5] == 0
+
+
+def test_jagged_nth_default_float(jagged_1):
+    get_first_second = reductions.JaggedNth(1, 0)
+    reduced = get_first_second(jagged_1)
+    assert reduced[0] == 1.1
+    assert reduced[1] == 4.4
+    assert reduced[2] == 0.
+    assert reduced[3] == 7.7
+    assert reduced[4] == 10.0
+    assert reduced[5] == 0.0
+
+
 def test_jagged_counts(jagged_1):
     get_counts = reductions.JaggedProperty("counts")
     reduced = get_counts(jagged_1)
