@@ -10,13 +10,16 @@ class BadReductionConfig(Exception):
 
 
 class JaggedNth(object):
-    def __init__(self, index, fill_missing):
+    def __init__(self, index, fill_missing, force_float=True):
         self.index = index
         self.fill_missing = fill_missing
+        self.dtype = None
+        if force_float and isinstance(fill_missing, int):
+            self.dtype = float
 
     def __call__(self, array):
         mask = array.counts > self.index
-        output = np.full(len(array), self.fill_missing)
+        output = np.full(len(array), self.fill_missing, dtype=self.dtype)
         output[mask] = array[mask, self.index]
         return output
 
