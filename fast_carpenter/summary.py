@@ -34,6 +34,8 @@ class Collector():
         for dataset, readers in dataset_readers_list:
             for reader in readers:
                 df = reader.contents
+                if df is None:
+                    continue
                 if self.dataset_col:
                     df = pd.concat([df], keys=[dataset], names=['dataset'])
                 if final_df is None:
