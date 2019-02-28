@@ -15,7 +15,10 @@ class JaggedNth(object):
         self.fill_missing = fill_missing
         self.dtype = None
         if force_float and isinstance(fill_missing, int):
-            self.dtype = float
+            if fill_missing is True or fill_missing is False:
+                self.dtype = bool
+            else:
+                self.dtype = float
 
     def __call__(self, array):
         mask = array.counts > self.index
