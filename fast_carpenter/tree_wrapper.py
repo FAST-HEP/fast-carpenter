@@ -109,6 +109,8 @@ class WrappedTree(object):
             raise ValueError(msg % (name, len(value), len(self)))
 
         outputtype = WrappedTree.FakeBranch
+
+        name = uproot.rootio._bytesid(name)
         self.extras[name] = outputtype(name, value, self.event_ranger)
 
     def __getattr__(self, attr):
