@@ -1,6 +1,7 @@
 """
 Chop up those trees into nice little tables and dataframes
 """
+from __future__ import print_function
 import fast_flow.v1 as fast_flow
 import fast_curator
 import logging
@@ -65,7 +66,9 @@ def main(args=None):
                             )
 
     sequence = [(s, s.collector() if hasattr(s, "collector") else DummyCollector()) for s in sequence]
-    return process.run(datasets, sequence)
+    ret_val = process.run(datasets, sequence)
+    print(ret_val)
+    return 0
 
 
 if __name__ == "__main__":
