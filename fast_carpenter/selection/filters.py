@@ -51,7 +51,9 @@ class Counter():
 
 class BaseFilter(object):
 
-    def __init__(self, selection, depth, weights):
+    def __init__(self, selection, depth, cut_id, weights):
+        self._unique_id = ",".join(map(str, cut_id))
+
         self.selection = selection
         self.depth = depth
         self.passed_excl = Counter(weights)
@@ -60,7 +62,7 @@ class BaseFilter(object):
         self.weights = weights
 
     def results(self):
-        output = (self.depth, str(self))
+        output = (self._unique_id, self.depth, str(self))
         output += self.passed_excl.counts + self.passed_incl.counts + self.totals_incl.counts
         output = [output]
         if isinstance(self.selection, list):
@@ -69,18 +71,20 @@ class BaseFilter(object):
 
     def results_header(self):
         nweights = len(self.weights) + 1
-        row1 = ["depth", "cut"]
+        row1 = ["unique_id", "depth", "cut"]
+        row2 = [""] * len(row1)
         row1 += ["passed_one_cut"] * nweights
         row1 += ["passed_incl"] * nweights
         row1 += ["totals_incl"] * nweights
-        row2 = ["", ""] + (["unweighted"] + self.weights) * 3
+        row2 += (["unweighted"] + self.weights) * 3
         return [row1, row2]
 
-    def cut_order(self):
-        output = [str(self)]
-        if isinstance(self.selection, list):
-            output += sum([sel.cut_order() for sel in self.selection], [])
-        return output
+    # def cut_order(self):
+    #     output = []
+    #     if isinstance(self.selection, list):
+    #         output += sum([sel.cut_order() for sel in self.selection], output)
+    #     output += [str(self)]
+    #     return output
 
     def merge(self, rhs):
         self.totals_incl.add(rhs.totals_incl)
@@ -91,8 +95,8 @@ class BaseFilter(object):
 
 
 class ReduceSingleCut(BaseFilter):
-    def __init__(self, stage_name, depth, weights, **selection):
-        super(ReduceSingleCut, self).__init__(selection, depth, weights)
+    def __init__(self, stage_name, depth, cut_id, weights, selection):
+        super(ReduceSingleCut, self).__init__(selection, depth, cut_id, weights)
         self._str = str(selection)
         self.reduction = get_awkward_reduction(stage_name,
                                                selection.pop("reduce"),
@@ -170,22 +174,25 @@ class Any(BaseFilter):
         return "Any"
 
 
-def build_selection(stage_name, config, weights=[], depth=0):
+def build_selection(stage_name, config, weights=[], depth=0, cut_id=[0]):
     if isinstance(config, six.string_types):
-        return SingleCut(config, depth, weights)
+        return SingleCut(config, depth, cut_id, weights)
     if not isinstance(config, dict):
         raise RuntimeError(stage_name + ": Selection config not a dict")
     if len(config) == 2:
-        return ReduceSingleCut(stage_name, depth, weights, **config)
+        return ReduceSingleCut(stage_name, depth, cut_id, weights, config)
     elif len(config) != 1:
         raise RuntimeError(stage_name + ":Selection config has too many keys")
 
-    method, selections = tuple(config.items())[0]
+    method, in_selections = tuple(config.items())[0]
     if method not in ("All", "Any"):
         raise RuntimeError(stage_name + ": Unknown selection combination method," + method)
 
-    selections = [build_selection(stage_name, sel, weights, depth + 1) for sel in selections]
+    selections = []
+    for i, sel in enumerate(in_selections):
+        cut = build_selection(stage_name, sel, weights, depth + 1, cut_id=cut_id + [i])
+        selections.append(cut)
     if method == "All":
-        return All(selections, depth, weights)
+        return All(selections, depth, cut_id, weights)
     if method == "Any":
-        return Any(selections, depth, weights)
+        return Any(selections, depth, cut_id, weights)
