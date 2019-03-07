@@ -70,7 +70,7 @@ class BaseFilter(object):
     def results_header(self):
         nweights = len(self.weights) + 1
         row1 = ["depth", "cut"]
-        row1 += ["passed_excl"] * nweights
+        row1 += ["passed_one_cut"] * nweights
         row1 += ["passed_incl"] * nweights
         row1 += ["totals_incl"] * nweights
         row2 = ["", ""] + (["unweighted"] + self.weights) * 3
