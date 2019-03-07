@@ -50,8 +50,9 @@ You can use the built-in help as well for more info:
 fast_carpenter --help
 ```
 
-### The processing config file
-... is on its way...
+### Talk:
+which partially act as documentation:
+1. [IRIS-HEP 4th March 2019](https://indico.cern.ch/event/802182/contributions/3334624/)
 
 ## Example analysis
-...is also on its way...
+The [fast_cms_public_tutorial](https://gitlab.cern.ch/fast-hep/public/fast_cms_public_tutorial) shows an example analysis that uses this package.
