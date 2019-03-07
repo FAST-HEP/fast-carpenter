@@ -141,7 +141,7 @@ class All(BaseFilter):
                  current_mask=None, combine_op=And):
         mask = np.ones(len(data), dtype=bool)
         for sel in self.selection:
-            excl_mask = sel(data, is_mc, 
+            excl_mask = sel(data, is_mc,
                             current_mask=combine_op(current_mask, mask),
                             combine_op=And)
             new_mask = mask & excl_mask
@@ -156,12 +156,12 @@ class All(BaseFilter):
 
 class Any(BaseFilter):
     def __call__(self, data, is_mc,
-                 current_mask=None, combine_op=And):
+                 current_mask=None, combine_op=Or):
         mask = np.zeros(len(data), dtype=bool)
         for sel in self.selection:
-            excl_mask = sel(data, is_mc, 
+            excl_mask = sel(data, is_mc,
                             current_mask=current_mask,
-                            combine_op=Or)
+                            combine_op=combine_op)
             new_mask = mask | excl_mask
             sel.increment_counters(data, is_mc, excl=excl_mask,
                                    after=combine_op(new_mask, current_mask),
