@@ -45,7 +45,8 @@ def cutflow_1():
 
 def test_cutflow_1(cutflow_1):
     assert cutflow_1._weights == {"NElectron": "NElectron"}
-    assert isinstance(cutflow_1.selection, filters.SingleCut)
+    assert isinstance(cutflow_1.selection, filters.OuterCounterIncrementer)
+    assert isinstance(cutflow_1.selection.selection, filters.SingleCut)
 
 
 def test_cutflow_1_executes_mc(cutflow_1, infile):

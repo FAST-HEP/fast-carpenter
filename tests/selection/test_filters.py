@@ -16,7 +16,8 @@ def config_1():
 
 def test_build_selection_1(config_1):
     selection = filters.build_selection("test_build_selection_1", config_1)
-    assert isinstance(selection, filters.SingleCut)
+    assert isinstance(selection, filters.OuterCounterIncrementer)
+    assert isinstance(selection.selection, filters.SingleCut)
 
 
 def test_selection_1(config_1, filename):
@@ -26,10 +27,13 @@ def test_selection_1(config_1, filename):
     assert np.count_nonzero(mask) == 289
 
     result = selection.results()
+    header = selection.results_header()
     assert len(result) == 1
-    assert result[0][0] == 0
-    assert result[0][1] == "NMuon > 1"
-    assert result[0][2] == 289
+    assert result[0][header[0].index("depth")] == 0
+    assert result[0][header[0].index("cut")] == "NMuon > 1"
+    assert result[0][header[0].index("passed_incl")] == 289
+    assert result[0][header[0].index("passed_only_cut")] == 289
+    assert result[0][header[0].index("totals_incl")] == 4580
 
 
 @pytest.fixture
@@ -46,15 +50,15 @@ def test_selection_2_weights(config_2, filename):
 
     header = selection.results_header()
     assert len(header) == 2
-    assert len(header[0]) == 8
+    assert len(header[0]) == 9
 
     result = selection.results()
 
     assert len(result) == 4
-    assert result[0][0] == 0
-    assert result[0][1] == "Any"
-    assert result[0][2] == 1486
-    assert result[0][3] == np.sum(infile.array("EventWeight")[mask])
+    assert result[0][header[0].index("depth")] == 0
+    assert result[0][header[0].index("cut")] == "Any"
+    assert result[0][header[0].index("passed_incl")] == 1486
+    assert result[0][header[0].index("passed_incl") + 1] == np.sum(infile.array("EventWeight")[mask])
 
 
 def test_selection_2_weights_data(config_2, filename):
@@ -66,15 +70,15 @@ def test_selection_2_weights_data(config_2, filename):
 
     header = selection.results_header()
     assert len(header) == 2
-    assert len(header[0]) == 8
+    assert len(header[0]) == 9
 
     result = selection.results()
 
     assert len(result) == 4
-    assert result[0][0] == 0
-    assert result[0][1] == "Any"
-    assert result[0][2] == 1486
-    assert result[0][3] == 1486
+    assert result[0][header[0].index("depth")] == 0
+    assert result[0][header[0].index("cut")] == "Any"
+    assert result[0][header[0].index("passed_incl")] == 1486
+    assert result[0][header[0].index("passed_incl") + 1] == 1486
 
 
 @pytest.fixture
@@ -89,13 +93,14 @@ def test_selection_3(config_3, filename):
     assert np.count_nonzero(mask) == 8
 
     result = selection.results()
+    header = selection.results_header()
     assert len(result) == 5
-    assert result[0][0] == 0
-    assert result[0][1] == "All"
-    assert result[0][2] == 8
-    assert result[1][0] == 1
-    assert result[1][1] == "NMuon > 1"
-    assert result[1][2] == 289
+    assert result[0][header[0].index("depth")] == 0
+    assert result[0][header[0].index("cut")] == "All"
+    assert result[0][header[0].index("passed_incl")] == 8
+    assert result[1][header[0].index("depth")] == 1
+    assert result[1][header[0].index("cut")] == "NMuon > 1"
+    assert result[1][header[0].index("passed_incl")] == 289
 
 
 @pytest.fixture

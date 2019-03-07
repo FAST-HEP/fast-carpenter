@@ -89,7 +89,7 @@ class BaseFilter(object):
         nweights = len(self.weights) + 1
         row1 = ["unique_id", "depth", "cut"]
         row2 = [""] * len(row1)
-        row1 += ["passed_one_cut"] * nweights
+        row1 += ["passed_only_cut"] * nweights
         row1 += ["passed_incl"] * nweights
         row1 += ["totals_incl"] * nweights
         row2 += (["unweighted"] + self.weights) * 3
