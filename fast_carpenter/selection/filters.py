@@ -4,6 +4,22 @@ from ..expressions import evaluate
 from ..define.reductions import get_awkward_reduction
 
 
+def And(left, right):
+    if left is None:
+        return right
+    if right is None:
+        return left
+    return left & right
+
+
+def Or(left, right):
+    if left is None:
+        return right
+    if right is None:
+        return left
+    return left | right
+
+
 class Counter():
     def __init__(self, weights):
         self._weights = weights
@@ -102,18 +118,9 @@ class ReduceSingleCut(BaseFilter):
                                                fill_missing=False)
         self.formula = selection.pop("formula")
 
-    def __call__(self, data, is_mc, current_mask=None):
-        self.totals_incl.increment(data, is_mc, mask=current_mask)
+    def __call__(self, data, is_mc, **kwargs):
         mask = evaluate(data, self.formula)
         mask = self.reduction(mask)
-
-        self.passed_excl.increment(data, is_mc, mask)
-
-        if current_mask is None:
-            incl_mask = mask
-        else:
-            incl_mask = mask & current_mask
-        self.passed_incl.increment(data, is_mc, incl_mask)
         return mask
 
     def __str__(self):
@@ -121,18 +128,8 @@ class ReduceSingleCut(BaseFilter):
 
 
 class SingleCut(BaseFilter):
-    def __call__(self, data, is_mc, current_mask=None):
-        self.totals_incl.increment(data, is_mc, mask=current_mask)
+    def __call__(self, data, is_mc, **kwargs):
         mask = evaluate(data, self.selection)
-
-        self.passed_excl.increment(data, is_mc, mask)
-
-        if current_mask is None:
-            incl_mask = mask
-        else:
-            incl_mask = mask & current_mask
-
-        self.passed_incl.increment(data, is_mc, incl_mask)
         return mask
 
     def __str__(self):
@@ -140,16 +137,17 @@ class SingleCut(BaseFilter):
 
 
 class All(BaseFilter):
-    def __call__(self, data, is_mc, current_mask=None):
-        self.totals_incl.increment(data, is_mc, mask=current_mask)
+    def __call__(self, data, is_mc,
+                 current_mask=None, combine_op=And):
         mask = np.ones(len(data), dtype=bool)
-        incl_mask = mask if current_mask is None else current_mask
         for sel in self.selection:
-            new_mask = sel(data, is_mc, current_mask=incl_mask)
-            mask &= new_mask
-            incl_mask = mask if current_mask is None else mask & current_mask
-        self.passed_incl.increment(data, is_mc, incl_mask)
-        self.passed_excl.increment(data, is_mc, mask)
+            excl_mask = sel(data, is_mc, 
+                            current_mask=combine_op(current_mask, mask),
+                            combine_op=And)
+            new_mask = mask & excl_mask
+            sel.increment_counters(data, is_mc, excl=excl_mask,
+                                   after=new_mask, before=mask)
+            mask = new_mask
         return mask
 
     def __str__(self):
@@ -157,23 +155,49 @@ class All(BaseFilter):
 
 
 class Any(BaseFilter):
-    def __call__(self, data, is_mc, current_mask=None):
-        self.totals_incl.increment(data, is_mc, mask=current_mask)
+    def __call__(self, data, is_mc,
+                 current_mask=None, combine_op=And):
         mask = np.zeros(len(data), dtype=bool)
-        incl_mask = current_mask
         for sel in self.selection:
-            new_mask = sel(data, is_mc, current_mask=incl_mask)
-            mask |= new_mask
-            incl_mask = mask if current_mask is None else mask & current_mask
-        self.passed_incl.increment(data, is_mc, incl_mask)
-        self.passed_excl.increment(data, is_mc, mask)
+            excl_mask = sel(data, is_mc, 
+                            current_mask=current_mask,
+                            combine_op=Or)
+            new_mask = mask | excl_mask
+            sel.increment_counters(data, is_mc, excl=excl_mask,
+                                   after=combine_op(new_mask, current_mask),
+                                   before=current_mask)
+            mask = new_mask
         return mask
 
     def __str__(self):
         return "Any"
 
 
-def build_selection(stage_name, config, weights=[], depth=0, cut_id=[0]):
+class OuterCounterIncrementer(BaseFilter):
+    def __str__(self):
+        return str(self.selection)
+
+    def __call__(self, data, is_mc):
+        mask = self.selection(data, is_mc)
+        self.selection.increment_counters(data, is_mc, excl=mask, after=mask, before=None)
+        return mask
+
+    def results(self):
+        return self.selection.results()
+
+    def results_header(self):
+        return self.selection.results_header()
+
+    def merge(self, rhs):
+        return self.selection.merge(rhs.selection)
+
+
+def build_selection(stage_name, config, weights=[]):
+    selection = handle_config(stage_name, config, weights)
+    return OuterCounterIncrementer(selection, depth=-1, cut_id=[-1], weights=weights)
+
+
+def handle_config(stage_name, config, weights, depth=0, cut_id=[0]):
     if isinstance(config, six.string_types):
         return SingleCut(config, depth, cut_id, weights)
     if not isinstance(config, dict):
@@ -189,7 +213,7 @@ def build_selection(stage_name, config, weights=[], depth=0, cut_id=[0]):
 
     selections = []
     for i, sel in enumerate(in_selections):
-        cut = build_selection(stage_name, sel, weights, depth + 1, cut_id=cut_id + [i])
+        cut = handle_config(stage_name, sel, weights, depth + 1, cut_id=cut_id + [i])
         selections.append(cut)
     if method == "All":
         return All(selections, depth, cut_id, weights)
