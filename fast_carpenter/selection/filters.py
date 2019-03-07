@@ -157,10 +157,11 @@ class Any(BaseFilter):
     def __call__(self, data, is_mc, current_mask=None):
         self.totals_incl.increment(data, is_mc, mask=current_mask)
         mask = np.zeros(len(data), dtype=bool)
+        incl_mask = current_mask
         for sel in self.selection:
-            new_mask = sel(data, is_mc, current_mask=current_mask)
+            new_mask = sel(data, is_mc, current_mask=incl_mask)
             mask |= new_mask
-        incl_mask = mask if current_mask is None else mask & current_mask
+            incl_mask = mask if current_mask is None else mask & current_mask
         self.passed_incl.increment(data, is_mc, incl_mask)
         self.passed_excl.increment(data, is_mc, mask)
         return mask
