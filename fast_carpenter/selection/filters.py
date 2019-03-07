@@ -106,7 +106,10 @@ class ReduceSingleCut(BaseFilter):
 
         self.passed_excl.increment(data, is_mc, mask)
 
-        incl_mask = mask if current_mask is None else mask & current_mask
+        if current_mask is None:
+            incl_mask = mask
+        else:
+            incl_mask = mask & current_mask
         self.passed_incl.increment(data, is_mc, incl_mask)
         return mask
 
@@ -121,7 +124,11 @@ class SingleCut(BaseFilter):
 
         self.passed_excl.increment(data, is_mc, mask)
 
-        incl_mask = mask if current_mask is None else mask & current_mask
+        if current_mask is None:
+            incl_mask = mask
+        else:
+            incl_mask = mask & current_mask
+
         self.passed_incl.increment(data, is_mc, incl_mask)
         return mask
 
@@ -151,8 +158,10 @@ class Any(BaseFilter):
         self.totals_incl.increment(data, is_mc, mask=current_mask)
         mask = np.zeros(len(data), dtype=bool)
         for sel in self.selection:
-            new_mask = sel(data, is_mc, current_mask=mask)
+            new_mask = sel(data, is_mc, current_mask=current_mask)
             mask |= new_mask
+        incl_mask = mask if current_mask is None else mask & current_mask
+        self.passed_incl.increment(data, is_mc, incl_mask)
         self.passed_excl.increment(data, is_mc, mask)
         return mask
 
