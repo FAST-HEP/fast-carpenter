@@ -79,19 +79,18 @@ class BaseFilter(object):
         row2 += (["unweighted"] + self.weights) * 3
         return [row1, row2]
 
-    # def cut_order(self):
-    #     output = []
-    #     if isinstance(self.selection, list):
-    #         output += sum([sel.cut_order() for sel in self.selection], output)
-    #     output += [str(self)]
-    #     return output
-
     def merge(self, rhs):
         self.totals_incl.add(rhs.totals_incl)
+        self.passed_incl.add(rhs.passed_incl)
         self.passed_excl.add(rhs.passed_excl)
         if isinstance(self.selection, list):
             for sub_lhs, sub_rhs in zip(self.selection, rhs.selection):
                 sub_lhs.merge(sub_rhs)
+
+    def increment_counters(self, data, is_mc, excl, before, after):
+        self.passed_excl.increment(data, is_mc, excl)
+        self.passed_incl.increment(data, is_mc, after)
+        self.totals_incl.increment(data, is_mc, before)
 
 
 class ReduceSingleCut(BaseFilter):
