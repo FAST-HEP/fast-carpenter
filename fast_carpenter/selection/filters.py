@@ -54,14 +54,14 @@ class BaseFilter(object):
     def __init__(self, selection, depth, weights):
         self.selection = selection
         self.depth = depth
-        self.passed_incl = Counter(weights)
-        self.totals_excl = Counter(weights)
         self.passed_excl = Counter(weights)
+        self.totals_incl = Counter(weights)
+        self.passed_incl = Counter(weights)
         self.weights = weights
 
     def results(self):
         output = (self.depth, str(self))
-        output += self.passed_incl.counts + self.passed_excl.counts + self.totals_excl.counts
+        output += self.passed_excl.counts + self.passed_incl.counts + self.totals_incl.counts
         output = [output]
         if isinstance(self.selection, list):
             output += sum([sel.results() for sel in self.selection], [])
@@ -70,9 +70,9 @@ class BaseFilter(object):
     def results_header(self):
         nweights = len(self.weights) + 1
         row1 = ["depth", "cut"]
-        row1 += ["passed_incl"] * nweights
         row1 += ["passed_excl"] * nweights
-        row1 += ["totals_excl"] * nweights
+        row1 += ["passed_incl"] * nweights
+        row1 += ["totals_incl"] * nweights
         row2 = ["", ""] + (["unweighted"] + self.weights) * 3
         return [row1, row2]
 
@@ -83,8 +83,8 @@ class BaseFilter(object):
         return output
 
     def merge(self, rhs):
-        self.totals_excl.add(rhs.totals_excl)
-        self.passed_incl.add(rhs.passed_incl)
+        self.totals_incl.add(rhs.totals_incl)
+        self.passed_excl.add(rhs.passed_excl)
         if isinstance(self.selection, list):
             for sub_lhs, sub_rhs in zip(self.selection, rhs.selection):
                 sub_lhs.merge(sub_rhs)
@@ -100,14 +100,14 @@ class ReduceSingleCut(BaseFilter):
         self.formula = selection.pop("formula")
 
     def __call__(self, data, is_mc, current_mask=None):
-        self.totals_excl.increment(data, is_mc, mask=current_mask)
+        self.totals_incl.increment(data, is_mc, mask=current_mask)
         mask = evaluate(data, self.formula)
         mask = self.reduction(mask)
 
-        self.passed_incl.increment(data, is_mc, mask)
+        self.passed_excl.increment(data, is_mc, mask)
 
-        excl_mask = mask if current_mask is None else mask & current_mask
-        self.passed_excl.increment(data, is_mc, excl_mask)
+        incl_mask = mask if current_mask is None else mask & current_mask
+        self.passed_incl.increment(data, is_mc, incl_mask)
         return mask
 
     def __str__(self):
@@ -116,13 +116,13 @@ class ReduceSingleCut(BaseFilter):
 
 class SingleCut(BaseFilter):
     def __call__(self, data, is_mc, current_mask=None):
-        self.totals_excl.increment(data, is_mc, mask=current_mask)
+        self.totals_incl.increment(data, is_mc, mask=current_mask)
         mask = evaluate(data, self.selection)
 
-        self.passed_incl.increment(data, is_mc, mask)
+        self.passed_excl.increment(data, is_mc, mask)
 
-        excl_mask = mask if current_mask is None else mask & current_mask
-        self.passed_excl.increment(data, is_mc, excl_mask)
+        incl_mask = mask if current_mask is None else mask & current_mask
+        self.passed_incl.increment(data, is_mc, incl_mask)
         return mask
 
     def __str__(self):
@@ -131,15 +131,15 @@ class SingleCut(BaseFilter):
 
 class All(BaseFilter):
     def __call__(self, data, is_mc, current_mask=None):
-        self.totals_excl.increment(data, is_mc, mask=current_mask)
+        self.totals_incl.increment(data, is_mc, mask=current_mask)
         mask = np.ones(len(data), dtype=bool)
-        excl_mask = mask if current_mask is None else current_mask
+        incl_mask = mask if current_mask is None else current_mask
         for sel in self.selection:
-            new_mask = sel(data, is_mc, current_mask=excl_mask)
+            new_mask = sel(data, is_mc, current_mask=incl_mask)
             mask &= new_mask
-            excl_mask = mask if current_mask is None else mask & current_mask
-        self.passed_excl.increment(data, is_mc, excl_mask)
-        self.passed_incl.increment(data, is_mc, mask)
+            incl_mask = mask if current_mask is None else mask & current_mask
+        self.passed_incl.increment(data, is_mc, incl_mask)
+        self.passed_excl.increment(data, is_mc, mask)
         return mask
 
     def __str__(self):
@@ -148,12 +148,12 @@ class All(BaseFilter):
 
 class Any(BaseFilter):
     def __call__(self, data, is_mc, current_mask=None):
-        self.totals_excl.increment(data, is_mc, mask=current_mask)
+        self.totals_incl.increment(data, is_mc, mask=current_mask)
         mask = np.zeros(len(data), dtype=bool)
         for sel in self.selection:
             new_mask = sel(data, is_mc, current_mask=mask)
             mask |= new_mask
-        self.passed_incl.increment(data, is_mc, mask)
+        self.passed_excl.increment(data, is_mc, mask)
         return mask
 
     def __str__(self):
