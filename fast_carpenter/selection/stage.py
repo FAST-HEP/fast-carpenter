@@ -49,7 +49,7 @@ class Collector():
                     continue
                 final_df = final_df.add(df, fill_value=0)
 
-        #final_df.drop(order, level="cut", axis=0)
+        final_df.index = final_df.index.droplevel(level="unique_id")
 
         return final_df
 
