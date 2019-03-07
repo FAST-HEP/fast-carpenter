@@ -11,8 +11,9 @@ with open('README.md') as readme_file:
 # with open('HISTORY.rst') as history_file:
 #     history = history_file.read()
 
-requirements = ['atuproot', 'fast-flow', 'fast-curator', 'awkward',
-                'pandas', 'numpy', 'numba', 'atsge', 'numexpr', 'uproot>=3']
+
+requirements = ['atsge==0.1.8', 'atuproot==0.1.7', 'fast-flow', 'fast-curator', 'awkward',
+                'pandas', 'numpy', 'numba', 'numexpr', 'uproot>=3']
 repositories = []
 
 setup_requirements = ['pytest-runner', ]
@@ -54,6 +55,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://gitlab.cern.ch/fast-hep/public/fast-carpenter',
-    version='0.6.8',
+    version='0.6.9',
     zip_safe=True,
 )
