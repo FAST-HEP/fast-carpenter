@@ -116,7 +116,7 @@ class CutFlow(object):
 
     def event(self, chunk):
         is_mc = chunk.config.dataset.eventtype == "mc"
-        new_mask = self.selection(chunk.tree, is_mc, chunk.tree.mask)
+        new_mask = self.selection(chunk.tree, is_mc)
         chunk.tree.apply_mask(new_mask)
 
     def merge(self, rhs):
