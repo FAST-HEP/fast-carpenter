@@ -36,22 +36,20 @@ class Collector():
     def _merge_data(self, dataset_readers_list):
         final_df = None
         header = None
-        order = None
         for dataset, readers in dataset_readers_list:
             for reader in readers:
                 if header is None:
                     header = reader.selection.results_header()
-                    order = reader.selection.cut_order()
                 results = reader.selection.results()
                 df = pd.DataFrame(results, columns=pd.MultiIndex.from_arrays(header))
-                df.set_index(["depth", "cut"], inplace=True, drop=True)
+                df.set_index(["unique_id", "depth", "cut"], inplace=True, drop=True)
                 df = pd.concat([df], keys=[dataset], names=['dataset'])
                 if final_df is None:
                     final_df = df
                     continue
                 final_df = final_df.add(df, fill_value=0)
 
-        final_df = final_df.reindex(order, level="cut", axis=0)
+        final_df.index = final_df.index.droplevel(level="unique_id")
 
         return final_df
 
