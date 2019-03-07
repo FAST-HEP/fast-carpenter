@@ -128,3 +128,66 @@ def test_selection_jagged_count_nonzero(config_jagged_count_nonzero, filename):
     mask = selection(infile, is_mc=False)
     # Compare to: events->Draw("", "Sum$(Muon_Px > 0.300) > 0")
     assert np.count_nonzero(mask) == 2225
+
+
+def fake_evaluate(variables, expression):
+    import numexpr
+    return numexpr.evaluate(expression, variables)
+
+
+class FakeTree(dict):
+    def __init__(self):
+        super(FakeTree, self).__init__(NMuon=np.linspace(0, 5., 101),
+                                       NElectron=np.linspace(0, 10, 101),
+                                       NJet=np.linspace(2, -18, 101),
+                                       )
+
+    def __len__(self):
+        return 101
+
+
+def test_event_removal_1(config_1, monkeypatch):
+    variables = FakeTree()
+    monkeypatch.setattr(filters, 'evaluate', fake_evaluate)
+    selection = filters.build_selection("test_event_removal", config_1)
+    NMuon = variables["NMuon"]
+
+    mask = selection(variables, is_mc=False)
+    assert len(mask) == 101
+    assert mask.dtype.kind == "b"
+    assert len(NMuon[mask]) == 80
+    assert NMuon[mask].max() == 5
+    assert NMuon[mask].min() == 1.05
+
+
+def test_event_removal_2(config_2, monkeypatch):
+    variables = FakeTree()
+    monkeypatch.setattr(filters, 'evaluate', fake_evaluate)
+    selection = filters.build_selection("test_event_removal", config_2)
+
+    mask = selection(variables, is_mc=False)
+
+    assert len(mask) == 101
+    assert mask.dtype.kind == "b"
+    assert np.count_nonzero(mask) == 95
+    assert all(mask == [True] * 5 + [False] * 6 + [True] * 90)
+    assert variables["NMuon"][mask].min() == 0
+    assert variables["NElectron"][mask].min() == 0
+    assert variables["NJet"][mask].min() == -18
+
+
+def test_event_removal_3(config_3, monkeypatch):
+    variables = FakeTree()
+    monkeypatch.setattr(filters, 'evaluate', fake_evaluate)
+    selection = filters.build_selection("test_event_removal", config_3)
+
+    mask = selection(variables, is_mc=False)
+
+    assert len(mask) == 101
+    assert mask.dtype.kind == "b"
+    assert np.count_nonzero(mask) == 80
+    assert all(mask == [False] * 21 + [True] * 80)
+    assert variables["NMuon"][mask].min() == 1.05
+    assert variables["NElectron"][mask].min() == 2.1
+    assert variables["NJet"][mask].max() == -2.2
+    assert variables["NJet"][mask].min() == -18
