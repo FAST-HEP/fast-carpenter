@@ -116,6 +116,9 @@ class WrappedTree(object):
     def __getattr__(self, attr):
         return getattr(self.tree, attr)
 
+    def __contains__(self, element):
+        return self.tree.__contains__(element)
+
     def __len__(self):
         chunk_size = self.event_ranger.entries_in_block
         if chunk_size:
