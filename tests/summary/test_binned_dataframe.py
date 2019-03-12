@@ -1,97 +1,22 @@
 import pytest
-import numpy as np
 import fast_carpenter.summary.binned_dataframe as bdf
+from . import dummy_binning_descriptions as binning
 from ..conftest import FakeBEEvent
 
 
 @pytest.fixture
-def bins_met_px():
-    return {"in": "MET_px", "out": "met_px", "bins": dict(nbins=10, low=0, high=100)}
+def config_1():
+    return dict(binning=[binning.bins_met_px,
+                         binning.bins_py],
+                weights=binning.weight_list)
 
 
 @pytest.fixture
-def bins_py():
-    return {"in": "Jet_Py", "out": "py_leadJet", "bins": dict(edges=[0, 20., 100.], overflow=True), "index": 0}
-
-
-@pytest.fixture
-def bins_nmuon():
-    return {"in": "NMuon", "out": "nmuon"}
-
-
-@pytest.fixture
-def weight_list():
-    return ["EventWeight"]
-
-
-@pytest.fixture
-def weight_dict():
-    return dict(weighted="EventWeight")
-
-
-def test__create_one_region(bins_nmuon):
-    cfg = {"_" + k: v for k, v in bins_nmuon.items()}
-    _in, _out, _bins, _index = bdf._create_one_dimension("test__create_one_region", **cfg)
-    assert _in == "NMuon"
-    assert _out == "nmuon"
-    assert _index is None
-    assert _bins is None
-
-
-def test__create_one_dimension_aT(bins_met_px):
-    cfg = {"_" + k: v for k, v in bins_met_px.items()}
-    _in, _out, _bins, _index = bdf._create_one_dimension("test__create_one_dimension_aT", **cfg)
-    assert _in == "MET_px"
-    assert _out == "met_px"
-    assert _index is None
-    assert isinstance(_bins, np.ndarray)
-    assert np.all(_bins[1:-1] == np.linspace(0, 100, 11))
-    assert _bins[0] == float("-inf")
-    assert _bins[-1] == float("inf")
-
-
-def test__create_one_dimension_HT(bins_py):
-    cfg = {"_" + k: v for k, v in bins_py.items()}
-    _in, _out, _bins, _index = bdf._create_one_dimension("test__create_one_dimension_HT", **cfg)
-    assert _in == "Jet_Py"
-    assert _out == "py_leadJet"
-    assert _index == 0
-    assert isinstance(_bins, np.ndarray)
-    assert np.all(_bins[1:-1] == [0, 20, 100])
-    assert _bins[0] == float("-inf")
-    assert _bins[-1] == float("inf")
-
-
-def test__create_binning_list(bins_nmuon, bins_met_px):
-    ins, outs, binning = bdf._create_binning_list("test__create_binning_list", [bins_nmuon, bins_met_px])
-    assert ins == ["NMuon", "MET_px"]
-    assert outs == ["nmuon", "met_px"]
-    assert len(binning) == 2
-    assert binning[0] is None
-
-
-def test__create_weights_list(weight_list):
-    name = "test__create_weights_list"
-    weights = bdf._create_weights(name, weight_list)
-    assert len(weights) == 1
-    assert weights["EventWeight"] == "EventWeight"
-
-
-def test__create_weights_dict(weight_dict):
-    name = "test__create_weights_dict"
-    weights = bdf._create_weights(name, weight_dict)
-    assert len(weights) == 1
-    assert weights["weighted"] == "EventWeight"
-
-
-@pytest.fixture
-def config_1(bins_met_px, bins_py, weight_list):
-    return dict(binning=[bins_met_px, bins_py], weights=weight_list)
-
-
-@pytest.fixture
-def config_2(bins_met_px, bins_py, bins_nmuon, weight_dict):
-    return dict(binning=[bins_py, bins_met_px, bins_nmuon], weights=weight_dict)
+def config_2():
+    return dict(binning=[binning.bins_py,
+                         binning.bins_met_px,
+                         binning.bins_nmuon],
+                weights=binning.weight_dict)
 
 
 @pytest.fixture
