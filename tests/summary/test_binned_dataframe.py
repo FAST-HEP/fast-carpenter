@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import fast_carpenter.summary as summary
-from .conftest import FakeBEEvent
+from ..conftest import FakeBEEvent
 
 
 @pytest.fixture
