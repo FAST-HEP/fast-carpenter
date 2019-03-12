@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-import fast_carpenter.summary as summary
+import fast_carpenter.summary.binned_dataframe as bdf
 from ..conftest import FakeBEEvent
 
 
@@ -31,7 +31,7 @@ def weight_dict():
 
 def test__create_one_region(bins_nmuon):
     cfg = {"_" + k: v for k, v in bins_nmuon.items()}
-    _in, _out, _bins, _index = summary._create_one_dimension("test__create_one_region", **cfg)
+    _in, _out, _bins, _index = bdf._create_one_dimension("test__create_one_region", **cfg)
     assert _in == "NMuon"
     assert _out == "nmuon"
     assert _index is None
@@ -40,7 +40,7 @@ def test__create_one_region(bins_nmuon):
 
 def test__create_one_dimension_aT(bins_met_px):
     cfg = {"_" + k: v for k, v in bins_met_px.items()}
-    _in, _out, _bins, _index = summary._create_one_dimension("test__create_one_dimension_aT", **cfg)
+    _in, _out, _bins, _index = bdf._create_one_dimension("test__create_one_dimension_aT", **cfg)
     assert _in == "MET_px"
     assert _out == "met_px"
     assert _index is None
@@ -52,7 +52,7 @@ def test__create_one_dimension_aT(bins_met_px):
 
 def test__create_one_dimension_HT(bins_py):
     cfg = {"_" + k: v for k, v in bins_py.items()}
-    _in, _out, _bins, _index = summary._create_one_dimension("test__create_one_dimension_HT", **cfg)
+    _in, _out, _bins, _index = bdf._create_one_dimension("test__create_one_dimension_HT", **cfg)
     assert _in == "Jet_Py"
     assert _out == "py_leadJet"
     assert _index == 0
@@ -63,7 +63,7 @@ def test__create_one_dimension_HT(bins_py):
 
 
 def test__create_binning_list(bins_nmuon, bins_met_px):
-    ins, outs, binning = summary._create_binning_list("test__create_binning_list", [bins_nmuon, bins_met_px])
+    ins, outs, binning = bdf._create_binning_list("test__create_binning_list", [bins_nmuon, bins_met_px])
     assert ins == ["NMuon", "MET_px"]
     assert outs == ["nmuon", "met_px"]
     assert len(binning) == 2
@@ -72,14 +72,14 @@ def test__create_binning_list(bins_nmuon, bins_met_px):
 
 def test__create_weights_list(weight_list):
     name = "test__create_weights_list"
-    weights = summary._create_weights(name, weight_list)
+    weights = bdf._create_weights(name, weight_list)
     assert len(weights) == 1
     assert weights["EventWeight"] == "EventWeight"
 
 
 def test__create_weights_dict(weight_dict):
     name = "test__create_weights_dict"
-    weights = summary._create_weights(name, weight_dict)
+    weights = bdf._create_weights(name, weight_dict)
     assert len(weights) == 1
     assert weights["weighted"] == "EventWeight"
 
@@ -96,7 +96,7 @@ def config_2(bins_met_px, bins_py, bins_nmuon, weight_dict):
 
 @pytest.fixture
 def binned_df_1(tmpdir, config_1):
-    return summary.BinnedDataframe("binned_df_1", out_dir="somewhere", **config_1)
+    return bdf.BinnedDataframe("binned_df_1", out_dir="somewhere", **config_1)
 
 
 def test_BinnedDataframe(binned_df_1, tmpdir):
@@ -110,7 +110,7 @@ def test_BinnedDataframe(binned_df_1, tmpdir):
 
 @pytest.fixture
 def binned_df_2(tmpdir, config_2):
-    return summary.BinnedDataframe("binned_df_2", out_dir="somewhere", **config_2)
+    return bdf.BinnedDataframe("binned_df_2", out_dir="somewhere", **config_2)
 
 
 def test_BinnedDataframe_run_mc(binned_df_1, tmpdir, infile):
