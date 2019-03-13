@@ -1,9 +1,9 @@
 """
 """
+import os
 import six
 import pandas as pd
 import numpy as np
-import os
 
 
 class BadBinnedDataframeConfig(Exception):
@@ -17,7 +17,7 @@ class Collector():
 
     def collect(self, dataset_readers_list):
         if len(dataset_readers_list) == 0:
-            return None
+            return
 
         output = self._prepare_output(dataset_readers_list)
         output.to_csv(self.filename)
@@ -122,7 +122,7 @@ def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_we
             final_bin_dims.append(dimension)
             continue
         out_dimension = dimension + "_bins"
-        data[out_dimension] = pd.cut(data[dimension], binning)
+        data[out_dimension] = pd.cut(data[dimension], binning, right=False)
         final_bin_dims.append(out_dimension)
 
     if weights:
