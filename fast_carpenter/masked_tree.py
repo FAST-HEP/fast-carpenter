@@ -1,14 +1,16 @@
 import numpy as np
+from .tree_wrapper import WrappedTree
 
 
 class MaskedUprootTree(object):
-    def __init__(self, tree, mask=None):
+    def __init__(self, tree, event_ranger, mask=None):
         if isinstance(tree, MaskedUprootTree):
             self.tree = tree.tree
             self._mask = tree._mask
             return
 
-        self.tree = tree
+        self.tree = WrappedTree(tree, event_ranger)
+        self.event_ranger = event_ranger
 
         if mask is None:
             self._mask = None
@@ -16,7 +18,7 @@ class MaskedUprootTree(object):
 
         self._mask = _normalise_mask(mask, len(self.tree))
 
-    class pandas_wrap():
+    class PandasWrap():
         def __init__(self, owner):
             self._owner = owner
 
@@ -24,12 +26,14 @@ class MaskedUprootTree(object):
             df = self._owner.tree.pandas.df(*args, **kwargs)
             if self._owner._mask is None:
                 return df
-            masked = df.loc[self._owner._mask]
+            mask = self._owner._mask + self._owner.event_ranger.start_entry
+            broadcast_map = np.isin(df.index.get_level_values("entry"), mask)
+            masked = df.iloc[broadcast_map]
             return masked
 
     @property
     def pandas(self):
-        return MaskedUprootTree.pandas_wrap(self)
+        return MaskedUprootTree.PandasWrap(self)
 
     @property
     def mask(self):
