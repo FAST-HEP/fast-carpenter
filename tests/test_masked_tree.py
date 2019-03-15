@@ -1,7 +1,6 @@
 from __future__ import division
 import pytest
 import numpy as np
-import uproot
 import fast_carpenter.masked_tree as m_tree
 
 

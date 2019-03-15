@@ -38,7 +38,7 @@ def test__create_one_region(bins_nmuon):
     assert _bins is None
 
 
-def test__create_one_dimension_aT(bins_met_px):
+def test__create_one_dimension_alphat(bins_met_px):
     cfg = {"_" + k: v for k, v in bins_met_px.items()}
     _in, _out, _bins, _index = summary._create_one_dimension("test__create_one_dimension_aT", **cfg)
     assert _in == "MET_px"
@@ -50,7 +50,7 @@ def test__create_one_dimension_aT(bins_met_px):
     assert _bins[-1] == float("inf")
 
 
-def test__create_one_dimension_HT(bins_py):
+def test__create_one_dimension_ht(bins_py):
     cfg = {"_" + k: v for k, v in bins_py.items()}
     _in, _out, _bins, _index = summary._create_one_dimension("test__create_one_dimension_HT", **cfg)
     assert _in == "Jet_Py"
@@ -99,7 +99,7 @@ def binned_df_1(tmpdir, config_1):
     return summary.BinnedDataframe("binned_df_1", out_dir="somewhere", **config_1)
 
 
-def test_BinnedDataframe(binned_df_1, tmpdir):
+def test_binneddataframe(binned_df_1, tmpdir):
     assert binned_df_1.name == "binned_df_1"
     assert len(binned_df_1._binnings) == 2
     # bin length for met_px: nbins, plus 1 for edge, plus 2 for +-inf
@@ -113,7 +113,7 @@ def binned_df_2(tmpdir, config_2):
     return summary.BinnedDataframe("binned_df_2", out_dir="somewhere", **config_2)
 
 
-def test_BinnedDataframe_run_mc(binned_df_1, tmpdir, infile):
+def test_binneddataframe_run_mc(binned_df_1, tmpdir, infile):
     chunk = FakeBEEvent(infile, "mc")
     collector = binned_df_1.collector()
 
@@ -131,12 +131,12 @@ def test_BinnedDataframe_run_mc(binned_df_1, tmpdir, infile):
     assert totals["EventWeight:sumw"] == pytest.approx(231.91339)
 
 
-def test_BinnedDataframe_run_data(binned_df_2, tmpdir, infile):
+def test_binneddataframe_run_data(binned_df_2, tmpdir, infile):
     chunk = FakeBEEvent(infile, "data")
     binned_df_2.event(chunk)
 
 
-def test_BinnedDataframe_run_twice(binned_df_1, tmpdir, infile):
+def test_binneddataframe_run_twice(binned_df_1, tmpdir, infile):
     chunk = FakeBEEvent(infile, "mc")
     collector = binned_df_1.collector()
 

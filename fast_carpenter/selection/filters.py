@@ -4,7 +4,7 @@ from ..expressions import evaluate
 from ..define.reductions import get_awkward_reduction
 
 
-def And(left, right):
+def safe_and(left, right):
     if left is None:
         return right
     if right is None:
@@ -12,7 +12,7 @@ def And(left, right):
     return left & right
 
 
-def Or(left, right):
+def safe_or(left, right):
     if left is None:
         return right
     if right is None:
@@ -138,12 +138,12 @@ class SingleCut(BaseFilter):
 
 class All(BaseFilter):
     def __call__(self, data, is_mc,
-                 current_mask=None, combine_op=And):
+                 current_mask=None, combine_op=safe_and):
         mask = np.ones(len(data), dtype=bool)
         for sel in self.selection:
             excl_mask = sel(data, is_mc,
                             current_mask=combine_op(current_mask, mask),
-                            combine_op=And)
+                            combine_op=safe_and)
             new_mask = mask & excl_mask
             sel.increment_counters(data, is_mc, excl=excl_mask,
                                    after=new_mask, before=mask)
@@ -156,7 +156,7 @@ class All(BaseFilter):
 
 class Any(BaseFilter):
     def __call__(self, data, is_mc,
-                 current_mask=None, combine_op=Or):
+                 current_mask=None, combine_op=safe_or):
         mask = np.zeros(len(data), dtype=bool)
         for sel in self.selection:
             excl_mask = sel(data, is_mc,
