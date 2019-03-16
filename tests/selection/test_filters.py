@@ -150,14 +150,14 @@ def test_event_removal_1(config_1, monkeypatch):
     variables = FakeTree()
     monkeypatch.setattr(filters, 'evaluate', fake_evaluate)
     selection = filters.build_selection("test_event_removal", config_1)
-    NMuon = variables["NMuon"]
+    nmuon = variables["NMuon"]
 
     mask = selection(variables, is_mc=False)
     assert len(mask) == 101
     assert mask.dtype.kind == "b"
-    assert len(NMuon[mask]) == 80
-    assert NMuon[mask].max() == 5
-    assert NMuon[mask].min() == 1.05
+    assert len(nmuon[mask]) == 80
+    assert nmuon[mask].max() == 5
+    assert nmuon[mask].min() == 1.05
 
 
 def test_event_removal_2(config_2, monkeypatch):

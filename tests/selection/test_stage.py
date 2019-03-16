@@ -49,8 +49,8 @@ def test_cutflow_1(cutflow_1):
     assert isinstance(cutflow_1.selection.selection, filters.SingleCut)
 
 
-def test_cutflow_1_executes_mc(cutflow_1, infile):
-    chunk = FakeBEEvent(MaskedUprootTree(infile), "mc")
+def test_cutflow_1_executes_mc(cutflow_1, infile, full_event_range):
+    chunk = FakeBEEvent(MaskedUprootTree(infile, event_ranger=full_event_range), "mc")
     cutflow_1.event(chunk)
 
     assert len(chunk.tree) == 289
@@ -59,8 +59,8 @@ def test_cutflow_1_executes_mc(cutflow_1, infile):
     assert collector.filename == "somewhere/cuts_cutflow_1-NElectron.csv"
 
 
-def test_cutflow_1_executes_data(cutflow_1, infile):
-    chunk = FakeBEEvent(MaskedUprootTree(infile), "data")
+def test_cutflow_1_executes_data(cutflow_1, infile, full_event_range):
+    chunk = FakeBEEvent(MaskedUprootTree(infile, event_ranger=full_event_range), "data")
     cutflow_1.event(chunk)
 
     assert len(chunk.tree) == 289

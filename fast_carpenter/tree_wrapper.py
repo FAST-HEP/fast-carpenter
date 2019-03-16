@@ -61,7 +61,7 @@ class WrappedTree(object):
         kwargs.setdefault("entrystart", self.event_ranger.start_entry)
         kwargs.setdefault("entrystop", self.event_ranger.stop_entry)
 
-    class pandas_wrap():
+    class PandasWrap():
         def __init__(self, owner):
             self._owner = owner
 
@@ -72,7 +72,7 @@ class WrappedTree(object):
 
     @property
     def pandas(self):
-        return WrappedTree.pandas_wrap(self)
+        return WrappedTree.PandasWrap(self)
 
     class FakeBranch(object):
         def __init__(self, name, values, event_ranger):
