@@ -4,7 +4,7 @@
 
 __author__ = """Benjamin Krikler, and F.A.S.T"""
 __email__ = 'fast-hep@cern.ch'
-__version__ = '0.7.3'
+__version__ = '0.7.4'
 
 
 from .define.variables import Define
