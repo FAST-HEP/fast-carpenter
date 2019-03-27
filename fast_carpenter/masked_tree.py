@@ -76,6 +76,8 @@ def _normalise_mask(mask, tree_length):
 def mask_df(df, mask, start_event):
     mask = mask + start_event
 
+    # Either of these methods could work on a general df (multiindex, or not) but they
+    # have opposite performances, so check if multi-index and choose accordingly
     if isinstance(df.index, pd.MultiIndex):
         broadcast_map = np.isin(df.index.get_level_values("entry"), mask)
         masked = df.iloc[broadcast_map]
