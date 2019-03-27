@@ -1,3 +1,4 @@
+import pandas as pd
 import numpy as np
 from .tree_wrapper import WrappedTree
 
@@ -26,9 +27,7 @@ class MaskedUprootTree(object):
             df = self._owner.tree.pandas.df(*args, **kwargs)
             if self._owner._mask is None:
                 return df
-            mask = self._owner._mask + self._owner.event_ranger.start_entry
-            broadcast_map = np.isin(df.index.get_level_values("entry"), mask)
-            masked = df.iloc[broadcast_map]
+            masked = mask_df(df, self._owner._mask, self._owner.event_ranger.start_entry)
             return masked
 
     @property
@@ -72,3 +71,16 @@ def _normalise_mask(mask, tree_length):
         if len(mask) != tree_length:
             raise RuntimeError("boolean mask has a different length to the input tree")
         return np.where(mask)[0]
+
+
+def mask_df(df, mask, start_event):
+    mask = mask + start_event
+
+    # Either of these methods could work on a general df (multiindex, or not) but they
+    # have opposite performances, so check if multi-index and choose accordingly
+    if isinstance(df.index, pd.MultiIndex):
+        broadcast_map = np.isin(df.index.get_level_values("entry"), mask)
+        masked = df.iloc[broadcast_map]
+    else:
+        masked = df.loc[mask]
+    return masked
