@@ -20,30 +20,29 @@ class Collector():
             return
 
         output = self._prepare_output(dataset_readers_list)
-        output.to_csv(self.filename)
+        output.to_csv(self.filename, float_format="%.17g")
 
     def _prepare_output(self, dataset_readers_list):
-        dataset_readers_list = [(d, r) for d, r in dataset_readers_list if r]
+        dataset_readers_list = [(d, [r.contents for r in readers]) for d, readers in dataset_readers_list if readers]
         if len(dataset_readers_list) == 0:
             return None
 
-        return self._merge_dataframes(dataset_readers_list)
+        return _merge_dataframes(dataset_readers_list, self.dataset_col)
 
-    def _merge_dataframes(self, dataset_readers_list):
-        final_df = None
-        for dataset, readers in dataset_readers_list:
-            for reader in readers:
-                df = reader.contents
-                if df is None:
-                    continue
-                if self.dataset_col:
-                    df = pd.concat([df], keys=[dataset], names=['dataset'])
-                if final_df is None:
-                    final_df = df
-                    continue
-                final_df = final_df.add(df, fill_value=0)
 
-        return final_df
+def _merge_dataframes(dataset_readers_list, dataset_col):
+    all_dfs = []
+    keys = []
+    for dataset, readers in dataset_readers_list:
+        dataset_df = readers[0]
+        for df in readers[1:]:
+            if df is None:
+                continue
+            dataset_df = dataset_df.add(df, fill_value=0.)
+        all_dfs.append(dataset_df)
+        keys.append(dataset)
+    final_df = pd.concat(all_dfs, keys=keys, names=['dataset'], sort=True)
+    return final_df
 
 
 class BinnedDataframe():
