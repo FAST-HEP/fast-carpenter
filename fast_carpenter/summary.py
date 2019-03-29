@@ -27,23 +27,24 @@ class Collector():
         if len(dataset_readers_list) == 0:
             return None
 
-        return self._merge_dataframes(dataset_readers_list)
+        return _merge_dataframes(dataset_readers_list, self.dataset_col)
 
-    def _merge_dataframes(self, dataset_readers_list):
-        final_df = None
-        for dataset, readers in dataset_readers_list:
-            for reader in readers:
-                df = reader.contents
-                if df is None:
-                    continue
-                if self.dataset_col:
-                    df = pd.concat([df], keys=[dataset], names=['dataset'])
-                if final_df is None:
-                    final_df = df
-                    continue
-                final_df = final_df.add(df, fill_value=0)
 
-        return final_df
+def _merge_dataframes(dataset_readers_list, dataset_col):
+    final_df = None
+    for dataset, readers in dataset_readers_list:
+        for reader in readers:
+            df = reader.contents
+            if df is None:
+                continue
+            if dataset_col:
+                df = pd.concat([df], keys=[dataset], names=['dataset'])
+            if final_df is None:
+                final_df = df
+                continue
+            final_df = final_df.add(df, fill_value=0)
+
+    return final_df
 
 
 class BinnedDataframe():
