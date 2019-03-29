@@ -20,7 +20,7 @@ class Collector():
             return
 
         output = self._prepare_output(dataset_readers_list)
-        output.to_csv(self.filename)
+        output.to_csv(self.filename, float_format="%.13g")
 
     def _prepare_output(self, dataset_readers_list):
         dataset_readers_list = [(d, [r.contents for r in readers]) for d, readers in dataset_readers_list if readers]
