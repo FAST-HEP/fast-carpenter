@@ -23,7 +23,7 @@ class Collector():
         output.to_csv(self.filename)
 
     def _prepare_output(self, dataset_readers_list):
-        dataset_readers_list = [(d, r) for d, r in dataset_readers_list if r]
+        dataset_readers_list = [(d, [r.contents for r in readers]) for d, readers in dataset_readers_list if readers]
         if len(dataset_readers_list) == 0:
             return None
 
@@ -33,8 +33,7 @@ class Collector():
 def _merge_dataframes(dataset_readers_list, dataset_col):
     final_df = None
     for dataset, readers in dataset_readers_list:
-        for reader in readers:
-            df = reader.contents
+        for df in readers:
             if df is None:
                 continue
             if dataset_col:
