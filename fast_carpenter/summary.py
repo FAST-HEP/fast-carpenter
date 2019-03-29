@@ -31,18 +31,17 @@ class Collector():
 
 
 def _merge_dataframes(dataset_readers_list, dataset_col):
-    final_df = None
+    all_dfs = []
+    keys = []
     for dataset, readers in dataset_readers_list:
-        for df in readers:
+        dataset_df = readers[0]
+        for df in readers[1:]:
             if df is None:
                 continue
-            if dataset_col:
-                df = pd.concat([df], keys=[dataset], names=['dataset'])
-            if final_df is None:
-                final_df = df
-                continue
-            final_df = final_df.add(df, fill_value=0)
-
+            dataset_df = dataset_df.add(df, fill_value=0)
+        all_dfs.append(dataset_df)
+        keys.append(dataset)
+    final_df = pd.concat(all_dfs, keys=keys, names=['dataset'], sort=True)
     return final_df
 
 
