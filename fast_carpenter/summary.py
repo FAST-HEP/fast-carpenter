@@ -20,7 +20,7 @@ class Collector():
             return
 
         output = self._prepare_output(dataset_readers_list)
-        output.to_csv(self.filename, float_format="%.13g")
+        output.to_csv(self.filename, float_format="%.17g")
 
     def _prepare_output(self, dataset_readers_list):
         dataset_readers_list = [(d, [r.contents for r in readers]) for d, readers in dataset_readers_list if readers]
@@ -38,7 +38,7 @@ def _merge_dataframes(dataset_readers_list, dataset_col):
         for df in readers[1:]:
             if df is None:
                 continue
-            dataset_df = dataset_df.add(df, fill_value=0)
+            dataset_df = dataset_df.add(df, fill_value=0.)
         all_dfs.append(dataset_df)
         keys.append(dataset)
     final_df = pd.concat(all_dfs, keys=keys, names=['dataset'], sort=True)
