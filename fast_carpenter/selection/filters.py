@@ -114,9 +114,9 @@ class ReduceSingleCut(BaseFilter):
         super(ReduceSingleCut, self).__init__(selection, depth, cut_id, weights)
         self._str = str(selection)
         self.reduction = get_awkward_reduction(stage_name,
-                                               selection.pop("reduce"),
+                                               selection.get("reduce"),
                                                fill_missing=False)
-        self.formula = selection.pop("formula")
+        self.formula = selection.get("formula")
 
     def __call__(self, data, is_mc, **kwargs):
         mask = evaluate(data, self.formula)
