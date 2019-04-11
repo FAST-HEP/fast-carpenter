@@ -39,8 +39,8 @@ def test__create_weights_dict():
 
 
 @pytest.fixture
-def cutflow_1():
-    return stage.CutFlow("cutflow_1", "somewhere", selection="NMuon > 1", weights="NElectron")
+def cutflow_1(tmpdir):
+    return stage.CutFlow("cutflow_1", str(tmpdir), selection="NMuon > 1", weights="NElectron")
 
 
 def test_cutflow_1(cutflow_1):
@@ -49,24 +49,25 @@ def test_cutflow_1(cutflow_1):
     assert isinstance(cutflow_1.selection.selection, filters.SingleCut)
 
 
-def test_cutflow_1_executes_mc(cutflow_1, infile, full_event_range):
+def test_cutflow_1_executes_mc(cutflow_1, infile, full_event_range, tmpdir):
     chunk = FakeBEEvent(MaskedUprootTree(infile, event_ranger=full_event_range), "mc")
     cutflow_1.event(chunk)
 
     assert len(chunk.tree) == 289
 
     collector = cutflow_1.collector()
-    assert collector.filename == "somewhere/cuts_cutflow_1-NElectron.csv"
+    assert collector.filename == str(tmpdir / "cuts_cutflow_1-NElectron.csv")
 
 
-def test_cutflow_1_executes_data(cutflow_1, infile, full_event_range):
+
+def test_cutflow_1_executes_data(cutflow_1, infile, full_event_range, tmpdir):
     chunk = FakeBEEvent(MaskedUprootTree(infile, event_ranger=full_event_range), "data")
     cutflow_1.event(chunk)
 
     assert len(chunk.tree) == 289
 
     collector = cutflow_1.collector()
-    assert collector.filename == "somewhere/cuts_cutflow_1-NElectron.csv"
+    assert collector.filename == str(tmpdir / "cuts_cutflow_1-NElectron.csv")
 
 
 # def test__load_selection_file(stage_name, selection_file):
