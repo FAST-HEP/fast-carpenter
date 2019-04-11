@@ -58,6 +58,13 @@ def test_cutflow_1_executes_mc(cutflow_1, infile, full_event_range, tmpdir):
     collector = cutflow_1.collector()
     assert collector.filename == str(tmpdir / "cuts_cutflow_1-NElectron.csv")
 
+    dataset_readers_list = (("test_mc", (cutflow_1, )), )
+    output = collector._merge_data(dataset_readers_list)
+    assert len(output) == 1
+    assert all(output[("passed_only_cut", "unweighted")] == [289])
+    assert all(output[("passed_incl", "unweighted")] == [289])
+    assert all(output[("totals_incl", "unweighted")] == [4580])
+
 
 
 def test_cutflow_1_executes_data(cutflow_1, infile, full_event_range, tmpdir):
@@ -70,4 +77,29 @@ def test_cutflow_1_executes_data(cutflow_1, infile, full_event_range, tmpdir):
     assert collector.filename == str(tmpdir / "cuts_cutflow_1-NElectron.csv")
 
 
-# def test__load_selection_file(stage_name, selection_file):
+@pytest.fixture
+def select_2(tmpdir):
+    select = {"All": ["NMuon > 1",
+                      {"Any": ["NElectron > 1", "NJet > 1"]},
+                      {"reduce": 1, "formula": "Muon_Px > 0.3"}]}
+    return select
+
+
+def test_cutflow_2_collect(select_2, infile, full_event_range, tmpdir):
+    chunk_data = FakeBEEvent(MaskedUprootTree(infile, event_ranger=full_event_range), "data")
+    chunk_mc = FakeBEEvent(MaskedUprootTree(infile, event_ranger=full_event_range), "mc")
+
+    cutflow_a = stage.CutFlow("cutflow_a", str(tmpdir), selection=select_2, weights="EventWeight")
+    cutflow_b = stage.CutFlow("cutflow_b", str(tmpdir), selection=select_2, weights="EventWeight")
+    cutflow_a.event(chunk_mc)
+    chunk_mc.tree.reset_mask()
+    cutflow_a.event(chunk_mc)
+
+    cutflow_b.event(chunk_data)
+    chunk_data.tree.reset_mask()
+    cutflow_b.event(chunk_data)
+
+    collector = cutflow_a.collector()
+    dataset_readers_list = (("test_mc", (cutflow_a,)), ("test_data", (cutflow_b,)),)
+    output = collector._merge_data(dataset_readers_list)
+    assert len(output) == 12
