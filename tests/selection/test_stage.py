@@ -103,3 +103,15 @@ def test_cutflow_2_collect(select_2, infile, full_event_range, tmpdir):
     dataset_readers_list = (("test_mc", (cutflow_a,)), ("test_data", (cutflow_b,)),)
     output = collector._merge_data(dataset_readers_list)
     assert len(output) == 12
+    data = output.xs("test_data", level="dataset", axis="rows")
+    data_weighted = data.xs("EventWeight", level=1, axis="columns")
+    data_unweighted = data.xs("unweighted", level=1, axis="columns")
+    assert all(data_weighted == data_unweighted)
+    mc = output.xs("test_mc", level="dataset", axis="rows")
+    mc_unweighted = mc.xs("unweighted", level=1, axis="columns")
+    assert all(mc_unweighted == data_unweighted)
+    assert output.loc[("test_data", 0, "All"), ("totals_incl", "unweighted")] == 4580 * 2
+    assert output.loc[("test_data", 0, "All"), ("totals_incl", "EventWeight")] == 4580 * 2
+    assert output.loc[("test_mc", 0, "All"), ("totals_incl", "unweighted")] == 4580 * 2
+    assert output.loc[("test_data", 1, "NMuon > 1"), ("passed_only_cut", "unweighted")] == 289 * 2
+    assert output.loc[("test_mc", 1, "NMuon > 1"), ("passed_only_cut", "unweighted")] == 289 * 2
