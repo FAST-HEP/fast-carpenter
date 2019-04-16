@@ -4,7 +4,8 @@ from __future__ import absolute_import
 import six
 import pandas as pd
 import os
-from .filters import build_selection
+from copy import deepcopy
+from .filters import build_selection, BaseFilter
 
 
 __all__ = ["CutFlow"]
@@ -30,7 +31,9 @@ class Collector():
         output.to_csv(self.filename, float_format="%.17g")
 
     def _prepare_output(self, dataset_readers_list):
-        dataset_readers_list = [(d, readers) for d, readers in dataset_readers_list if readers]
+        dataset_readers_list = [(d, [r.selection for r in readers])
+                                for d, readers in dataset_readers_list
+                                if readers]
         if len(dataset_readers_list) == 0:
             return None
 
@@ -38,22 +41,19 @@ class Collector():
 
 
 def _merge_data(dataset_readers_list):
-    final_df = None
     header = None
-    for dataset, readers in dataset_readers_list:
-        for reader in readers:
-            if header is None:
-                header = reader.selection.results_header()
-            results = reader.selection.results()
-            df = pd.DataFrame(results, columns=pd.MultiIndex.from_arrays(header))
-            df.set_index(["unique_id", "depth", "cut"], inplace=True, drop=True)
-            df = pd.concat([df], keys=[dataset], names=['dataset'])
-            if final_df is None:
-                final_df = df
-                continue
-            final_df = final_df.add(df, fill_value=0)
+    all_dfs = []
+    keys = []
+    for dataset, counters in dataset_readers_list:
+        output = reduce(BaseFilter.merge, counters[1:], deepcopy(counters[0]))
+        if header is None:
+            header = output.results_header()
+        keys.append(dataset)
+        df = pd.DataFrame(output.results(), columns=pd.MultiIndex.from_arrays(header))
+        all_dfs.append(df)
 
-    final_df.index = final_df.index.droplevel(level="unique_id")
+    final_df = pd.concat(all_dfs, keys=keys, names=['dataset'], sort=True)
+    #final_df.index = final_df.index.droplevel(level="unique_id")
 
     return final_df
 
