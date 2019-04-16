@@ -26,32 +26,36 @@ class Collector():
         if len(dataset_readers_list) == 0:
             return None
 
-        dataset_readers_list = [(d, r) for d, r in dataset_readers_list if r]
+        output = self._prepare_output(dataset_readers_list)
+        output.to_csv(self.filename, float_format="%.17g")
+
+    def _prepare_output(self, dataset_readers_list):
+        dataset_readers_list = [(d, readers) for d, readers in dataset_readers_list if readers]
         if len(dataset_readers_list) == 0:
             return None
 
-        output = self._merge_data(dataset_readers_list)
-        output.to_csv(self.filename)
+        return _merge_data(dataset_readers_list)
 
-    def _merge_data(self, dataset_readers_list):
-        final_df = None
-        header = None
-        for dataset, readers in dataset_readers_list:
-            for reader in readers:
-                if header is None:
-                    header = reader.selection.results_header()
-                results = reader.selection.results()
-                df = pd.DataFrame(results, columns=pd.MultiIndex.from_arrays(header))
-                df.set_index(["unique_id", "depth", "cut"], inplace=True, drop=True)
-                df = pd.concat([df], keys=[dataset], names=['dataset'])
-                if final_df is None:
-                    final_df = df
-                    continue
-                final_df = final_df.add(df, fill_value=0)
 
-        final_df.index = final_df.index.droplevel(level="unique_id")
+def _merge_data(dataset_readers_list):
+    final_df = None
+    header = None
+    for dataset, readers in dataset_readers_list:
+        for reader in readers:
+            if header is None:
+                header = reader.selection.results_header()
+            results = reader.selection.results()
+            df = pd.DataFrame(results, columns=pd.MultiIndex.from_arrays(header))
+            df.set_index(["unique_id", "depth", "cut"], inplace=True, drop=True)
+            df = pd.concat([df], keys=[dataset], names=['dataset'])
+            if final_df is None:
+                final_df = df
+                continue
+            final_df = final_df.add(df, fill_value=0)
 
-        return final_df
+    final_df.index = final_df.index.droplevel(level="unique_id")
+
+    return final_df
 
 
 def _load_selection_file(stage_name, selection_file):

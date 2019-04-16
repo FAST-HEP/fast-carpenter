@@ -59,7 +59,7 @@ def test_cutflow_1_executes_mc(cutflow_1, infile, full_event_range, tmpdir):
     assert collector.filename == str(tmpdir / "cuts_cutflow_1-NElectron.csv")
 
     dataset_readers_list = (("test_mc", (cutflow_1, )), )
-    output = collector._merge_data(dataset_readers_list)
+    output = stage._merge_data(dataset_readers_list)
     assert len(output) == 1
     assert all(output[("passed_only_cut", "unweighted")] == [289])
     assert all(output[("passed_incl", "unweighted")] == [289])
@@ -99,9 +99,10 @@ def test_cutflow_2_collect(select_2, infile, full_event_range, tmpdir):
     chunk_data.tree.reset_mask()
     cutflow_b.event(chunk_data)
 
-    collector = cutflow_a.collector()
+    cutflow_a.collector()
+
     dataset_readers_list = (("test_mc", (cutflow_a,)), ("test_data", (cutflow_b,)),)
-    output = collector._merge_data(dataset_readers_list)
+    output = stage._merge_data(dataset_readers_list)
     assert len(output) == 12
     data = output.xs("test_data", level="dataset", axis="rows")
     data_weighted = data.xs("EventWeight", level=1, axis="columns")
