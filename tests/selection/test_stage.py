@@ -99,10 +99,9 @@ def test_cutflow_2_collect(select_2, infile, full_event_range, tmpdir):
     chunk_data.tree.reset_mask()
     cutflow_b.event(chunk_data)
 
-    cutflow_a.collector()
-
+    collector = cutflow_a.collector()
     dataset_readers_list = (("test_mc", (cutflow_a,)), ("test_data", (cutflow_b,)),)
-    output = stage._merge_data(dataset_readers_list)
+    output = collector._prepare_output(dataset_readers_list)
     assert len(output) == 12
     data = output.xs("test_data", level="dataset", axis="rows")
     data_weighted = data.xs("EventWeight", level=1, axis="columns")
