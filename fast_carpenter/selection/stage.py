@@ -20,8 +20,9 @@ class BadSelectionFile(Exception):
 
 
 class Collector():
-    def __init__(self, filename):
+    def __init__(self, filename, keep_unique_id):
         self.filename = filename
+        self.keep_unique_id = keep_unique_id
 
     def collect(self, dataset_readers_list):
         if len(dataset_readers_list) == 0:
@@ -37,10 +38,10 @@ class Collector():
         if len(dataset_readers_list) == 0:
             return None
 
-        return _merge_data(dataset_readers_list)
+        return _merge_data(dataset_readers_list, self.keep_unique_id)
 
 
-def _merge_data(dataset_readers_list):
+def _merge_data(dataset_readers_list, keep_unique_id=False):
     all_dfs = []
     keys = []
     for dataset, counters in dataset_readers_list:
@@ -49,7 +50,8 @@ def _merge_data(dataset_readers_list):
         all_dfs.append(output.to_dataframe())
 
     final_df = pd.concat(all_dfs, keys=keys, names=['dataset'], sort=True)
-    final_df.index = final_df.index.droplevel(level="unique_id")
+    if not keep_unique_id:
+        final_df.index = final_df.index.droplevel(level="unique_id")
 
     return final_df
 
@@ -83,10 +85,11 @@ def _create_weights(stage_name, weights):
 
 
 class CutFlow(object):
-    def __init__(self, name, out_dir, selection_file=None,
+    def __init__(self, name, out_dir, selection_file=None, keep_unique_id=False,
                  selection=None, counter=True, weights=None):
         self.name = name
         self.out_dir = out_dir
+        self.keep_unique_id = keep_unique_id
         if not selection and not selection_file:
             raise BadCutflowConfig("{}: Neither selection nor selection_file specified".format(self.name))
         if selection and selection_file:
@@ -112,7 +115,7 @@ class CutFlow(object):
         outfilename += ".".join(self._weights.keys())
         outfilename += ".csv"
         outfilename = os.path.join(self.out_dir, outfilename)
-        return Collector(outfilename)
+        return Collector(outfilename, self.keep_unique_id)
 
     def event(self, chunk):
         is_mc = chunk.config.dataset.eventtype == "mc"
