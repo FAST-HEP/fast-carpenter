@@ -59,7 +59,7 @@ def test_cutflow_1_executes_mc(cutflow_1, infile, full_event_range, tmpdir):
     assert collector.filename == str(tmpdir / "cuts_cutflow_1-NElectron.csv")
 
     dataset_readers_list = (("test_mc", (cutflow_1, )), )
-    output = stage._merge_data(dataset_readers_list)
+    output = collector._prepare_output(dataset_readers_list)
     assert len(output) == 1
     assert all(output[("passed_only_cut", "unweighted")] == [289])
     assert all(output[("passed_incl", "unweighted")] == [289])
