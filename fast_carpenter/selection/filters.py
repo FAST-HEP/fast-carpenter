@@ -1,5 +1,6 @@
 import six
 import numpy as np
+import pandas as pd
 from ..expressions import evaluate
 from ..define.reductions import get_awkward_reduction
 
@@ -77,23 +78,34 @@ class BaseFilter(object):
         self.passed_incl = Counter(weights)
         self.weights = weights
 
-    def results(self):
-        output = (self._unique_id, self.depth, str(self))
-        output += self.passed_excl.counts + self.passed_incl.counts + self.totals_incl.counts
-        output = [output]
+    @property
+    def index_values(self):
+        output = [(self._unique_id, self.depth, str(self))]
         if isinstance(self.selection, list):
-            output += sum([sel.results() for sel in self.selection], [])
+            output = sum([sel.index_values for sel in self.selection], output)
         return output
 
-    def results_header(self):
+    @property
+    def values(self):
+        output = [self.passed_excl.counts + self.passed_incl.counts + self.totals_incl.counts]
+        if isinstance(self.selection, list):
+            output += sum([sel.values for sel in self.selection], [])
+        return output
+
+    @property
+    def columns(self):
         nweights = len(self.weights) + 1
-        row1 = ["unique_id", "depth", "cut"]
-        row2 = [""] * len(row1)
-        row1 += ["passed_only_cut"] * nweights
+        row1 = ["passed_only_cut"] * nweights
         row1 += ["passed_incl"] * nweights
         row1 += ["totals_incl"] * nweights
-        row2 += (["unweighted"] + self.weights) * 3
+        row2 = (["unweighted"] + self.weights) * 3
         return [row1, row2]
+
+    def to_dataframe(self):
+        index_names = ("unique_id", "depth", "cut")
+        index = pd.MultiIndex.from_tuples(self.index_values, names=index_names)
+        columns = pd.MultiIndex.from_arrays(self.columns)
+        return pd.DataFrame(self.values, columns=columns, index=index)
 
     def merge(self, rhs):
         self.totals_incl.add(rhs.totals_incl)
@@ -182,11 +194,8 @@ class OuterCounterIncrementer(BaseFilter):
         self.selection.increment_counters(data, is_mc, excl=mask, after=mask, before=None)
         return mask
 
-    def results(self):
-        return self.selection.results()
-
-    def results_header(self):
-        return self.selection.results_header()
+    def to_dataframe(self):
+        return self.selection.to_dataframe()
 
     def merge(self, rhs):
         return self.selection.merge(rhs.selection)

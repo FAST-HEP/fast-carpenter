@@ -41,19 +41,15 @@ class Collector():
 
 
 def _merge_data(dataset_readers_list):
-    header = None
     all_dfs = []
     keys = []
     for dataset, counters in dataset_readers_list:
         output = reduce(BaseFilter.merge, counters[1:], deepcopy(counters[0]))
-        if header is None:
-            header = output.results_header()
         keys.append(dataset)
-        df = pd.DataFrame(output.results(), columns=pd.MultiIndex.from_arrays(header))
-        all_dfs.append(df)
+        all_dfs.append(output.to_dataframe())
 
     final_df = pd.concat(all_dfs, keys=keys, names=['dataset'], sort=True)
-    #final_df.index = final_df.index.droplevel(level="unique_id")
+    final_df.index = final_df.index.droplevel(level="unique_id")
 
     return final_df
 
