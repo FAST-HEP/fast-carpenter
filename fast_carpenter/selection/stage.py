@@ -49,7 +49,7 @@ def _merge_data(dataset_readers_list, keep_unique_id=False):
         keys.append(dataset)
         all_dfs.append(output.to_dataframe())
 
-    final_df = pd.concat(all_dfs, keys=keys, names=['dataset'], sort=True)
+    final_df = pd.concat(all_dfs, keys=keys, names=['dataset'], sort=False)
     if not keep_unique_id:
         final_df.index = final_df.index.droplevel(level="unique_id")
 
