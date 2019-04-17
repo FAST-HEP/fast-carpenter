@@ -4,6 +4,7 @@ from __future__ import absolute_import
 import six
 import pandas as pd
 import os
+from copy import deepcopy
 from .filters import build_selection
 
 
@@ -19,39 +20,42 @@ class BadSelectionFile(Exception):
 
 
 class Collector():
-    def __init__(self, filename):
+    def __init__(self, filename, keep_unique_id):
         self.filename = filename
+        self.keep_unique_id = keep_unique_id
 
     def collect(self, dataset_readers_list):
         if len(dataset_readers_list) == 0:
             return None
 
-        dataset_readers_list = [(d, r) for d, r in dataset_readers_list if r]
+        output = self._prepare_output(dataset_readers_list)
+        output.to_csv(self.filename, float_format="%.17g")
+
+    def _prepare_output(self, dataset_readers_list):
+        dataset_readers_list = [(d, [r.selection for r in readers])
+                                for d, readers in dataset_readers_list
+                                if readers]
         if len(dataset_readers_list) == 0:
             return None
 
-        output = self._merge_data(dataset_readers_list)
-        output.to_csv(self.filename)
+        return _merge_data(dataset_readers_list, self.keep_unique_id)
 
-    def _merge_data(self, dataset_readers_list):
-        final_df = None
-        header = None
-        for dataset, readers in dataset_readers_list:
-            for reader in readers:
-                if header is None:
-                    header = reader.selection.results_header()
-                results = reader.selection.results()
-                df = pd.DataFrame(results, columns=pd.MultiIndex.from_arrays(header))
-                df.set_index(["unique_id", "depth", "cut"], inplace=True, drop=True)
-                df = pd.concat([df], keys=[dataset], names=['dataset'])
-                if final_df is None:
-                    final_df = df
-                    continue
-                final_df = final_df.add(df, fill_value=0)
 
+def _merge_data(dataset_readers_list, keep_unique_id=False):
+    all_dfs = []
+    keys = []
+    for dataset, counters in dataset_readers_list:
+        output = deepcopy(counters[0])
+        for counter in counters[1:]:
+            output.merge(counter)
+        keys.append(dataset)
+        all_dfs.append(output.to_dataframe())
+
+    final_df = pd.concat(all_dfs, keys=keys, names=['dataset'], sort=False)
+    if not keep_unique_id:
         final_df.index = final_df.index.droplevel(level="unique_id")
 
-        return final_df
+    return final_df
 
 
 def _load_selection_file(stage_name, selection_file):
@@ -83,10 +87,11 @@ def _create_weights(stage_name, weights):
 
 
 class CutFlow(object):
-    def __init__(self, name, out_dir, selection_file=None,
+    def __init__(self, name, out_dir, selection_file=None, keep_unique_id=False,
                  selection=None, counter=True, weights=None):
         self.name = name
         self.out_dir = out_dir
+        self.keep_unique_id = keep_unique_id
         if not selection and not selection_file:
             raise BadCutflowConfig("{}: Neither selection nor selection_file specified".format(self.name))
         if selection and selection_file:
@@ -112,7 +117,7 @@ class CutFlow(object):
         outfilename += ".".join(self._weights.keys())
         outfilename += ".csv"
         outfilename = os.path.join(self.out_dir, outfilename)
-        return Collector(outfilename)
+        return Collector(outfilename, self.keep_unique_id)
 
     def event(self, chunk):
         is_mc = chunk.config.dataset.eventtype == "mc"
