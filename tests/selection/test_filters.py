@@ -1,4 +1,5 @@
 import pytest
+import six
 import numpy as np
 import uproot
 import fast_carpenter.selection.filters as filters
@@ -17,7 +18,8 @@ def config_1():
 def test_build_selection_1(config_1):
     selection = filters.build_selection("test_build_selection_1", config_1)
     assert isinstance(selection, filters.OuterCounterIncrementer)
-    assert isinstance(selection.selection, filters.SingleCut)
+    assert isinstance(selection._wrapped_selection, filters.SingleCut)
+    assert isinstance(selection.selection, six.string_types)
 
 
 def test_selection_1(config_1, filename):

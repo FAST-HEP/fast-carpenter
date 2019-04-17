@@ -1,4 +1,5 @@
 import pytest
+import six
 import fast_carpenter.selection.stage as stage
 from fast_carpenter.masked_tree import MaskedUprootTree
 import fast_carpenter.selection.filters as filters
@@ -46,7 +47,8 @@ def cutflow_1(tmpdir):
 def test_cutflow_1(cutflow_1):
     assert cutflow_1._weights == {"NElectron": "NElectron"}
     assert isinstance(cutflow_1.selection, filters.OuterCounterIncrementer)
-    assert isinstance(cutflow_1.selection.selection, filters.SingleCut)
+    assert isinstance(cutflow_1.selection._wrapped_selection, filters.SingleCut)
+    assert isinstance(cutflow_1.selection.selection, six.string_types)
 
 
 def test_cutflow_1_executes_mc(cutflow_1, infile, full_event_range, tmpdir):
@@ -84,12 +86,10 @@ def select_2(tmpdir):
     return select
 
 
-def test_cutflow_2_collect(select_2, infile, full_event_range, tmpdir):
-    chunk_data = FakeBEEvent(MaskedUprootTree(infile, event_ranger=full_event_range), "data")
-    chunk_mc = FakeBEEvent(MaskedUprootTree(infile, event_ranger=full_event_range), "mc")
+def one_stage_many_calls(selection, tmpdir, chunk_data, chunk_mc):
+    cutflow_a = stage.CutFlow("cutflow_a", str(tmpdir), selection=selection, weights="EventWeight")
+    cutflow_b = stage.CutFlow("cutflow_b", str(tmpdir), selection=selection, weights="EventWeight")
 
-    cutflow_a = stage.CutFlow("cutflow_a", str(tmpdir), selection=select_2, weights="EventWeight")
-    cutflow_b = stage.CutFlow("cutflow_b", str(tmpdir), selection=select_2, weights="EventWeight")
     cutflow_a.event(chunk_mc)
     chunk_mc.tree.reset_mask()
     cutflow_a.event(chunk_mc)
@@ -100,7 +100,32 @@ def test_cutflow_2_collect(select_2, infile, full_event_range, tmpdir):
 
     collector = cutflow_a.collector()
     dataset_readers_list = (("test_mc", (cutflow_a,)), ("test_data", (cutflow_b,)),)
+    return collector, dataset_readers_list
+
+
+def many_stages_one_call(selection, tmpdir, chunk_data, chunk_mc):
+    cutflows = [stage.CutFlow("cutflow_%d" % i, str(tmpdir), selection=selection, weights="EventWeight")
+                for i in range(4)]
+    cutflows[0].event(chunk_mc)
+    chunk_mc.tree.reset_mask()
+    cutflows[1].event(chunk_mc)
+    cutflows[2].event(chunk_data)
+    chunk_data.tree.reset_mask()
+    cutflows[3].event(chunk_data)
+
+    collector = cutflows[0].collector()
+    dataset_readers_list = (("test_mc", cutflows[:2]), ("test_data", cutflows[2:]),)
+    return collector, dataset_readers_list
+
+
+@pytest.mark.parametrize("multi_chunk_func", [one_stage_many_calls, many_stages_one_call])
+def test_cutflow_2_collect(select_2, tmpdir, infile, full_event_range, multi_chunk_func):
+    chunk_data = FakeBEEvent(MaskedUprootTree(infile, event_ranger=full_event_range), "data")
+    chunk_mc = FakeBEEvent(MaskedUprootTree(infile, event_ranger=full_event_range), "mc")
+
+    collector, dataset_readers_list = multi_chunk_func(select_2, tmpdir, chunk_data, chunk_mc)
     output = collector._prepare_output(dataset_readers_list)
+
     assert len(output) == 12
     data = output.xs("test_data", level="dataset", axis="rows")
     data_weighted = data.xs("EventWeight", level=1, axis="columns")

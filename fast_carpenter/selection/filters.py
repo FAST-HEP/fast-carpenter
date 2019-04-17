@@ -114,11 +114,19 @@ class BaseFilter(object):
         if isinstance(self.selection, list):
             for sub_lhs, sub_rhs in zip(self.selection, rhs.selection):
                 sub_lhs.merge(sub_rhs)
+        return self
 
     def increment_counters(self, data, is_mc, excl, before, after):
         self.passed_excl.increment(data, is_mc, excl)
         self.passed_incl.increment(data, is_mc, after)
         self.totals_incl.increment(data, is_mc, before)
+
+    def __repr__(self):
+        rep = ": {!r}"
+        if isinstance(self.selection, list):
+            rep = ": [{!r}]"
+        rep = self.__class__.__name__ + rep.format(self.selection)
+        return rep
 
 
 class ReduceSingleCut(BaseFilter):
@@ -186,14 +194,17 @@ class Any(BaseFilter):
 
 
 class OuterCounterIncrementer(BaseFilter):
+    def __init__(self, *args, **kwargs):
+        super(OuterCounterIncrementer, self).__init__(*args, **kwargs)
+        self._wrapped_selection = BaseFilter.__getattribute__(self, "selection")
 
     def __call__(self, data, is_mc):
-        mask = self.selection(data, is_mc)
-        self.selection.increment_counters(data, is_mc, excl=mask, after=mask, before=None)
+        mask = self._wrapped_selection(data, is_mc)
+        self._wrapped_selection.increment_counters(data, is_mc, excl=mask, after=mask, before=None)
         return mask
 
     def __getattribute__(self, name):
-        if name in ["__call__", "selection"]:
+        if name in ["__call__", "_wrapped_selection"]:
             return BaseFilter.__getattribute__(self, name)
         return BaseFilter.__getattribute__(self, "selection").__getattribute__(name)
 
