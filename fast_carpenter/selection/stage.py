@@ -5,7 +5,7 @@ import six
 import pandas as pd
 import os
 from copy import deepcopy
-from .filters import build_selection, BaseFilter
+from .filters import build_selection
 
 
 __all__ = ["CutFlow"]
@@ -45,7 +45,9 @@ def _merge_data(dataset_readers_list, keep_unique_id=False):
     all_dfs = []
     keys = []
     for dataset, counters in dataset_readers_list:
-        output = reduce(BaseFilter.merge, counters[1:], deepcopy(counters[0]))
+        output = deepcopy(counters[0])
+        for counter in counters[1:]:
+            output.merge(counter)
         keys.append(dataset)
         all_dfs.append(output.to_dataframe())
 
