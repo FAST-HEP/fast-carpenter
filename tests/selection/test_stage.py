@@ -66,7 +66,6 @@ def test_cutflow_1_executes_mc(cutflow_1, infile, full_event_range, tmpdir):
     assert all(output[("totals_incl", "unweighted")] == [4580])
 
 
-
 def test_cutflow_1_executes_data(cutflow_1, infile, full_event_range, tmpdir):
     chunk = FakeBEEvent(MaskedUprootTree(infile, event_ranger=full_event_range), "data")
     cutflow_1.event(chunk)
