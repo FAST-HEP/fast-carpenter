@@ -26,14 +26,26 @@ def test_selection_1(config_1, filename):
     mask = selection(infile, is_mc=False)
     assert np.count_nonzero(mask) == 289
 
-    result = selection.results()
-    header = selection.results_header()
-    assert len(result) == 1
-    assert result[0][header[0].index("depth")] == 0
-    assert result[0][header[0].index("cut")] == "NMuon > 1"
-    assert result[0][header[0].index("passed_incl")] == 289
-    assert result[0][header[0].index("passed_only_cut")] == 289
-    assert result[0][header[0].index("totals_incl")] == 4580
+    columns = selection.columns
+    values = selection.values
+    index = selection.index_values
+    assert len(values) == 1
+    assert len(index) == 1
+    assert index[0][0] == "0"
+    assert index[0][1] == 0
+    assert index[0][2] == "NMuon > 1"
+    assert values[0][columns[0].index("passed_incl")] == 289
+    assert values[0][columns[0].index("passed_only_cut")] == 289
+    assert values[0][columns[0].index("totals_incl")] == 4580
+
+    df = selection.to_dataframe()
+    assert len(df) == 1
+    assert all(df.index.get_level_values("depth") == [0])
+    assert all(df.index.get_level_values("cut") == ["NMuon > 1"])
+    row = ("0", 0, "NMuon > 1")
+    assert df.loc[row, ("passed_incl", "unweighted")] == 289
+    assert df.loc[row, ("passed_only_cut", "unweighted")] == 289
+    assert df.loc[row, ("totals_incl", "unweighted")] == 4580
 
 
 @pytest.fixture
