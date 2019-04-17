@@ -186,19 +186,16 @@ class Any(BaseFilter):
 
 
 class OuterCounterIncrementer(BaseFilter):
-    def __str__(self):
-        return str(self.selection)
 
     def __call__(self, data, is_mc):
         mask = self.selection(data, is_mc)
         self.selection.increment_counters(data, is_mc, excl=mask, after=mask, before=None)
         return mask
 
-    def to_dataframe(self):
-        return self.selection.to_dataframe()
-
-    def merge(self, rhs):
-        return self.selection.merge(rhs.selection)
+    def __getattribute__(self, name):
+        if name in ["__call__", "selection"]:
+            return BaseFilter.__getattribute__(self, name)
+        return BaseFilter.__getattribute__(self, "selection").__getattribute__(name)
 
 
 def build_selection(stage_name, config, weights=[]):
