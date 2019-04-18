@@ -1,5 +1,7 @@
 Installing
 ==========
+From Pypi
+---------
 The simplest way to install things is from pypi.
 ::
 
@@ -11,8 +13,8 @@ Otherwise you might need to use the ``--prefix`` or ``--user`` options for ``pip
 If you do provide any of these options, make sure you have the ``/bin`` directory in your ``PATH`` (e.g. if you used ``--user`` this will be mean you need ``~/.local/bin`` included in the PATH).
 Using virtaulenv or conda will avoid this complication
 
-From the source:
-----------------
+From Source
+-----------
 If you want to edit the code or contribute something back, you might want to install things directly from gitlab.
 Any of these options should work:
 
