@@ -10,6 +10,7 @@ Welcome to fast-carpenter's documentation!
    setup
    philosophy
    command_line
+   processing_config
    trees2dataframes/index
 
 
