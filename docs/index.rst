@@ -5,7 +5,8 @@ Welcome to fast-carpenter's documentation!
    :maxdepth: 3
    :caption: Contents:
 
-   overview
+
+   readme
    setup
    trees2dataframes/index
    deprecated/index
