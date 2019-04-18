@@ -8,8 +8,9 @@ Welcome to fast-carpenter's documentation!
 
    readme
    setup
+   philosophy
+   command_line
    trees2dataframes/index
-   deprecated/index
 
 
 
