@@ -1,6 +1,23 @@
 Command-line Usage
 ==================
 
+.. _ref-cli_fast_curator:
+
+fast_curator
+------------
+
+.. _ref-cli_fast_curator_check:
+
+fast_curator_check
+------------------
+
+.. _ref-cli_fast_carpenter:
+
+fast_carpenter
+--------------
+
+The command-line tools are the primary entry points for the codebase at this point.
+
 1. Generate an input file list, by either:
 
    * Using the ``t2df_find_files`` command, for local files or files on xrootd (but not published to DAS),  eg: ::

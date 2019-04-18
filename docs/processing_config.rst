@@ -1,5 +1,8 @@
+.. _ref-processing_config:
+
 The Processing Config
 =====================
+
 The config file is written in `YAML <https://en.wikipedia.org/wiki/YAML>`_ format.  In essence it is a large dictionary to describe how we should process our data.
 
 An example config file looks like:
