@@ -1,6 +1,7 @@
 [![pypi package](https://img.shields.io/pypi/v/fast-carpenter.svg)](https://pypi.org/project/fast-carpenter/)
 [![pipeline status](https://gitlab.cern.ch/fast-hep/public/fast-carpenter/badges/master/pipeline.svg)](https://gitlab.cern.ch/fast-hep/public/fast-carpenter/commits/master)
 [![coverage report](https://gitlab.cern.ch/fast-hep/public/fast-carpenter/badges/master/coverage.svg)](https://gitlab.cern.ch/fast-hep/public/fast-carpenter/commits/master)
+[![Documentation Status](https://readthedocs.org/projects/fast-carpenter/badge/?version=latest)](https://fast-carpenter.readthedocs.io/en/latest/?badge=latest)
 
 
 fast-carpenter
