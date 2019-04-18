@@ -1,5 +1,5 @@
 Welcome to fast-carpenter's documentation!
-====================================
+==========================================
 
 .. toctree::
    :maxdepth: 3

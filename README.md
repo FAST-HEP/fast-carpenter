@@ -4,8 +4,7 @@
 [![Documentation Status](https://readthedocs.org/projects/fast-carpenter/badge/?version=latest)](https://fast-carpenter.readthedocs.io/en/latest/?badge=latest)
 
 
-fast-carpenter
-=============
+# fast-carpenter
 Turns your trees into tables (ie. reads ROOT TTrees, writes summary Pandas DataFrames)
 
 fast-carpenter can:
