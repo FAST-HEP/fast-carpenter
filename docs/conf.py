@@ -41,6 +41,7 @@ import fast_carpenter
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinxcontrib.apidoc',
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
@@ -201,3 +202,10 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+
+# Configure the sphinxcontrib.apidoc extension
+apidoc_module_dir = '../fast_carpenter'
+apidoc_toc_file = False
+apidoc_module_first = True
+apidoc_separate_modules = True
+pidoc_extra_args = ["-e"]
