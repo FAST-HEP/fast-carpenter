@@ -13,3 +13,9 @@
 a{
 	color: #cc5200;
 }
+
+.rst-content dl:not(.docutils) dt{
+	color: #dd7533;
+	border-top-color: #ff6600;
+	background: #fae7f2 ;
+}
