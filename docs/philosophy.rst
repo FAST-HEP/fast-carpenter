@@ -1,3 +1,5 @@
+.. _ref-philosophy:
+
 Key Concepts
 ============
 
@@ -14,9 +16,9 @@ Python dictionaries are therefore the main way to configure carpenter, which we 
 
 The net result of this should mean:
  * What the user writes is closer to the actual mathematical description of what they want to do.
- * There is less actual analysis "code" and so less opportunity to put bugs to the analysis.
- * It should be quick to do a simple study, and scale smoothly to a full-blown analysis.
- * Although the primary interface so far is through the command-line, the commands use simple python functions which can be directly called from inside other scripts or inside a Jupyter notebook.
+ * There is less actual analysis "code" and so less opportunity to put bugs in the analysis.
+ * It should be quick to do a simple study, and then scale smoothly to a full-blown analysis.
+ * Python dictionaries can be built easily in other tools, and so fast-carpenter directly called from inside a Jupyter notebook, for example.
  * When you want to do something more exotic, which is not (yet) catered for in fast-carpenter itself, there is an easy "plugin" style system to add your own custom code into the processing.
 
 Although fast-carpenter is focussed on input ROOT trees at this point (which inspires its name), this may well evolve in the future.
@@ -24,7 +26,10 @@ Although fast-carpenter is focussed on input ROOT trees at this point (which ins
 From the code and development perspective
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 * We have tried to make the code as modular as possible (hence fast-flow and fast-curator not being contained in this package).
-* Wherever possible, we've tried to avoid writing code; if an existing or upcoming package does that task, use it.
+* Wherever possible, we've tried to avoid writing code; if an existing package does that task, use it.
+* If another tool provides most but not all of a wanted functionality, we prefer contributing to that package over putting code in here.
+* Keep functions simple (e.g. under the mccabe metrics).
+* Unit-tests should be clear, and are as important as documentation; ideally the two can serve a similar purpose.
 
 Overall approach for data-processing
 ------------------------------------
@@ -32,7 +37,7 @@ fast-carpenter is intended to be the first step in the main analysis pipeline.
 It is expected to be the only part of the processing chain which sees "event-level" data, and produces the necessary summary of this in a tabular form (which invariably means binned as histograms).
 Subsequent steps can then manipulate these to produce final analysis results, such as graphical figures, or doing some functional fit to the binned data.
 
-The example repository (`https://gitlab.cern.ch/fast-hep/public/fast_cms_public_tutorial`_) gives an example for each of these steps and the next sections in this documentation will go into more detail on each one.
+For public examples of working with fast-carpenter and the other FAST tools, see :ref:`ref-example_repos`.
 
 Step 1: Create dataset configs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
