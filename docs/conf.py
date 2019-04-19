@@ -42,6 +42,7 @@ import fast_carpenter
 # ones.
 extensions = [
     'sphinxcontrib.apidoc',
+    'sphinxcontrib.programoutput',
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
