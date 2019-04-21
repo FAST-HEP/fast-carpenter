@@ -18,6 +18,8 @@
 #
 import os
 import sys
+import inspect
+import fast_carpenter
 
 
 # Get the project root dir, which is the parent dir of this
@@ -27,8 +29,6 @@ project_root = os.path.dirname(cwd)
 # This lets us ensure that the source package is imported, and that its
 # version is used.
 sys.path.insert(0, project_root)
-
-import fast_carpenter
 
 
 # -- General configuration ------------------------------------------------
@@ -48,7 +48,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
+    'sphinx.ext.linkcode',
     'sphinx.ext.napoleon',
     # 'sphinx.ext.githubpages',
     'm2r',
@@ -210,3 +210,59 @@ apidoc_toc_file = False
 apidoc_module_first = True
 apidoc_separate_modules = True
 pidoc_extra_args = ["-e"]
+
+
+# linkcode control, inspired by numpy's approach:
+#   - https://github.com/numpy/numpy/blob/master/doc/source/conf.py#L286
+def linkcode_resolve(domain, info):
+    if domain != 'py':
+        return None
+
+    modname = info['module']
+    fullname = info['fullname']
+
+    submod = sys.modules.get(modname)
+    if submod is None:
+        return None
+
+    obj = submod
+    for part in fullname.split('.'):
+        try:
+            obj = getattr(obj, part)
+        except Exception:
+            return None
+
+    # strip decorators, which would resolve to the source of the decorator
+    # possibly an upstream bug in getsourcefile
+    try:
+        unwrap = inspect.unwrap
+    except AttributeError:
+        pass
+    else:
+        obj = unwrap(obj)
+
+    try:
+        fn = inspect.getsourcefile(obj)
+    except Exception:
+        fn = None
+    if not fn:
+        return None
+
+    try:
+        source, lineno = inspect.getsourcelines(obj)
+    except Exception:
+        lineno = None
+
+    if lineno:
+        linespec = "#L%d-%d" % (lineno, lineno + len(source) - 1)
+    else:
+        linespec = ""
+
+    fn = os.path.relpath(fn, start=os.path.dirname(fast_carpenter.__file__))
+    version = fast_carpenter.__version__
+    if 'dev' in version:
+        version = "master"
+    else:
+        version = "v" + version
+    url_root = "https://gitlab.cern.ch/fast-hep/public/fast-carpenter/blob/"
+    return url_root + "%s/fast_carpenter/%s%s" % (version, fn, linespec)
