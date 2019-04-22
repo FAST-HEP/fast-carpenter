@@ -112,6 +112,42 @@ class CutFlow(object):
         keys are the column names that these weights should be called in the
         output tables.
 
+    Example:
+      Mask events using a single cut based on the ``nJet`` variable being
+      greater than 2 and weight events in the summary table by the
+      ``EventWeight`` variable::
+
+         cut_flow_1:
+             selection:
+                 nJet > 2
+             weights: EventWeight
+
+      Mask events by requiring both the ``nMuon`` variable being greater than 2
+      and the first ``Muon_energy`` value in each event being above 20.  Don't weight
+      events in the summary table::
+
+         cut_flow_2:
+             selection:
+                 All:
+                   - nMuon > 2
+                   - {reduce: 0, formula: Muon_energy > 20}
+
+      Mask events by requiring the ``nMuon`` variable be greater than 2 and
+      either the first ``Muon_energy`` value in each event is above 20 or the
+      ``total_energy`` is greater than 100.  The summary table will weight
+      events by both the EventWeight variable (called weight_nominal in the
+      table) and the SystUp variable (called weight_syst_up in the summary)::
+
+         cut_flow_3:
+             selection:
+                 All:
+                   - nMuon > 2
+                   - Any:
+                     - {reduce: 0, formula: Muon_energy > 20}
+                     - total_energy > 100
+             weights: {weight_nominal: EventWeight, weight_syst_up: SystUp}
+
+
     Other Parameters:
       name (str):  The name of this stage (handled automatically by fast-flow)
       out_dir (str):  Where to put the summary table (handled automatically by
@@ -127,6 +163,7 @@ class CutFlow(object):
       BadCutflowConfig: If neither or both of ``selection`` and
           ``selection_file`` are provided, or if a bad selection or
           weight configuration is given.
+
 
     See Also:
       :class:`SelectPhaseSpace`: Adds the resulting event-mask as a new
@@ -181,6 +218,20 @@ class CutFlow(object):
 
 
 class SelectPhaseSpace(CutFlow):
+    """Create an event-mask and add it to the data-space.
+
+    This is identical to the :class:`CutFlow` class, except that the resulting
+    mask is added to the list of variables in the data-space, rather than being
+    used directly to remove events.  This allows multiple "regions" to be defined
+    using different CutFlows in a single configuration.
+
+    Parameters:
+      region_name: The name given to the resulting mask when added to back to
+        the data-space.
+
+    See Also:
+      :class:`CutFlow`: for a description of the other parameters.
+    """
     def __init__(self, name, out_dir, region_name, **kwargs):
         super(SelectPhaseSpace, self).__init__(name, out_dir, **kwargs)
         self.region_name = region_name
