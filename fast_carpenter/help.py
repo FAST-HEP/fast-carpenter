@@ -88,5 +88,5 @@ def help_stages(stage_name, full_output=False):
         else:
             print("   purpose:", stage.docstring(1))
         if i != len(stages) - 1:
-            end_stage = "-------\n" if full_output else ""
+            end_stage = "=" * 80 + "\n" if full_output else ""
             print(end_stage)
