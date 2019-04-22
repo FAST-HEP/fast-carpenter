@@ -7,29 +7,31 @@ The config file is written in `YAML <https://en.wikipedia.org/wiki/YAML>`_ forma
 
 An example config file looks like:
 
-.. literalinclude:: demo_cfg.yml
+.. literalinclude:: demo_process_cfg.yml
     :linenos:
     :language: yaml
 
 
-Other examples can be seen in `fast_ra1/trees_to_dataframe/configs <https://gitlab.cern.ch/fast-cms/FAST-RA1/tree/master/fast_ra1/trees_to_dataframe/configs>`_.
-
 Note that since this is a YAML file, things like anchors and block syntax are totally valid, which can be helpful, especially to define "aliases" or reuse certain parts of a config.
 In addition, note that since YAML is a superset of JSON, it's perfectly valid to use a JSON file instead.
+
+Other, more complete examples are listed in :ref:`ref-example_repos`.
 
 Stages
 ^^^^^^
 
-The most important section is the *stages* section.  The list contained in this section describes what steps will be taken with the data, and in what order.
-At the moment there are two types of stage available, and these should be provided for each stage so we can validate their descriptions later on.
-The two types of stage available (at this time) are:
+The most important section is the ``stages`` section.  The list contained in this section describes what steps will be taken with the data, and in what order.
+It is formed by a list of single-length dictionaries, whose key is the name for the stage and whose value is the python class that implements that stage.
 
-1. ``CutFlow`` -- Apply a series of selections or filters to remove events from being processed in later stages, and
-2. ``BinnedDataframe`` -- Produce a dataframe file with a binning based on attributes of the event.
-3. ``Scribbler`` -- Create new quantities and add these to the event.
+The list of stages known to fast_carpenter already can be found using the built-in ``--help-stages`` option.
 
-Each stage must then have a complete description provided.
-To do this, make a new section in the yaml file with the name provided in the `stages` section.
+.. command-output:: fast_carpenter --help-stages
+
+Each stage must then be given a complete description by adding a top-level section in the yaml file with the name provided in the ``stages`` section.
+Then write a dictionary below this, whose arguments will then be passed to the underlying class's init method as keyword-arguments.
+Therefore, to check how to configure a specific stage look at the documentation for that class.
+
+------------
 
 ``CutFlow`` stages
 ^^^^^^^^^^^^^^^^^^^
@@ -51,11 +53,9 @@ To do this, make a new section in the yaml file with the name provided in the `s
 | ``counter``         | ``True``     | | Use to control whether or not we store the number of events passing each cut in an output file.    |
 |                     |              | | Can be omitted.                                                                                    |
 +---------------------+--------------+------------------------------------------------------------------------------------------------------+
-| ``counter_weights`` | ``1.0``      | | How should each event that is cut be weighted?  Only used if ``counter == True``.  Can be either a |
+| ``weights``         | ``1.0``      | | How should each event that is cut be weighted?  Only used if ``counter == True``.  Can be either a |
 |                     |              | | a float, the name of an event attribute or a dictionary with the name to include in the output     |
 |                     |              | | filename, and the event attribute to be used.  Can be omitted.                                     |
-+---------------------+--------------+------------------------------------------------------------------------------------------------------+
-| ``lambda_arg``      | ``"ev"``     | How should we call the event in the strings describing the individual cuts. Can be omitted.          |
 +---------------------+--------------+------------------------------------------------------------------------------------------------------+
 
 ``BinnedDataframe`` stages
