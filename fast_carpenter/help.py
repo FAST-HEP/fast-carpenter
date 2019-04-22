@@ -34,8 +34,17 @@ class StageGuidanceHelper:
         if not doc:
             return "<Missing docstring>"
         if nlines > 0:
-            doc = doc.split("\n", nlines)[:-1]
-            doc = "\n".join(doc)
+            output = []
+            while nlines > 0 and doc:
+                lines = doc.split("\n", nlines)
+                lines, remainder = lines[:nlines], lines[nlines:]
+                lines = [l for l in lines if l.strip()]
+                output += lines
+                if not remainder:
+                    break
+                doc = remainder[0].strip()
+                nlines -= len(lines)
+            doc = "\n".join(output)
         return doc
 
 
