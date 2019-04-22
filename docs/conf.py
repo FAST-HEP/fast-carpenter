@@ -94,7 +94,6 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # List of modules to be mocked up. This is useful when some external
 # dependencies are not met at build time and break the building process.
-# Here we exclude dependencies including alphatools:
 autodoc_mock_imports = [
 ]
 
@@ -266,3 +265,7 @@ def linkcode_resolve(domain, info):
         version = "v" + version
     url_root = "https://gitlab.cern.ch/fast-hep/public/fast-carpenter/blob/"
     return url_root + "%s/fast_carpenter/%s%s" % (version, fn, linespec)
+
+
+# Control the napoleon extension for nicer docstrings
+# napoleon_include_init_with_doc = True
