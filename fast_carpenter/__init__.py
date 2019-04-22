@@ -15,3 +15,6 @@ from .summary import BinnedDataframe
 
 __all__ = ["Define", "SystematicWeights", "CutFlow",
            "SelectPhaseSpace", "BinnedDataframe"]
+
+
+known_stages = [Define, SystematicWeights, CutFlow, SelectPhaseSpace, BinnedDataframe]
