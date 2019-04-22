@@ -12,8 +12,37 @@ class BadVariablesConfig(Exception):
 
 
 class Define():
-    """
-    This is the Define docstring
+    """Creates new variables using a string-based expression.
+
+    There are two types of expressions:
+
+      * Simple formulae, and
+      * Reducing formulae.
+
+    The essential difference, unfortunately, is an internal one: simple
+    expressions are nearly directly handled by `numexpr
+    <https://numexpr.readthedocs.io/en/latest/>`_, whereas reducing expressions
+    add a layer on top.
+
+    From a users perspective, however, simple expressions are those that
+    preserve the dimensionality of the input.  If one of the input variables
+    represents a list of values for each event  (whose length might vary), then
+    the output will contain an equal-length list of values for each event.
+
+    If, however, a reducing expression is used, then there will be one less
+    dimension on the resulting variable.  In this case, if an input variable
+    has a list of values for each event, the result of the expression will only
+    contain a single value per event.
+
+    Parameters:
+      variables (list[dictionary]):  A list of single-length dictionaries whose
+          key is the name of the resulting variable, and whose value is the
+          expression to create it.
+
+    Other Parameters:
+      name (str):  The name of this stage (handled automatically by fast-flow)
+      out_dir (str):  Where to put the summary table (handled automatically by
+          fast-flow)
     """
 
     def __init__(self, name, out_dir, variables):
