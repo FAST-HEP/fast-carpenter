@@ -12,6 +12,9 @@ class BadVariablesConfig(Exception):
 
 
 class Define():
+    """
+    This is the Define docstring
+    """
 
     def __init__(self, name, out_dir, variables):
         self.name = name

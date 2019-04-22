@@ -1,4 +1,13 @@
-"""
+"""Stages to remove events from subsequent stages
+
+Provides two stages:
+
+  * :class:`CutFlow` -- Prevent subsequent stages from seeing certain events,
+  * :class:`SelectPhaseSpace` -- Create a new variable which can be used as a mask
+
+Both stages are configured very similarly, and both stages produce an output
+table describing how many events pass each subsequent cut to make it into the
+final mask.
 """
 from __future__ import absolute_import
 import six
@@ -8,7 +17,7 @@ from copy import deepcopy
 from .filters import build_selection
 
 
-__all__ = ["CutFlow"]
+__all__ = ["CutFlow", "SelectPhaseSpace"]
 
 
 class BadCutflowConfig(Exception):
@@ -87,8 +96,53 @@ def _create_weights(stage_name, weights):
 
 
 class CutFlow(object):
+    """Prevents subsequent stages seeing certain events.
+
+    The two most important  parameters two understand are the ``selection`` and
+    ``weights`` parameters.
+
+    Parameters:
+      selection (str or dict): The criteria for selecting events, formed by a
+        nested set of "cuts".  Each cut must either be a valid :ref:`expressions`
+        or a single-length dictionary, with one of ``Any`` or ``All`` as the key,
+        and a list of cuts as the value.
+      weights (str or list[str], dict[str, str]): How to weight events in the
+        output summary table.  Must be either a single variable, a list of
+        variables, or a dictionary where the values are variables in the data and
+        keys are the column names that these weights should be called in the
+        output tables.
+
+    Other Parameters:
+      name (str):  The name of this stage (handled automatically by fast-flow)
+      out_dir (str):  Where to put the summary table (handled automatically by
+          fast-flow)
+      selection_file (str): Deprecated
+      keep_unique_id (bool): If ``True``, the summary table will contain a
+          column that gives each cut a unique id.  This is used internally to
+          maintain the cut order, and often will not be useful in subsequent
+          manipulation of the output table, so by default this is removed.
+      counter (bool): Currently unused
+
+    Raises:
+      BadCutflowConfig: If neither or both of ``selection`` and
+          ``selection_file`` are provided, or if a bad selection or
+          weight configuration is given.
+
+    See Also:
+      :class:`SelectPhaseSpace`: Adds the resulting event-mask as a new
+      variable to the data.
+
+      :meth:`selection.filters.build_selection`: Handles the actual creation of
+      the event selection, based on the configuration.
+
+      `numexpr <https://numexpr.readthedocs.io/en/latest/>`_: which is used for
+      the internal expression handling.
+
+    """
     def __init__(self, name, out_dir, selection_file=None, keep_unique_id=False,
                  selection=None, counter=True, weights=None):
+        """An init docstring for CutFlow
+        """
         self.name = name
         self.out_dir = out_dir
         self.keep_unique_id = keep_unique_id
