@@ -1,4 +1,5 @@
 import inspect
+import sys
 import re
 from . import known_stages
 
@@ -20,27 +21,42 @@ class StageGuidanceHelper:
 
     def matches(self, regex):
         if regex:
-            return re.match(regex, self.class_name)
+            return re.search(regex, self.class_name)
         return True
 
     def parameters(self):
-        args, vargs, kwargs, defaults = inspect.getargspec(self.stage.__init__)
+        args, vargs, kwargs, defaults, _, _, annots = get_signature(self.stage.__init__)
         args = [a for a in args if a not in self._common_config]
-        if defaults:
-            ndefs = min(len(defaults), len(args))
-            def_args = ["{}={}".format(a, d) for a, d in zip(args[-ndefs:], defaults[-ndefs:])]
-            args = args[:-ndefs] + def_args
-        if vargs:
-            args.append("*" + vargs)
-        if kwargs:
-            args.append("**" + kwargs)
-        return args
+        return format_signature(args, vargs, kwargs, defaults, annots)
 
-    def docstring(self):
+    def docstring(self, nlines=-1):
         doc = inspect.getdoc(self.stage)
-        if doc:
-            return doc
-        return "<Missing docstring>"
+        if not doc:
+            return "<Missing docstring>"
+        if nlines > 0:
+            doc = doc.split("\n", nlines)[:-1]
+            doc = "\n".join(doc)
+        return doc
+
+
+def get_signature(function):
+    if sys.version[0] < "3":
+        return inspect.getargspec(function) + (None, None, None)
+    return inspect.getfullargspec(function)
+
+
+def format_signature(args, vargs, kwargs, defaults, annots):
+    if annots:
+        args = ["%s:%s" % (a, annots[a].__name__) if a in annots else a for a in args]
+    if defaults:
+        ndefs = min(len(defaults), len(args))
+        def_args = ["{}={}".format(a, d) for a, d in zip(args[-ndefs:], defaults[-ndefs:])]
+        args = args[:-ndefs] + def_args
+    if vargs:
+        args.append("*" + vargs)
+    if kwargs:
+        args.append("**" + kwargs)
+    return args
 
 
 all_stages = tuple(StageGuidanceHelper(s, "fast_carpenter") for s in known_stages)
@@ -56,10 +72,12 @@ def help_stages(stage_name, full_output=False):
     for i, stage in enumerate(stages):
         name = stage.class_name
         args = ", ".join(stage.parameters())
-        header = "{name}\n   config: ({args})".format(name=name, args=args)
+        header = "{name}\n   config: {args}".format(name=name, args=args)
         print(header)
         if full_output:
             print(stage.docstring())
+        else:
+            print("   purpose:", stage.docstring(1))
         if i != len(stages) - 1:
             end_stage = "-------\n" if full_output else ""
             print(end_stage)
