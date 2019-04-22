@@ -12,6 +12,7 @@ Welcome to fast-carpenter's documentation!
    command_line
    processing_config
    examples
+   glossary
    api
 
 
