@@ -141,8 +141,6 @@ class CutFlow(object):
     """
     def __init__(self, name, out_dir, selection_file=None, keep_unique_id=False,
                  selection=None, counter=True, weights=None):
-        """An init docstring for CutFlow
-        """
         self.name = name
         self.out_dir = out_dir
         self.keep_unique_id = keep_unique_id
