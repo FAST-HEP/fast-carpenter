@@ -70,11 +70,11 @@ All the built-in stages of ``fast_carpenter`` are available directly from the ``
    Build that list programmatically, so its always up to date and uses the built-in docstrings for a description.
 
 .. At this point, I would love to link to the docementation for the known classes in a more methodical way, since they're all imported to fast_carpenter.__init__.py
-.. I'd need a special directive which produces a list of links to each class' documentation, and ideally adds the first line of the docstrings as a simple summary.
-.. Useful links for that task: 
-..  * http://www.sphinx-doc.org/en/master/extdev/appapi.html#sphinx.application.Sphinx.add_directive
-..  * http://docutils.sourceforge.net/docs/howto/rst-directives.html
-.. These methods are close, but not quite there:
+   I'd need a special directive which produces a list of links to each class' documentation, and ideally adds the first line of the docstrings as a simple summary.
+   Useful links for that task: 
+    * http://www.sphinx-doc.org/en/master/extdev/appapi.html#sphinx.application.Sphinx.add_directive
+    * http://docutils.sourceforge.net/docs/howto/rst-directives.html
+   These methods are close, but not quite there:
 
 .. .. toctree::
 ..    :maxdepth: 3
