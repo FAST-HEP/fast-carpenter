@@ -117,12 +117,6 @@ html_theme = 'sphinx_rtd_theme'
 #            and  http://stackoverflow.com/questions/23211695/modifying-content-width-of-the-sphinx-theme-read-the-docs
 import sphinx_rtd_theme
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-# Override default css to get a larger width for local build
-def setup(app):
-    #app.add_javascript("custom.js")
-    app.add_stylesheet('custom.css')
-#   ^^^^^   End of code increasing width of main content   ^^^^^
-
 
 #html_theme = 'alabaster'
 #
@@ -269,3 +263,23 @@ def linkcode_resolve(domain, info):
 
 # Control the napoleon extension for nicer docstrings
 # napoleon_include_init_with_doc = True
+
+
+
+# -- Modify sphinx app -------------------------------------------
+#from docutils.parsers.rst import Directive, directives
+#class AutodocWithoutDocstring(Directive):
+#
+#    from sphinx.ext.autodoc import cut_lines
+#    first_line = cut_lines(1)
+#    print(options)
+#    if "first-line" in options:
+#        del options["first-line"]
+#        first_line(app, what, name, obj, options, lines)
+
+def setup(app):
+    # Override default css to get a larger width for local build
+    #app.add_javascript("custom.js")
+    app.add_stylesheet('custom.css')
+    # app.connect('autodoc-without-docstring', AutodocWithoutDocstring)
+
