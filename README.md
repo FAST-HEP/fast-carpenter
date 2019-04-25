@@ -23,4 +23,4 @@ Powered by:
 - coffee: to help the developer(s) write code
 
 ## Installation and usage
-Visit the [documentation](https://fast-carpenter.readthedocs.io/en/) for full details.
+Visit the [documentation](https://fast-carpenter.readthedocs.io/) for full details.
