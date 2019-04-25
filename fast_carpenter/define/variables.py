@@ -39,10 +39,26 @@ class Define():
           key is the name of the resulting variable, and whose value is the
           expression to create it.
 
+
     Other Parameters:
       name (str):  The name of this stage (handled automatically by fast-flow)
       out_dir (str):  Where to put the summary table (handled automatically by
           fast-flow)
+
+    Example:
+      ::
+
+        variables:
+          - Muon_pt: "sqrt(Muon_px**2 + Muon_py**2)"
+          - Muon_is_good: (Muon_iso > 0.3) & (Muon_pt > 10)
+          - NGoodMuons: {reduce: count_nonzero, formula: Muon_is_good}
+          - First_Muon_pt: {reduce: 0, formula: Muon_pt}
+
+    See Also:
+      * :mod:`fast_carpenter.define.reductions`-- for how reductions are handled and exactly what is valid.
+      * `numexpr <https://numexpr.readthedocs.io/en/latest/>`_: which is used for
+        the internal expression handling.
+
     """
 
     def __init__(self, name, out_dir, variables):
