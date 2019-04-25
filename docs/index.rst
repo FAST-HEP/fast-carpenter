@@ -1,19 +1,27 @@
 Welcome to fast-carpenter's documentation!
 ==========================================
 
+.. include:: ../README.rst
+   :end-before: Installation and usage
+
 .. toctree::
    :maxdepth: 3
    :caption: Contents:
 
 
-   readme
    setup
    philosophy
    command_line
    processing_config
    examples
    glossary
-   api
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Code reference
+   :glob:
+
+   api/*
 
 
 Indices and tables
