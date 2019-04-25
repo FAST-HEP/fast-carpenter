@@ -98,7 +98,7 @@ def _create_weights(stage_name, weights):
 class CutFlow(object):
     """Prevents subsequent stages seeing certain events.
 
-    The two most important  parameters two understand are the ``selection`` and
+    The two most important  parameters to understand are the ``selection`` and
     ``weights`` parameters.
 
     Parameters:
