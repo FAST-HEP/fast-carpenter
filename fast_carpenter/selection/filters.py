@@ -210,6 +210,17 @@ class OuterCounterIncrementer(BaseFilter):
 
 
 def build_selection(stage_name, config, weights=[]):
+    """Creates event selectors based on the configuration.
+
+    Parameters:
+        stage_name: Used to help in error messages.
+        config: The event selection configuration.
+        weights: How to weight events, used to produce the resulting cut
+            efficiency table.
+
+    Raises:
+        RuntimeError: if any of the configurations are invalid.
+    """
     selection = handle_config(stage_name, config, weights)
     return OuterCounterIncrementer(selection, depth=-1, cut_id=[-1], weights=weights)
 

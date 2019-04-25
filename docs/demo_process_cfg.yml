@@ -1,0 +1,26 @@
+stages:
+    - jet_cleaning: fast_carpenter.Define
+    - event_selection: fast_carpenter.CutFlow
+    - histogram: fast_carpenter.BinnedDataframe
+
+jet_cleaning:
+    variables:
+        - BtaggedJets: Jet_bScore > 0.9
+        - nBJets: {reduce: count, formula: BtaggedJets}
+
+event_selection:
+    selection:
+        All:
+            - nElectron == 0
+            - nJet > 1
+            - {reduce: 0, formula: Jet_pt > 100}
+            - Any:
+                - HT >= 200
+                - MHT >= 200
+
+histogram:
+    binning:
+        - {in: nJet}
+        - {in: nBJets}
+        - {in: MET, out: met, bins: {edges: [0, 200, 400, 700, 1000]}
+    weights: weight_nominal

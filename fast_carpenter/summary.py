@@ -1,4 +1,5 @@
 """
+Summarize the data by producing binned and possibly weighted counts of the data.
 """
 import os
 import six
@@ -46,6 +47,52 @@ def _merge_dataframes(dataset_readers_list, dataset_col):
 
 
 class BinnedDataframe():
+    """Produce a binned dataframe (a multi-dimensional histogram).
+
+    def __init__(self, name, out_dir, binning, weights=None, dataset_col=False):
+
+    Parameters:
+      binning (list[dict]): A list of dictionaries describing the variables to
+        bin on, and how they should be binned.  Each of these dictionaries can
+        contain the following:
+
+        +-----------+----------------+--------------------------------------------------------------+
+        | Parameter | Default        | Description                                                  |
+        +===========+================+==============================================================+
+        | ``in``    |                | The name of the attribute on the event to use.               |
+        +-----------+----------------+--------------------------------------------------------------+
+        | ``out``   | same as ``in`` | The name of the column to be filled in the output dataframe. |
+        +-----------+----------------+--------------------------------------------------------------+
+        | ``bins``  | ``None``       | | Must be either ``None`` or a dictionary.  If a dictionary, |
+        |           |                |   it must contain one of the follow sets of                  |
+        |           |                | | key-value pairs:                                           |
+        |           |                | |   1. ``nbins``, ``low``, ``high``: which are used to       |
+        |           |                |     produce a list of bin edges equivalent to:               |
+        |           |                | |      ``numpy.linspace(low, high, nbins + 1)``              |
+        |           |                | |   2. ``edges``: which is treated as the list of bin        |
+        |           |                |     edges directly.                                          |
+        |           |                | | If set to ``None``, then the input variable is assumed     |
+        |           |                |   to already be categorical (ie. binned or discrete)         |
+        +-----------+----------------+--------------------------------------------------------------+
+
+      weights (str or list[str], dict[str, str]): How to weight events in the
+        output table.  Must be either a single variable, a list of
+        variables, or a dictionary where the values are variables in the data and
+        keys are the column names that these weights should be called in the
+        output tables.
+      dataset_col (bool): adds an extra binning column with the name for each dataset.
+
+    Example:
+
+    Other Parameters:
+      name (str):  The name of this stage (handled automatically by fast-flow)
+      out_dir (str):  Where to put the summary table (handled automatically by
+          fast-flow)
+
+    Raises:
+      BadBinnedDataframeConfig: If there is an issue with the binning description.
+
+    """
 
     def __init__(self, name, out_dir, binning, weights=None, dataset_col=False):
         self.name = name
