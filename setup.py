@@ -5,7 +5,7 @@
 
 from setuptools import setup, find_packages
 
-with open('README.md') as readme_file:
+with open('README.rst') as readme_file:
     readme = readme_file.read()
 
 # with open('HISTORY.rst') as history_file:
@@ -46,7 +46,6 @@ setup(
     dependency_links=repositories,
     license="Apache Software License 2.0",
     long_description=readme,  # + '\n\n' + history,
-    long_description_content_type="text/markdown",
     include_package_data=True,
     keywords=['ROOT', 'pandas', 'analysis', 'particle physics', 'HEP', 'F.A.S.T'],
     name='fast-carpenter',
