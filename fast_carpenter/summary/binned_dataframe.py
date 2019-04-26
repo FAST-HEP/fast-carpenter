@@ -1,7 +1,10 @@
 """
+Summarize the data by producing binned and possibly weighted counts of the data.
 """
-import pandas as pd
 import os
+import six
+import pandas as pd
+import numpy as np
 from . import binning_config as cfg
 
 
@@ -12,36 +15,81 @@ class Collector():
 
     def collect(self, dataset_readers_list):
         if len(dataset_readers_list) == 0:
-            return None
+            return
 
         output = self._prepare_output(dataset_readers_list)
-        output.to_csv(self.filename)
+        output.to_csv(self.filename, float_format="%.17g")
 
     def _prepare_output(self, dataset_readers_list):
-        dataset_readers_list = [(d, r) for d, r in dataset_readers_list if r]
+        dataset_readers_list = [(d, [r.contents for r in readers]) for d, readers in dataset_readers_list if readers]
         if len(dataset_readers_list) == 0:
             return None
 
-        return self._merge_dataframes(dataset_readers_list)
+        return _merge_dataframes(dataset_readers_list, self.dataset_col)
 
-    def _merge_dataframes(self, dataset_readers_list):
-        final_df = None
-        for dataset, readers in dataset_readers_list:
-            for reader in readers:
-                df = reader.contents
-                if df is None:
-                    continue
-                if self.dataset_col:
-                    df = pd.concat([df], keys=[dataset], names=['dataset'])
-                if final_df is None:
-                    final_df = df
-                    continue
-                final_df = final_df.add(df, fill_value=0)
 
-        return final_df
+def _merge_dataframes(dataset_readers_list, dataset_col):
+    all_dfs = []
+    keys = []
+    for dataset, readers in dataset_readers_list:
+        dataset_df = readers[0]
+        for df in readers[1:]:
+            if df is None:
+                continue
+            dataset_df = dataset_df.add(df, fill_value=0.)
+        all_dfs.append(dataset_df)
+        keys.append(dataset)
+    final_df = pd.concat(all_dfs, keys=keys, names=['dataset'], sort=True)
+    return final_df
 
 
 class BinnedDataframe():
+    """Produce a binned dataframe (a multi-dimensional histogram).
+
+    def __init__(self, name, out_dir, binning, weights=None, dataset_col=False):
+
+    Parameters:
+      binning (list[dict]): A list of dictionaries describing the variables to
+        bin on, and how they should be binned.  Each of these dictionaries can
+        contain the following:
+
+        +-----------+----------------+--------------------------------------------------------------+
+        | Parameter | Default        | Description                                                  |
+        +===========+================+==============================================================+
+        | ``in``    |                | The name of the attribute on the event to use.               |
+        +-----------+----------------+--------------------------------------------------------------+
+        | ``out``   | same as ``in`` | The name of the column to be filled in the output dataframe. |
+        +-----------+----------------+--------------------------------------------------------------+
+        | ``bins``  | ``None``       | | Must be either ``None`` or a dictionary.  If a dictionary, |
+        |           |                |   it must contain one of the follow sets of                  |
+        |           |                | | key-value pairs:                                           |
+        |           |                | |   1. ``nbins``, ``low``, ``high``: which are used to       |
+        |           |                |     produce a list of bin edges equivalent to:               |
+        |           |                | |      ``numpy.linspace(low, high, nbins + 1)``              |
+        |           |                | |   2. ``edges``: which is treated as the list of bin        |
+        |           |                |     edges directly.                                          |
+        |           |                | | If set to ``None``, then the input variable is assumed     |
+        |           |                |   to already be categorical (ie. binned or discrete)         |
+        +-----------+----------------+--------------------------------------------------------------+
+
+      weights (str or list[str], dict[str, str]): How to weight events in the
+        output table.  Must be either a single variable, a list of
+        variables, or a dictionary where the values are variables in the data and
+        keys are the column names that these weights should be called in the
+        output tables.
+      dataset_col (bool): adds an extra binning column with the name for each dataset.
+
+    Example:
+
+    Other Parameters:
+      name (str):  The name of this stage (handled automatically by fast-flow)
+      out_dir (str):  Where to put the summary table (handled automatically by
+          fast-flow)
+
+    Raises:
+      BadBinnedDataframeConfig: If there is an issue with the binning description.
+
+    """
 
     def __init__(self, name, out_dir, binning, weights=None, dataset_col=False):
         self.name = name
@@ -59,8 +107,7 @@ class BinnedDataframe():
         if self._dataset_col:
             outfilename += "dataset."
         outfilename += ".".join(self._out_bin_dims)
-        if self._weights:
-            outfilename += "--" + ".".join(self._weights.keys())
+        outfilename += "--" + self.name
         outfilename += ".csv"
         outfilename = os.path.join(self.out_dir, outfilename)
         return Collector(outfilename, self._dataset_col)
@@ -117,7 +164,7 @@ def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_we
             final_bin_dims.append(dimension)
             continue
         out_dimension = dimension + "_bins"
-        data[out_dimension] = pd.cut(data[dimension], binning)
+        data[out_dimension] = pd.cut(data[dimension], binning, right=False)
         final_bin_dims.append(out_dimension)
 
     if weights:

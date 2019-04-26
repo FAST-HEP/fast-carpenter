@@ -23,7 +23,7 @@ stages:
   - cleanup
 
 linters:
-  image: python:3.5
+  image: python:3.6
   stage: quick-checks
   script:
     - make lint
@@ -55,7 +55,7 @@ python37:
   script: tox -e py37
 
 coverage:
-  stage: coverage
+  stage: test
   script: make coverage
 
 # docs:

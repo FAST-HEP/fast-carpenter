@@ -5,14 +5,14 @@
 
 from setuptools import setup, find_packages
 
-with open('README.md') as readme_file:
+with open('README.rst') as readme_file:
     readme = readme_file.read()
 
 # with open('HISTORY.rst') as history_file:
 #     history = history_file.read()
 
 
-requirements = ['atsge==0.1.8', 'atuproot==0.1.7', 'fast-flow', 'fast-curator', 'awkward',
+requirements = ['atsge>=0.1.10', 'atuproot>=0.1.13', 'fast-flow', 'fast-curator', 'awkward',
                 'pandas', 'numpy', 'numba', 'numexpr', 'uproot>=3']
 repositories = []
 
@@ -46,7 +46,6 @@ setup(
     dependency_links=repositories,
     license="Apache Software License 2.0",
     long_description=readme,  # + '\n\n' + history,
-    long_description_content_type="text/markdown",
     include_package_data=True,
     keywords=['ROOT', 'pandas', 'analysis', 'particle physics', 'HEP', 'F.A.S.T'],
     name='fast-carpenter',
@@ -55,6 +54,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://gitlab.cern.ch/fast-hep/public/fast-carpenter',
-    version='0.7.1',
+    version='0.8.0',
     zip_safe=True,
 )

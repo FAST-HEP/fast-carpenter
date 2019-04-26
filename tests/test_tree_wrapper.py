@@ -2,11 +2,11 @@ import numpy as np
 
 
 def test_add_retrieve(wrapped_tree):
-    Muon_px = wrapped_tree.array("Muon_Px")
-    assert len(Muon_px) == 100
+    muon_px = wrapped_tree.array("Muon_Px")
+    assert len(muon_px) == 100
 
-    Muon_py, Muon_pz = wrapped_tree.arrays(["Muon_Py", "Muon_Pz"], outputtype=tuple)
-    Muon_momentum = np.hypot(Muon_py, Muon_pz)
-    wrapped_tree.new_variable("Muon_momentum", Muon_momentum)
+    muon_py, muon_pz = wrapped_tree.arrays(["Muon_Py", "Muon_Pz"], outputtype=tuple)
+    muon_momentum = np.hypot(muon_py, muon_pz)
+    wrapped_tree.new_variable("Muon_momentum", muon_momentum)
     retrieve_momentum = wrapped_tree.array("Muon_momentum")
-    assert (retrieve_momentum == Muon_momentum).flatten().all()
+    assert (retrieve_momentum == muon_momentum).flatten().all()

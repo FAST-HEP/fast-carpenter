@@ -1,10 +1,11 @@
 import six
 import numpy as np
+import pandas as pd
 from ..expressions import evaluate
 from ..define.reductions import get_awkward_reduction
 
 
-def And(left, right):
+def safe_and(left, right):
     if left is None:
         return right
     if right is None:
@@ -12,7 +13,7 @@ def And(left, right):
     return left & right
 
 
-def Or(left, right):
+def safe_or(left, right):
     if left is None:
         return right
     if right is None:
@@ -77,23 +78,34 @@ class BaseFilter(object):
         self.passed_incl = Counter(weights)
         self.weights = weights
 
-    def results(self):
-        output = (self._unique_id, self.depth, str(self))
-        output += self.passed_excl.counts + self.passed_incl.counts + self.totals_incl.counts
-        output = [output]
+    @property
+    def index_values(self):
+        output = [(self._unique_id, self.depth, str(self))]
         if isinstance(self.selection, list):
-            output += sum([sel.results() for sel in self.selection], [])
+            output = sum([sel.index_values for sel in self.selection], output)
         return output
 
-    def results_header(self):
+    @property
+    def values(self):
+        output = [self.passed_excl.counts + self.passed_incl.counts + self.totals_incl.counts]
+        if isinstance(self.selection, list):
+            output += sum([sel.values for sel in self.selection], [])
+        return output
+
+    @property
+    def columns(self):
         nweights = len(self.weights) + 1
-        row1 = ["unique_id", "depth", "cut"]
-        row2 = [""] * len(row1)
-        row1 += ["passed_only_cut"] * nweights
+        row1 = ["passed_only_cut"] * nweights
         row1 += ["passed_incl"] * nweights
         row1 += ["totals_incl"] * nweights
-        row2 += (["unweighted"] + self.weights) * 3
+        row2 = (["unweighted"] + self.weights) * 3
         return [row1, row2]
+
+    def to_dataframe(self):
+        index_names = ("unique_id", "depth", "cut")
+        index = pd.MultiIndex.from_tuples(self.index_values, names=index_names)
+        columns = pd.MultiIndex.from_arrays(self.columns)
+        return pd.DataFrame(self.values, columns=columns, index=index)
 
     def merge(self, rhs):
         self.totals_incl.add(rhs.totals_incl)
@@ -102,11 +114,19 @@ class BaseFilter(object):
         if isinstance(self.selection, list):
             for sub_lhs, sub_rhs in zip(self.selection, rhs.selection):
                 sub_lhs.merge(sub_rhs)
+        return self
 
     def increment_counters(self, data, is_mc, excl, before, after):
         self.passed_excl.increment(data, is_mc, excl)
         self.passed_incl.increment(data, is_mc, after)
         self.totals_incl.increment(data, is_mc, before)
+
+    def __repr__(self):
+        rep = ": {!r}"
+        if isinstance(self.selection, list):
+            rep = ": [{!r}]"
+        rep = self.__class__.__name__ + rep.format(self.selection)
+        return rep
 
 
 class ReduceSingleCut(BaseFilter):
@@ -114,9 +134,9 @@ class ReduceSingleCut(BaseFilter):
         super(ReduceSingleCut, self).__init__(selection, depth, cut_id, weights)
         self._str = str(selection)
         self.reduction = get_awkward_reduction(stage_name,
-                                               selection.pop("reduce"),
+                                               selection.get("reduce"),
                                                fill_missing=False)
-        self.formula = selection.pop("formula")
+        self.formula = selection.get("formula")
 
     def __call__(self, data, is_mc, **kwargs):
         mask = evaluate(data, self.formula)
@@ -138,12 +158,12 @@ class SingleCut(BaseFilter):
 
 class All(BaseFilter):
     def __call__(self, data, is_mc,
-                 current_mask=None, combine_op=And):
+                 current_mask=None, combine_op=safe_and):
         mask = np.ones(len(data), dtype=bool)
         for sel in self.selection:
             excl_mask = sel(data, is_mc,
                             current_mask=combine_op(current_mask, mask),
-                            combine_op=And)
+                            combine_op=safe_and)
             new_mask = mask & excl_mask
             sel.increment_counters(data, is_mc, excl=excl_mask,
                                    after=new_mask, before=mask)
@@ -156,7 +176,7 @@ class All(BaseFilter):
 
 class Any(BaseFilter):
     def __call__(self, data, is_mc,
-                 current_mask=None, combine_op=Or):
+                 current_mask=None, combine_op=safe_or):
         mask = np.zeros(len(data), dtype=bool)
         for sel in self.selection:
             excl_mask = sel(data, is_mc,
@@ -174,25 +194,33 @@ class Any(BaseFilter):
 
 
 class OuterCounterIncrementer(BaseFilter):
-    def __str__(self):
-        return str(self.selection)
+    def __init__(self, *args, **kwargs):
+        super(OuterCounterIncrementer, self).__init__(*args, **kwargs)
+        self._wrapped_selection = BaseFilter.__getattribute__(self, "selection")
 
     def __call__(self, data, is_mc):
-        mask = self.selection(data, is_mc)
-        self.selection.increment_counters(data, is_mc, excl=mask, after=mask, before=None)
+        mask = self._wrapped_selection(data, is_mc)
+        self._wrapped_selection.increment_counters(data, is_mc, excl=mask, after=mask, before=None)
         return mask
 
-    def results(self):
-        return self.selection.results()
-
-    def results_header(self):
-        return self.selection.results_header()
-
-    def merge(self, rhs):
-        return self.selection.merge(rhs.selection)
+    def __getattribute__(self, name):
+        if name in ["__call__", "_wrapped_selection"]:
+            return BaseFilter.__getattribute__(self, name)
+        return BaseFilter.__getattribute__(self, "selection").__getattribute__(name)
 
 
 def build_selection(stage_name, config, weights=[]):
+    """Creates event selectors based on the configuration.
+
+    Parameters:
+        stage_name: Used to help in error messages.
+        config: The event selection configuration.
+        weights: How to weight events, used to produce the resulting cut
+            efficiency table.
+
+    Raises:
+        RuntimeError: if any of the configurations are invalid.
+    """
     selection = handle_config(stage_name, config, weights)
     return OuterCounterIncrementer(selection, depth=-1, cut_id=[-1], weights=weights)
 

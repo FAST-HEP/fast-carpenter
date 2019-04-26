@@ -2,6 +2,8 @@
 Chop up those trees into nice little tables and dataframes
 """
 from __future__ import print_function
+import sys
+from .help import help_stages
 import fast_flow.v1 as fast_flow
 import fast_curator
 import logging
@@ -20,7 +22,14 @@ class DummyCollector():
 
 
 def process_args(args=None):
-    from argparse import ArgumentParser
+    from argparse import ArgumentParser, Action
+
+    class StagesHelp(Action):
+        def __call__(self, parser, namespace, values, option_string=None):
+            full_output = option_string == "--help-stages-full"
+            help_stages(values, full_output=full_output)
+            sys.exit(0)
+
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("dataset_cfg", type=str,
                         help="Dataset config to run over")
@@ -42,6 +51,11 @@ def process_args(args=None):
                         help="Keep progress report quiet")
     parser.add_argument("--profile", default=False, action='store_true',
                         help="Profile the code")
+    parser.add_argument("--help-stages", nargs="?", default=None, action=StagesHelp,
+                        metavar="stage-name-regex",
+                        help="Print help specific to the available stages")
+    parser.add_argument("--help-stages-full", action=StagesHelp, metavar="stage",
+                        help="Print the full help specific to the available stages")
     return parser.parse_args()
 
 

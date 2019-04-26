@@ -4,7 +4,7 @@
 
 __author__ = """Benjamin Krikler, and F.A.S.T"""
 __email__ = 'fast-hep@cern.ch'
-__version__ = '0.7.1'
+__version__ = '0.8.0'
 
 
 from .define.variables import Define
@@ -15,3 +15,6 @@ from .summary import BinnedDataframe
 
 __all__ = ["Define", "SystematicWeights", "CutFlow",
            "SelectPhaseSpace", "BinnedDataframe"]
+
+
+known_stages = [Define, SystematicWeights, CutFlow, SelectPhaseSpace, BinnedDataframe]

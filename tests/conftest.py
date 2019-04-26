@@ -3,7 +3,7 @@ import uproot
 from collections import namedtuple
 
 
-@pytest.fixture()
+@pytest.fixture
 def infile():
     filename = "tests/data/CMS_HEP_tutorial_ww.root"
     return uproot.open(filename)["events"]
@@ -13,9 +13,18 @@ FakeEventRange = namedtuple("FakeEventRange", "start_entry stop_entry entries_in
 
 
 @pytest.fixture
-def wrapped_tree(infile):
+def event_range():
+    return FakeEventRange(100, 200, 100)
+
+
+@pytest.fixture
+def full_event_range():
+    return FakeEventRange(0, 4580, 0)
+
+
+@pytest.fixture
+def wrapped_tree(infile, event_range):
     import fast_carpenter.tree_wrapper as tree_w
-    event_range = FakeEventRange(100, 200, 100)
     tree = tree_w.WrappedTree(infile, event_range)
     return tree
 

@@ -1,7 +1,6 @@
 import uproot
 from atuproot.BEvents import BEvents
 from .masked_tree import MaskedUprootTree
-from .tree_wrapper import WrappedTree
 
 
 class EventRanger():
@@ -31,7 +30,7 @@ class EventRanger():
 class BEventsWrapped(BEvents):
     def __init__(self, tree, *args, **kwargs):
         ranges = EventRanger()
-        tree = MaskedUprootTree(WrappedTree(tree, ranges))
+        tree = MaskedUprootTree(tree, ranges)
         super(BEventsWrapped, self).__init__(tree, *args, **kwargs)
         ranges.set_owner(self)
 
