@@ -32,7 +32,7 @@ class Collector():
         else:
             output = _add_dataframes(dataset_readers_list)
         if self.binnings:
-            output = densify_dataframe(output, self.binnings, self.dataset_col)
+            output = densify_dataframe(output, self.binnings)
         return output
 
 
@@ -64,13 +64,17 @@ def _add_dataframes(dataset_readers_list):
     return final_df
 
 
-def densify_dataframe(in_df, binnings, dataset_col):
+def densify_dataframe(in_df, binnings):
+    in_index = in_df.index
     full_indexes = {}
-    for dim, binning in binnings.items():
-        if binnings is None:
+    for dim in in_index.names:
+        bins = binnings.get(dim, None)
+        if bins is None:
+            full_indexes[dim] = in_index.unique(dim)
             continue
-        full_indexes[dim] = pd.IntervalIndex.from_breaks(binning, closed="left")
-    out_df = in_df.reindex(index=full_indexes, copy=False)
+        full_indexes[dim] = pd.IntervalIndex.from_breaks(bins, closed="left")
+    out_index = pd.MultiIndex.from_product(full_indexes.values(), names=full_indexes.keys())
+    out_df = in_df.reindex(index=out_index, copy=False)
     return out_df
 
 

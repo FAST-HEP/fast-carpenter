@@ -86,7 +86,8 @@ def test_BinnedDataframe_run_twice(binned_df_1, tmpdir, infile):
     assert totals["EventWeight:sumw"] == pytest.approx(231.91339 * 2)
 
 
-def test_binneddataframe_run_twice_data_mc(binned_df_1, binned_df_1_copied, tmpdir, infile):
+@pytest.fixture
+def run_twice_data_mc(binned_df_1, binned_df_1_copied, infile):
     chunk_mc = FakeBEEvent(infile, "mc")
     chunk_data = FakeBEEvent(infile, "data")
 
@@ -95,10 +96,23 @@ def test_binneddataframe_run_twice_data_mc(binned_df_1, binned_df_1_copied, tmpd
     binned_df_1_copied.event(chunk_data)
     binned_df_1_copied.event(chunk_data)
 
-    collector = binned_df_1.collector()
+    return binned_df_1, (("test_mc", (binned_df_1,)), ("test_data", (binned_df_1_copied,)),)
 
-    dataset_readers_list = (("test_mc", (binned_df_1,)), ("test_data", (binned_df_1_copied,)),)
+
+@pytest.mark.parametrize(["dataset_col", "pad_missing"], [(True, True), (True, False), (False, False), (False, True)])
+def test_binneddataframe_run_twice_data_mc(run_twice_data_mc, dataset_col, pad_missing):
+    binned_df_1, dataset_readers_list = run_twice_data_mc
+    binned_df_1._pad_missing = pad_missing
+    binned_df_1._dataset_col = dataset_col
+    collector = binned_df_1.collector()
     results = collector._prepare_output(dataset_readers_list)
+
+    assert results.index.nlevels == 2 + int(dataset_col)
+    if pad_missing or not dataset_col:
+        length = (4 * 12) * (1 + int(dataset_col))
+    else:
+        length = 95  # When dataset_col True and pad_missing False one bin is missing
+        assert len(results) == length
 
     totals = results.sum()
     # Based on: events->Draw("Jet_Py", "", "goff")
