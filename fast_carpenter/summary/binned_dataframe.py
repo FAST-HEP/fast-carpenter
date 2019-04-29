@@ -25,10 +25,13 @@ class Collector():
         if len(dataset_readers_list) == 0:
             return None
 
-        return _merge_dataframes(dataset_readers_list, self.dataset_col)
+        if self.dataset_col:
+            return _merge_dataframes(dataset_readers_list)
+        else:
+            return _add_dataframes(dataset_readers_list)
 
 
-def _merge_dataframes(dataset_readers_list, dataset_col):
+def _merge_dataframes(dataset_readers_list):
     all_dfs = []
     keys = []
     for dataset, readers in dataset_readers_list:
@@ -40,6 +43,19 @@ def _merge_dataframes(dataset_readers_list, dataset_col):
         all_dfs.append(dataset_df)
         keys.append(dataset)
     final_df = pd.concat(all_dfs, keys=keys, names=['dataset'], sort=True)
+    return final_df
+
+
+def _add_dataframes(dataset_readers_list):
+    final_df = None
+    for _, readers in dataset_readers_list:
+        for df in readers:
+            if df is None:
+                continue
+            if final_df is None:
+                final_df = df
+                continue
+            final_df = final_df.add(df, fill_value=0.)
     return final_df
 
 
