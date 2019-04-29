@@ -64,14 +64,14 @@ def _add_dataframes(dataset_readers_list):
 
 def densify_dataframe(in_df, binnings):
     in_index = in_df.index
-    full_indexes = {}
+    index_values = []
     for dim in in_index.names:
         bins = binnings.get(dim, None)
         if bins is None:
-            full_indexes[dim] = in_index.unique(dim)
+            index_values.append(in_index.unique(dim))
             continue
-        full_indexes[dim] = pd.IntervalIndex.from_breaks(bins, closed="left")
-    out_index = pd.MultiIndex.from_product(full_indexes.values(), names=full_indexes.keys())
+        index_values.append(pd.IntervalIndex.from_breaks(bins, closed="left"))
+    out_index = pd.MultiIndex.from_product(index_values, names=in_index.names)
     out_df = in_df.reindex(index=out_index, copy=False)
     return out_df
 
