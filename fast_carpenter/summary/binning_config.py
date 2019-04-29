@@ -6,7 +6,7 @@ class BadBinnedDataframeConfig(Exception):
     pass
 
 
-def create_binning_list(name, bin_list):
+def create_binning_list(name, bin_list, make_bins=None):
     if not isinstance(bin_list, list):
         raise BadBinnedDataframeConfig("binning section for stage '{}' not a list".format(name))
     ins = []
@@ -17,7 +17,9 @@ def create_binning_list(name, bin_list):
         if not isinstance(one_bin_dimension, dict):
             raise BadBinnedDataframeConfig("binning item no. {} is not a dictionary".format(i))
         cleaned_dimension_dict = {"_" + k: v for k, v in one_bin_dimension.items()}
-        _in, _out, _bins, _index = create_one_dimension(name, **cleaned_dimension_dict)
+        _in, _out, _bins, _index = create_one_dimension(name,
+                                                        make_bins=make_bins,
+                                                        **cleaned_dimension_dict)
         ins.append(_in)
         outs.append(_out)
         indices.append(_index)
@@ -25,7 +27,9 @@ def create_binning_list(name, bin_list):
     return ins, outs, binnings
 
 
-def create_one_dimension(stage_name, _in, _out=None, _bins=None, _index=None):
+def create_one_dimension(stage_name, _in, _out=None, _bins=None, _index=None, make_bins=None):
+    if not make_bins:
+        make_bins = bin_one_dimension
     if not isinstance(_in, six.string_types):
         msg = "{}: binning dictionary contains non-string value for 'in'"
         raise BadBinnedDataframeConfig(msg.format(stage_name))
@@ -41,28 +45,34 @@ def create_one_dimension(stage_name, _in, _out=None, _bins=None, _index=None):
     if _bins is None:
         bin_obj = None
     elif isinstance(_bins, dict):
-        # - bins: {nbins: 6 , low: 1  , high: 5 , overflow: True}
-        # - bins: {edges: [0, 200., 900], overflow: True}
-        if "nbins" in _bins and "low" in _bins and "high" in _bins:
-            low = _bins["low"]
-            high = _bins["high"]
-            nbins = _bins["nbins"]
-            bin_obj = np.linspace(low, high, nbins + 1)
-        elif "edges" in _bins:
-            # array are fixed to float type, to be consistent with the float-type underflow and overflow bins
-            bin_obj = np.array(_bins["edges"], "f")
-        else:
+        bin_obj = make_bins(**_bins)
+        if not bin_obj:
             msg = "{}: No way to infer binning edges for in={}"
             raise BadBinnedDataframeConfig(msg.format(stage_name, _in))
-        if not _bins.get("disable_underflow", False):
-            bin_obj = np.insert(bin_obj, 0, float("-inf"))
-        if not _bins.get("disable_overflow", False):
-            bin_obj = np.append(bin_obj, float("inf"))
     else:
         msg = "{}: bins is neither None nor a dictionary for in={}"
         raise BadBinnedDataframeConfig(msg.format(stage_name, _in))
 
     return (str(_in), str(_out), bin_obj, _index)
+
+
+def bin_one_dimension(low=None, high=None, nbins=None, edges=None,
+                      disable_overflow=False, disable_underflow=False):
+    bin_obj = None
+    # - bins: {nbins: 6 , low: 1  , high: 5 , overflow: True}
+    # - bins: {edges: [0, 200., 900], overflow: True}
+    if all([x is not None for x in (nbins, low, high)]):
+        bin_obj = np.linspace(low, high, nbins + 1)
+    elif edges:
+        # array are fixed to float type, to be consistent with the float-type underflow and overflow bins
+        bin_obj = np.array(edges, "f")
+    else:
+        return bin_obj
+    if not disable_underflow:
+        bin_obj = np.insert(bin_obj, 0, float("-inf"))
+    if not disable_overflow:
+        bin_obj = np.append(bin_obj, float("inf"))
+    return bin_obj
 
 
 def create_weights(stage_name, weights):
