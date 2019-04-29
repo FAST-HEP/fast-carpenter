@@ -9,9 +9,10 @@ from . import binning_config as cfg
 
 
 class Collector():
-    def __init__(self, filename, dataset_col):
+    def __init__(self, filename, dataset_col, binnings):
         self.filename = filename
         self.dataset_col = dataset_col
+        self.binnings = binnings
 
     def collect(self, dataset_readers_list):
         if len(dataset_readers_list) == 0:
@@ -21,14 +22,18 @@ class Collector():
         output.to_csv(self.filename, float_format="%.17g")
 
     def _prepare_output(self, dataset_readers_list):
-        dataset_readers_list = [(d, [r.contents for r in readers]) for d, readers in dataset_readers_list if readers]
-        if len(dataset_readers_list) == 0:
+        dataset_readers_list = [(d, [r.contents for r in readers])
+                                for d, readers in dataset_readers_list if readers]
+        if not dataset_readers_list:
             return None
 
         if self.dataset_col:
-            return _merge_dataframes(dataset_readers_list)
+            output = _merge_dataframes(dataset_readers_list)
         else:
-            return _add_dataframes(dataset_readers_list)
+            output = _add_dataframes(dataset_readers_list)
+        if self.binnings:
+            output = densify_dataframe(output, self.binnings, self.dataset_col)
+        return output
 
 
 def _merge_dataframes(dataset_readers_list):
@@ -57,6 +62,16 @@ def _add_dataframes(dataset_readers_list):
                 continue
             final_df = final_df.add(df, fill_value=0.)
     return final_df
+
+
+def densify_dataframe(in_df, binnings, dataset_col):
+    full_indexes = {}
+    for dim, binning in binnings.items():
+        if binnings is None:
+            continue
+        full_indexes[dim] = pd.IntervalIndex.from_breaks(binning, closed="left")
+    out_df = in_df.reindex(index=full_indexes, copy=False)
+    return out_df
 
 
 class BinnedDataframe():
@@ -107,7 +122,7 @@ class BinnedDataframe():
 
     """
 
-    def __init__(self, name, out_dir, binning, weights=None, dataset_col=False):
+    def __init__(self, name, out_dir, binning, weights=None, dataset_col=False, pad_missing=False):
         self.name = name
         self.out_dir = out_dir
         ins, outs, binnings = cfg.create_binning_list(self.name, binning)
@@ -116,6 +131,7 @@ class BinnedDataframe():
         self._binnings = binnings
         self._dataset_col = dataset_col
         self._weights = cfg.create_weights(self.name, weights)
+        self._pad_missing = pad_missing
         self.contents = None
 
     def collector(self):
@@ -126,7 +142,10 @@ class BinnedDataframe():
         outfilename += "--" + self.name
         outfilename += ".csv"
         outfilename = os.path.join(self.out_dir, outfilename)
-        return Collector(outfilename, self._dataset_col)
+        binnings = None
+        if self._pad_missing:
+            binnings = dict(zip(self._out_bin_dims, self._binnings))
+        return Collector(outfilename, self._dataset_col, binnings=binnings)
 
     def event(self, chunk):
         if chunk.config.dataset.eventtype == "mc":
