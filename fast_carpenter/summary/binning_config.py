@@ -46,7 +46,7 @@ def create_one_dimension(stage_name, _in, _out=None, _bins=None, _index=None, ma
         bin_obj = None
     elif isinstance(_bins, dict):
         bin_obj = make_bins(**_bins)
-        if not bin_obj:
+        if bin_obj is None:
             msg = "{}: No way to infer binning edges for in={}"
             raise BadBinnedDataframeConfig(msg.format(stage_name, _in))
     else:
@@ -57,8 +57,7 @@ def create_one_dimension(stage_name, _in, _out=None, _bins=None, _index=None, ma
 
 
 def bin_one_dimension(low=None, high=None, nbins=None, edges=None,
-                      disable_overflow=False, disable_underflow=False):
-    bin_obj = None
+                      overflow=True, underflow=True):
     # - bins: {nbins: 6 , low: 1  , high: 5 , overflow: True}
     # - bins: {edges: [0, 200., 900], overflow: True}
     if all([x is not None for x in (nbins, low, high)]):
@@ -67,10 +66,10 @@ def bin_one_dimension(low=None, high=None, nbins=None, edges=None,
         # array are fixed to float type, to be consistent with the float-type underflow and overflow bins
         bin_obj = np.array(edges, "f")
     else:
-        return bin_obj
-    if not disable_underflow:
+        return None
+    if underflow:
         bin_obj = np.insert(bin_obj, 0, float("-inf"))
-    if not disable_overflow:
+    if overflow:
         bin_obj = np.append(bin_obj, float("inf"))
     return bin_obj
 
