@@ -1,9 +1,11 @@
 import os
 import pandas as pd
-from aghast import Histogram, UnweightedCounts, WeightedCounts, Axis
-from aghast import InterpretedInlineBuffer, RealInterval, CategoryBinning
+import numpy as np
+from aghast import Histogram, UnweightedCounts, WeightedCounts, Axis, BinLocation
+from aghast import InterpretedInlineBuffer, RealInterval, CategoryBinning, RealOverflow
 from aghast import RegularBinning, IntegerBinning, EdgesBinning, IrregularBinning
 from . import binning_config as cfg
+from collections import namedtuple
 
 
 class Collector():
@@ -19,12 +21,39 @@ class Collector():
         # output.to_csv(self.filename)
 
 
+_ovf_convention = lambda: RealOverflow(loc_underflow=BinLocation.below1,
+                                       loc_overflow=BinLocation.above1,
+                                       loc_nanflow=BinLocation.above2)
+
+
+def bin_one_dimension(low=None, high=None, nbins=None, edges=None,
+                      disable_overflow=False, disable_underflow=False):
+    # - bins: {nbins: 6 , low: 1  , high: 5 , overflow: True}
+    # - bins: {edges: [0, 200., 900], overflow: True}
+    if all([x is not None for x in (nbins, low, high)]):
+        edges = np.linspace(low, high, nbins + 1)
+        aghast_bins = lambda: RegularBinning(nbins,
+                                             RealInterval(low, high),
+                                             overflow=_ovf_convention())
+    elif edges:
+        # array are fixed to float type, to be consistent with the float-type underflow and overflow bins
+        edges = np.array(edges, "f")
+        aghast_bins = lambda: EdgesBinning(edges, overflow=_ovf_convention())
+    else:
+        return None
+    if not disable_underflow:
+        edges = np.insert(edges, 0, float("-inf"))
+    if not disable_overflow:
+        edges = np.append(edges, float("inf"))
+    return namedtuple("binning", "edges aghast")(edges, aghast_bins)
+
+
 class BuildAghast:
 
     def __init__(self, name, out_dir, binning, weights=None, dataset_col=False):
         self.name = name
         self.out_dir = out_dir
-        ins, outs, binnings = cfg.create_binning_list(self.name, binning)
+        ins, outs, binnings = cfg.create_binning_list(self.name, binning, make_bins=bin_one_dimension)
         self._bin_dims = ins
         self._out_bin_dims = outs
         self._binnings = binnings
@@ -61,7 +90,7 @@ class BuildAghast:
         if self.contents is None:
             self.contents = binned_values
         else:
-            self.contents = self.contents.add(binned_values, fill_value=0)
+            self.contents = self.contents + binned_values
 
         return True
 
@@ -90,24 +119,20 @@ def _make_axes(index, are_intervals):
         levels = [index]
         
     axes = []
-    for level, is_interval in zip(levels, are_intervals):
-        if is_interval:
-            print (level.name, " ===== INTERVAL-INDEX")
+    for level, aghast_bins in zip(levels, are_intervals):
+        if aghast_bins is not False:
+            axes.append(Axis(aghast_bins()))
         elif level.dtype == int:
-            print (level.name, " ===== INT")
-            mini = level.min()
-            maxi = level.max()
-            binning = IntegerBinning(min=mini, max=maxi)
+            binning = CategoryBinning(level.unique().astype(str))
             axes.append(Axis(binning))
+            #mini = level.min()
+            #maxi = level.max()
+            #binning = IntegerBinning(min=mini, max=maxi)
+            #axes.append(Axis(binning))
         elif isinstance(level, pd.CategoricalIndex):
             binning = CategoryBinning(level.unique())
             axes.append(Axis(binning))
-            print (level.name, " ===== CATEGORY")
-        elif isinstance(level, pd.IntervalIndex):
-                print (level.name, " ===== INTERVAL-INDEX")
-        print(level, level.dtype)
-        print("is int: ", level.dtype == int)
-        print("\n")
+        print(axes[-1].dump())
     return axes
 
 
@@ -125,10 +150,10 @@ def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_we
             are_intervals.append(False)
             continue
         out_dimension = dimension + "_bins"
-        data[out_dimension] = pd.cut(data[dimension], binning, right=False)
+        data[out_dimension] = pd.cut(data[dimension], binning.edges, right=False)
         print("\n### dtype for", out_dimension, data[out_dimension].dtype)
         final_bin_dims.append(out_dimension)
-        are_intervals.append(True)
+        are_intervals.append(binning.aghast)
 
     if weights:
         weight_sq_dims = [w + "_squared" for w in weights]
@@ -136,17 +161,13 @@ def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_we
 
     bins = data.groupby(final_bin_dims)
     counts = bins.size()
+    print(counts.to_string())
     axes = _make_axes(counts.index, are_intervals)
+    counts = UnweightedCounts(InterpretedInlineBuffer.fromarray(counts.values))
 
     if weights:
         sums = bins[weights].sum()
         sum_sqs = bins[weight_sq_dims].sum()
-        histogram = pd.concat([counts, sums, sum_sqs], axis="columns")
-        histogram.columns = _make_column_labels(out_weights)
-    else:
-        histogram = counts.to_frame(_count_label)
-
-    histogram.index.set_names(out_dimensions, inplace=True)
 
     hist = Histogram(axis=axes, counts=counts)
     return hist
