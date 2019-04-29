@@ -67,6 +67,16 @@ def _merge_data(dataset_readers_list, keep_unique_id=False):
     return final_df
 
 
+def _load_selection_file(stage_name, selection_file):
+    import yaml
+    with open(selection_file, "r") as infile:
+        cfg = yaml.load(infile)
+    if len(cfg) > 1:
+        msg = "{}: Selection file has more than one selection"
+        raise BadSelectionFile(msg.format(stage_name, selection_file, cfg.keys()))
+    return cfg
+
+
 def _create_weights(stage_name, weights):
     if weights is None:
         return {}
@@ -142,6 +152,7 @@ class CutFlow(object):
       name (str):  The name of this stage (handled automatically by fast-flow)
       out_dir (str):  Where to put the summary table (handled automatically by
           fast-flow)
+      selection_file (str): Deprecated
       keep_unique_id (bool): If ``True``, the summary table will contain a
           column that gives each cut a unique id.  This is used internally to
           maintain the cut order, and often will not be useful in subsequent
@@ -149,7 +160,10 @@ class CutFlow(object):
       counter (bool): Currently unused
 
     Raises:
-      BadCutflowConfig: If a bad selection or weight configuration is given.
+      BadCutflowConfig: If neither or both of ``selection`` and
+          ``selection_file`` are provided, or if a bad selection or
+          weight configuration is given.
+
 
     See Also:
       :class:`SelectPhaseSpace`: Adds the resulting event-mask as a new
@@ -162,11 +176,18 @@ class CutFlow(object):
       the internal expression handling.
 
     """
-    def __init__(self, name, out_dir, selection, weights=None,
-                 keep_unique_id=False, counter=True):
+    def __init__(self, name, out_dir, selection_file=None, keep_unique_id=False,
+                 selection=None, counter=True, weights=None):
         self.name = name
         self.out_dir = out_dir
         self.keep_unique_id = keep_unique_id
+        if not selection and not selection_file:
+            raise BadCutflowConfig("{}: Neither selection nor selection_file specified".format(self.name))
+        if selection and selection_file:
+            raise BadCutflowConfig("{}: Both selection and selection_file given. Choose one!".format(self.name))
+
+        if selection_file:
+            selection = _load_selection_file(self.name, selection_file)
 
         self._counter = counter
         if not self._counter:
