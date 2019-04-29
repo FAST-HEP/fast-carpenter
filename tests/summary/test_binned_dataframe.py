@@ -20,12 +20,11 @@ def config_2():
 
 
 @pytest.fixture
-def binned_df_1(tmpdir, config_1):
-    return bdf.BinnedDataframe("binned_df_1", out_dir="somewhere", **config_1)
+def binned_df_1(config_1):
+    return make_binned_df_1(config_1)
 
 
-@pytest.fixture
-def binned_df_1_copied(tmpdir, config_1):
+def make_binned_df_1(config_1):
     return bdf.BinnedDataframe("binned_df_1", out_dir="somewhere", **config_1)
 
 
@@ -87,19 +86,22 @@ def test_BinnedDataframe_run_twice(binned_df_1, tmpdir, infile):
 
 
 @pytest.fixture
-def run_twice_data_mc(binned_df_1, binned_df_1_copied, infile):
+def run_twice_data_mc(config_1, infile):
     chunk_mc = FakeBEEvent(infile, "mc")
     chunk_data = FakeBEEvent(infile, "data")
 
-    binned_df_1.event(chunk_mc)
-    binned_df_1.event(chunk_mc)
-    binned_df_1_copied.event(chunk_data)
-    binned_df_1_copied.event(chunk_data)
+    binned_dfs = [make_binned_df_1(config_1) for _ in range(4)]
+    binned_dfs[0].event(chunk_mc)
+    binned_dfs[1].event(chunk_mc)
+    binned_dfs[2].event(chunk_data)
+    binned_dfs[3].event(chunk_data)
 
-    return binned_df_1, (("test_mc", (binned_df_1,)), ("test_data", (binned_df_1_copied,)),)
+    return binned_dfs[0], (("test_mc", (binned_dfs[0], binned_dfs[1])),
+                           ("test_data", (binned_dfs[2], binned_dfs[3])))
 
 
-@pytest.mark.parametrize(["dataset_col", "pad_missing"], [(True, True), (True, False), (False, False), (False, True)])
+@pytest.mark.parametrize("dataset_col", [True, False])
+@pytest.mark.parametrize("pad_missing", [True, False])
 def test_binneddataframe_run_twice_data_mc(run_twice_data_mc, dataset_col, pad_missing):
     binned_df_1, dataset_readers_list = run_twice_data_mc
     binned_df_1._pad_missing = pad_missing
