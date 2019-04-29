@@ -24,6 +24,11 @@ def binned_df_1(tmpdir, config_1):
     return bdf.BinnedDataframe("binned_df_1", out_dir="somewhere", **config_1)
 
 
+@pytest.fixture
+def binned_df_1_copied(tmpdir, config_1):
+    return bdf.BinnedDataframe("binned_df_1", out_dir="somewhere", **config_1)
+
+
 def test_BinnedDataframe(binned_df_1, tmpdir):
     assert binned_df_1.name == "binned_df_1"
     assert len(binned_df_1._binnings) == 2
@@ -74,6 +79,30 @@ def test_BinnedDataframe_run_twice(binned_df_1, tmpdir, infile):
     totals = results.sum()
     # Based on: events->Draw("Jet_Py", "", "goff")
     assert totals["n"] == 4616 * 2
+
+    # Based on:
+    # events->Draw("EventWeight * (Jet_Py/Jet_Py)>>htemp", "", "goff")
+    # htemp->GetMean() * htemp->GetEntries()
+    assert totals["EventWeight:sumw"] == pytest.approx(231.91339 * 2)
+
+
+def test_binneddataframe_run_twice_data_mc(binned_df_1, binned_df_1_copied, tmpdir, infile):
+    chunk_mc = FakeBEEvent(infile, "mc")
+    chunk_data = FakeBEEvent(infile, "data")
+
+    binned_df_1.event(chunk_mc)
+    binned_df_1.event(chunk_mc)
+    binned_df_1_copied.event(chunk_data)
+    binned_df_1_copied.event(chunk_data)
+
+    collector = binned_df_1.collector()
+
+    dataset_readers_list = (("test_mc", (binned_df_1,)), ("test_data", (binned_df_1_copied,)),)
+    results = collector._prepare_output(dataset_readers_list)
+
+    totals = results.sum()
+    # Based on: events->Draw("Jet_Py", "", "goff")
+    assert totals["n"] == 4616 * 4
 
     # Based on:
     # events->Draw("EventWeight * (Jet_Py/Jet_Py)>>htemp", "", "goff")
