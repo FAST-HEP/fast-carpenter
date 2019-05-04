@@ -62,3 +62,11 @@ You can now run the fast_carpenter command, giving it the dataset and processing
 Depending on how many files you have and what type of computing resources (e.g. multiple cpus, batch systems) you might want to use some of the different processing modes.
 
 For more on how to use the ``fast_carpenter`` command, see the :ref:`ref-cli_fast_carpenter` section of the command line tools.
+
+Step 4: Produce plots
+^^^^^^^^^^^^^^^^^^^^^
+In order to visualise the results of running ``fast_carpenter``, you can use the ``fast-plotter`` package, which gives you both a command-line interface and helper python functions to 
+produce plots from the dataframes.
+Fine tuning of the command-line plots is again possible using a YAML configuration file.
+
+See the `dedicated fast-plotter documentation <http://fast-plotter.readthedocs.io/>`_ for more guidance on this package.
