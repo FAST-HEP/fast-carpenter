@@ -195,7 +195,11 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None),
+                       'matplotlib': ('http://matplotlib.sourceforge.net', None),
+                       'pandas': ('http://pandas.pydata.org/pandas-docs/stable', None),
+                      }
+
 
 # Configure the sphinxcontrib.apidoc extension
 apidoc_module_dir = '../fast_carpenter'
