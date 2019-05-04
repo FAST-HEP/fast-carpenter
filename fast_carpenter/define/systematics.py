@@ -17,16 +17,20 @@ class SystematicWeights():
     It forms the ``nominal`` weight for each event by multiplying all nominal weights together,
     then the specific variation by replacing a given nominal weight with its corresponding "up" or "down" variation.
 
-    Each variation of a weight should just be a string giving an expression to use for that variation.
-    This stage then combines these into a single expression by joining each set of variations with `"*"`, i.e. multiplying them together.
-    The final results then use an internal :py:class:`Define` stage to do the calculation.
+    Each variation of a weight should just be a string giving an expression to
+    use for that variation.  This stage then combines these into a single
+    expression by joining each set of variations with `"*"`, i.e. multiplying
+    them together.  The final results then use an internal :py:class:`Define`
+    stage to do the calculation.
 
     Parameters:
-      weights (dictionary[str, dictionary]):  A Dictionary of weight variations to combine.
-          The keys in this dictionary will determine how this variation is called in the output variable.
-          The values of this dictionary should either be a single string -- the name of the input variable to use for the "nominal" variation,
-          or a dictionary containing any of the keys, ``nominal``, ``up``, or ``down``.
-          Each of these should then have a value providing the expression to use for that variation/
+      weights (dictionary[str, dictionary]):  A Dictionary of weight variations
+          to combine.  The keys in this dictionary will determine how this
+          variation is called in the output variable.  The values of this
+          dictionary should either be a single string -- the name of the input
+          variable to use for the "nominal" variation, or a dictionary containing
+          any of the keys, ``nominal``, ``up``, or ``down``.  Each of these should
+          then have a value providing the expression to use for that variation/
 
     Other Parameters:
       name (str):  The name of this stage (handled automatically by fast-flow)
