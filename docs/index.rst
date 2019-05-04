@@ -1,6 +1,3 @@
-Welcome to fast-carpenter's documentation!
-==========================================
-
 .. include:: ../README.rst
    :end-before: Installation and usage
 

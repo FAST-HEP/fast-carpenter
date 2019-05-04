@@ -61,9 +61,23 @@ To use multiple CPUs on the local machine, use ``--mode multiprocessing`` (this 
 Alternatively, if you have access to an htcondor or SGE batch system (i.e. ``qsub``), then the ``fast_carpenter`` command can submit many tasks to un at the same time using the batch system.
 In this case you need to choose an appropriate option for the ``--mode`` option.  In addition the options with ``block`` in them can control how many events are processed on each task and for each dataset.
 
-For all modes,  the ``--blocksize`` option can be helpful to present fast-carpenter reading too many events into memory in one go.
-It's default value of 100,000 might be too large, in which case reducing it to some other value (e.g. 20,000) can help.
-Common symptons of the blocksize being too large are:
+.. note::
+    For all modes,  the ``--blocksize`` option can be helpful to present fast-carpenter reading too many events into memory in one go.
+    It's default value of 100,000 might be too large, in which case reducing it to some other value (e.g. 20,000) can help.
+    Common symptons of the blocksize being too large are:
 
- * Extremely slow processing, or
- * Batch jobs crashing or not being started
+     * Extremely slow processing, or
+     * Batch jobs crashing or not being started
+
+.. _ref-cli_fast_plotter:
+
+``fast_plotter``
+----------------
+Once you have produced your binned dataframes, the next thing you'll likely want to do is to make these into figures.
+The ``fast_plotter`` command and library can help with this.
+Its command-line interface gives a simple way to make plots from the dataframes with reasonable defaults, whereas its internal functions can be useful when needing more specific ways or presenting results.
+
+.. command-output:: fast_plotter --help
+
+.. seealso::
+    See the `dedicated fast-plotter documentation <http://fast-plotter.readthedocs.io/>`_ for more guidance on this package.

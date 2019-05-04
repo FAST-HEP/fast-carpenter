@@ -20,6 +20,11 @@
    :alt: Documentation Status
 
 
+.. image:: https://badges.gitter.im/FAST-HEP/community.svg
+   :target: https://gitter.im/FAST-HEP/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
+   :alt: Gitter
+
+
 fast-carpenter
 ==============
 
@@ -43,6 +48,8 @@ Powered by:
 * fast-flow: to manage the processing config files
 * fast-curator: to orchestrate the lists of datasets to be processed
 * coffee: to help the developer(s) write code
+
+A tool from the Faster Analysis Software Taskforce: http://fast-hep.web.cern.ch/
 
 Installation and usage
 ----------------------
