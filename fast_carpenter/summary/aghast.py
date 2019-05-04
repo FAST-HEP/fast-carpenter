@@ -2,10 +2,7 @@ from __future__ import absolute_import
 import os
 from collections import defaultdict
 import numpy as np
-from aghast import Collection, Histogram, UnweightedCounts, WeightedCounts, Axis
-from aghast import InterpretedInlineInt64Buffer, InterpretedInlineFloat64Buffer
-from aghast import RealInterval, CategoryBinning, RealOverflow, BinLocation
-from aghast import RegularBinning, EdgesBinning
+import aghast
 from . import binning_config as cfg
 from . import binned_dataframe as binned_df
 
@@ -26,13 +23,13 @@ class Collector():
                                                   binnings=self.edges)
         full_axes = complete_axes(self.axes, dataframe.index)
         all_counters = convert_to_counters(dataframe)
-        collection = Collection(all_counters, full_axes)
+        collection = aghast.Collection(all_counters, full_axes)
         collection.tofile(self.filename)
 
 
 def convert_to_counters(df):
-    counts = UnweightedCounts(InterpretedInlineInt64Buffer(df[binned_df.count_label].values))
-    counters = {binned_df.count_label: Histogram([Axis()], counts)}
+    counts = aghast.UnweightedCounts(aghast.InterpretedInlineInt64Buffer(df[binned_df.count_label].values))
+    counters = {binned_df.count_label: aghast.Histogram([aghast.Axis()], counts)}
     weight_labels = defaultdict(dict)
     for col in df.columns:
         if col == binned_df.count_label:
@@ -41,13 +38,13 @@ def convert_to_counters(df):
         weight_labels[label][sumtype] = col
     for label, sums in weight_labels.items():
         sumw_col = sums[binned_df.weight_labels[0]]
-        sumw = InterpretedInlineFloat64Buffer(df[sumw_col].values.astype(np.float64))
+        sumw = aghast.InterpretedInlineFloat64Buffer(df[sumw_col].values.astype(np.float64))
 
         sumw2 = None
         sumw2_col = sums.get(binned_df.weight_labels[1], None)
         if sumw2_col:
-            sumw2 = InterpretedInlineFloat64Buffer(df[sumw2_col].values.astype(np.float64))
-        counters[label] = Histogram([Axis()], WeightedCounts(sumw, sumw2))
+            sumw2 = aghast.InterpretedInlineFloat64Buffer(df[sumw2_col].values.astype(np.float64))
+        counters[label] = aghast.Histogram([aghast.Axis()], aghast.WeightedCounts(sumw, sumw2))
     return counters
 
 
@@ -57,15 +54,15 @@ def complete_axes(axes, df_index):
         ax = axes.get(dim, None)
         if ax is None:
             values = df_index.unique(dim).astype(str)
-            full_axes.append(Axis(CategoryBinning(values), title=dim))
+            full_axes.append(aghast.Axis(aghast.CategoryBinning(values), title=dim))
         else:
             full_axes.append(ax)
     return full_axes
 
 
 def _ovf_convention():
-    return RealOverflow(loc_underflow=BinLocation.below1,
-                        loc_overflow=BinLocation.above1)
+    return aghast.RealOverflow(loc_underflow=aghast.BinLocation.below1,
+                               loc_overflow=aghast.BinLocation.above1)
 
 
 def bin_one_dimension(low=None, high=None, nbins=None, edges=None,
@@ -73,13 +70,13 @@ def bin_one_dimension(low=None, high=None, nbins=None, edges=None,
     # - bins: {nbins: 6 , low: 1  , high: 5 , overflow: True}
     # - bins: {edges: [0, 200., 900], overflow: True}
     if all([x is not None for x in (nbins, low, high)]):
-        aghast_bins = RegularBinning(nbins,
-                                     RealInterval(low, high),
-                                     overflow=_ovf_convention())
+        aghast_bins = aghast.RegularBinning(nbins,
+                                            aghast.RealInterval(low, high),
+                                            overflow=_ovf_convention())
     elif edges:
         # array are fixed to float type, to be consistent with the float-type underflow and overflow bins
         edges = np.array(edges, "f")
-        aghast_bins = EdgesBinning(edges, overflow=_ovf_convention())
+        aghast_bins = aghast.EdgesBinning(edges, overflow=_ovf_convention())
     else:
         return None
     return aghast_bins
@@ -95,7 +92,7 @@ class BuildAghast:
                                                  weights=weights,
                                                  dataset_col=dataset_col)
         ins, outs, bins = cfg.create_binning_list(self.name, binning, make_bins=bin_one_dimension)
-        self.axes = {_out: Axis(_bins, title=_out, expression=_in) if _bins else None
+        self.axes = {_out: aghast.Axis(_bins, title=_out, expression=_in) if _bins else None
                      for _in, _out, _bins in zip(ins, outs, bins)}
         self.by_dataset = dataset_col
 
