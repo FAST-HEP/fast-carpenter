@@ -188,13 +188,13 @@ class BinnedDataframe():
         self.contents = self.contents.add(rhs.contents, fill_value=0)
 
 
-_count_label = "n"
-_weight_labels = ["sumw", "sumw2"]
+count_label = "n"
+weight_labels = ("sumw", "sumw2")
 
 
 def _make_column_labels(weights):
-    weight_labels = [w + ":" + l for l in _weight_labels for w in weights]
-    return [_count_label] + weight_labels
+    labels = [w + ":" + l for l in weight_labels for w in weights]
+    return [count_label] + labels
 
 
 def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_weights=None):
@@ -225,7 +225,7 @@ def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_we
         histogram = pd.concat([counts, sums, sum_sqs], axis="columns")
         histogram.columns = _make_column_labels(out_weights)
     else:
-        histogram = counts.to_frame(_count_label)
+        histogram = counts.to_frame(count_label)
 
     histogram.index.set_names(out_dimensions, inplace=True)
     return histogram
