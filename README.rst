@@ -49,6 +49,8 @@ Powered by:
 * fast-curator: to orchestrate the lists of datasets to be processed
 * coffee: to help the developer(s) write code
 
+A tool from the Faster Analysis Software Taskforce: http://fast-hep.web.cern.ch/
+
 Installation and usage
 ----------------------
 
