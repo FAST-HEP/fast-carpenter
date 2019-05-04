@@ -77,7 +77,7 @@ def densify_dataframe(in_df, binnings):
 
 
 class BinnedDataframe():
-    """Produce a binned dataframe (a multi-dimensional histogram).
+    """Produces a binned dataframe (a multi-dimensional histogram).
 
     def __init__(self, name, out_dir, binning, weights=None, dataset_col=False):
 

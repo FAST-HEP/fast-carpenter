@@ -218,7 +218,7 @@ class CutFlow(object):
 
 
 class SelectPhaseSpace(CutFlow):
-    """Create an event-mask and add it to the data-space.
+    """Creates an event-mask and adds it to the data-space.
 
     This is identical to the :class:`CutFlow` class, except that the resulting
     mask is added to the list of variables in the data-space, rather than being
