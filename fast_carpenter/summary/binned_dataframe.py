@@ -111,8 +111,10 @@ class BinnedDataframe():
         keys are the column names that these weights should be called in the
         output tables.
       dataset_col (bool): adds an extra binning column with the name for each dataset.
-
-    Example:
+      pad_missing (bool): If ``False``, any bins that don't contain data are
+        excluded from the stored dataframe.  Leaving this ``False`` can save
+        some disk-space and improve processing time, particularly if the bins are
+        only very sparsely filled.
 
     Other Parameters:
       name (str):  The name of this stage (handled automatically by fast-flow)
