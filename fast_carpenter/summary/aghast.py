@@ -2,9 +2,9 @@ import os
 from collections import defaultdict
 import numpy as np
 from aghast import Collection, Histogram, UnweightedCounts, WeightedCounts, Axis
-from aghast import InterpretedInlineBuffer, InterpretedInlineInt64Buffer, InterpretedInlineFloat64Buffer
+from aghast import InterpretedInlineInt64Buffer, InterpretedInlineFloat64Buffer
 from aghast import RealInterval, CategoryBinning, RealOverflow, BinLocation
-from aghast import RegularBinning, IntegerBinning, EdgesBinning, IrregularBinning
+from aghast import RegularBinning, EdgesBinning
 from . import binning_config as cfg
 from . import binned_dataframe as binned_df
 
@@ -62,8 +62,9 @@ def complete_axes(axes, df_index):
     return full_axes
 
 
-_ovf_convention = lambda: RealOverflow(loc_underflow=BinLocation.below1,
-                                       loc_overflow=BinLocation.above1)
+def _ovf_convention():
+    return RealOverflow(loc_underflow=BinLocation.below1,
+                        loc_overflow=BinLocation.above1)
 
 
 def bin_one_dimension(low=None, high=None, nbins=None, edges=None,
