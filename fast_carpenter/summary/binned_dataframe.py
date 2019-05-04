@@ -20,18 +20,24 @@ class Collector():
         output.to_csv(self.filename, float_format="%.17g")
 
     def _prepare_output(self, dataset_readers_list):
-        dataset_readers_list = [(d, [r.contents for r in readers])
-                                for d, readers in dataset_readers_list if readers]
-        if not dataset_readers_list:
-            return None
+        return combined_dataframes(dataset_readers_list,
+                                   self.dataset_col,
+                                   binnings=self.binnings)
 
-        if self.dataset_col:
-            output = _merge_dataframes(dataset_readers_list)
-        else:
-            output = _add_dataframes(dataset_readers_list)
-        if self.binnings:
-            output = densify_dataframe(output, self.binnings)
-        return output
+
+def combined_dataframes(dataset_readers_list, dataset_col, binnings=None):
+    dataset_readers_list = [(d, [r.contents for r in readers])
+                            for d, readers in dataset_readers_list if readers]
+    if not dataset_readers_list:
+        return None
+
+    if dataset_col:
+        output = _merge_dataframes(dataset_readers_list)
+    else:
+        output = _sum_dataframes(dataset_readers_list)
+    if binnings:
+        output = densify_dataframe(output, binnings)
+    return output
 
 
 def _merge_dataframes(dataset_readers_list):
@@ -49,7 +55,7 @@ def _merge_dataframes(dataset_readers_list):
     return final_df
 
 
-def _add_dataframes(dataset_readers_list):
+def _sum_dataframes(dataset_readers_list):
     final_df = None
     for _, readers in dataset_readers_list:
         for df in readers:
