@@ -1,12 +1,12 @@
 import os
-import pandas as pd
+from collections import defaultdict
 import numpy as np
-from aghast import Histogram, UnweightedCounts, WeightedCounts, Axis, BinLocation
-from aghast import InterpretedInlineInt64Buffer, RealInterval, CategoryBinning, RealOverflow
+from aghast import Collection, Histogram, UnweightedCounts, WeightedCounts, Axis
+from aghast import InterpretedInlineBuffer, InterpretedInlineInt64Buffer, InterpretedInlineFloat64Buffer
+from aghast import RealInterval, CategoryBinning, RealOverflow, BinLocation
 from aghast import RegularBinning, IntegerBinning, EdgesBinning, IrregularBinning
 from . import binning_config as cfg
 from . import binned_dataframe as binned_df
-from collections import namedtuple
 
 
 class Collector():
@@ -20,11 +20,34 @@ class Collector():
         if len(dataset_readers_list) == 0:
             return None
 
-        dataframe = binned_df.combined_dataframes(dataset_readers_list, self.by_dataset, binnings=self.edges)
+        dataframe = binned_df.combined_dataframes(dataset_readers_list,
+                                                  self.by_dataset,
+                                                  binnings=self.edges)
         full_axes = complete_axes(self.axes, dataframe.index)
-        counts = UnweightedCounts(InterpretedInlineInt64Buffer(dataframe[binned_df.count_label].values))
-        hist = Histogram(full_axes, counts)
-        hist.tofile(self.filename)
+        all_counters = convert_to_counters(dataframe)
+        collection = Collection(all_counters, full_axes)
+        collection.tofile(self.filename)
+
+
+def convert_to_counters(df):
+    counts = UnweightedCounts(InterpretedInlineInt64Buffer(df[binned_df.count_label].values))
+    counters = {binned_df.count_label: Histogram([Axis()], counts)}
+    weight_labels = defaultdict(dict)
+    for col in df.columns:
+        if col == binned_df.count_label:
+            continue
+        label, sumtype = col.split(":")
+        weight_labels[label][sumtype] = col
+    for label, sums in weight_labels.items():
+        sumw_col = sums[binned_df.weight_labels[0]]
+        sumw = InterpretedInlineFloat64Buffer(df[sumw_col].values.astype(np.float64))
+
+        sumw2 = None
+        sumw2_col = sums.get(binned_df.weight_labels[1], None)
+        if sumw2_col:
+            sumw2 = InterpretedInlineFloat64Buffer(df[sumw2_col].values.astype(np.float64))
+        counters[label] = Histogram([Axis()], WeightedCounts(sumw, sumw2))
+    return counters
 
 
 def complete_axes(axes, df_index):
