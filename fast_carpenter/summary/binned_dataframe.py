@@ -126,7 +126,7 @@ class BinnedDataframe():
 
     """
 
-    def __init__(self, name, out_dir, binning, weights=None, dataset_col=False, pad_missing=False):
+    def __init__(self, name, out_dir, binning, weights=None, dataset_col=True, pad_missing=False):
         self.name = name
         self.out_dir = out_dir
         ins, outs, binnings = cfg.create_binning_list(self.name, binning)
