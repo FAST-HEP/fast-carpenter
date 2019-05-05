@@ -4,13 +4,7 @@ from collections import defaultdict
 import numpy as np
 from . import binning_config as cfg
 from . import binned_dataframe as binned_df
-try:
-    import aghast
-except ImportError:
-    msg = "Aghast is not installed, but an Aghast-building stage has been requested"
-    msg += "\nInstall it using conda:"
-    msg += "\n\n       conda install aghast"
-    raise ImportError(msg)
+from .import_aghast import aghast
 
 
 class Collector():
