@@ -28,13 +28,15 @@ class Collector():
                                                   self.by_dataset,
                                                   binnings=self.edges)
         full_axes = complete_axes(self.axes, dataframe.index)
+        dataframe.fillna(0, inplace=True)
+        dataframe.to_csv(self.filename + ".csv")
         all_counters = convert_to_counters(dataframe)
         collection = aghast.Collection(all_counters, full_axes)
-        collection.tofile(self.filename)
+        collection.tofile(self.filename + ".ghst")
 
 
 def convert_to_counters(df):
-    counts = aghast.UnweightedCounts(aghast.InterpretedInlineInt64Buffer(df[binned_df.count_label].values))
+    counts = aghast.UnweightedCounts(aghast.InterpretedInlineFloat64Buffer(df[binned_df.count_label].values))
     counters = {binned_df.count_label: aghast.Histogram([aghast.Axis()], counts)}
     weight_labels = defaultdict(dict)
     for col in df.columns:
@@ -112,7 +114,6 @@ class BuildAghast:
             outfilename += "dataset."
         outfilename += ".".join(self.axes.keys())
         outfilename += "--" + self.name
-        outfilename += ".ghst"
         outfilename = os.path.join(self.out_dir, outfilename)
         edges = dict(zip(self.builder._out_bin_dims, self.builder._binnings))
         return Collector(outfilename, axes=self.axes,
