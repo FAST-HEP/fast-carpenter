@@ -85,6 +85,20 @@ def bin_one_dimension(low=None, high=None, nbins=None, edges=None,
 
 
 class BuildAghast:
+    """Builds an aghast histogram.
+
+    Can be parametrized in the same way as
+    :py:class:`fast_carpenter.BinnedDataframe` (and actually uses that stage
+    behind the scenes) but additionally writes out a Ghast which can be
+    reloaded with other ghast packages.
+
+    .. seealso::
+
+       * :py:class:`fast_carpenter.BinnedDataframe` for a version which only
+         produces binned pandas dataframes.
+       * The aghast main page: `<https://github.com/scikit-hep/aghast>`_.
+
+    """
 
     def __init__(self, name, out_dir, binning, weights=None, dataset_col=True):
         self.name = name
