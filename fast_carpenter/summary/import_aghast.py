@@ -6,7 +6,7 @@ except ImportError as ex:
         raise
 
     class AghastCatcher:
-        def __getattribute__(self, attr):
+        def __getattr__(self, attr):
             msg = "Aghast is not installed but has been needed."
             msg += "\nInstall it using conda:"
             msg += "\n\n       conda install aghast"
