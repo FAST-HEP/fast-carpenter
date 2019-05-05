@@ -10,7 +10,7 @@ except ImportError:
     msg = "Aghast is not installed, but an Aghast-building stage has been requested"
     msg += "\nInstall it using conda:"
     msg += "\n\n       conda install aghast"
-    raise RuntimeError(msg)
+    raise ImportError(msg)
 
 
 class Collector():

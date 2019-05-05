@@ -10,11 +10,12 @@ __version__ = '0.9.1'
 from .define.variables import Define
 from .define.systematics import SystematicWeights
 from .selection.stage import CutFlow, SelectPhaseSpace
-from .summary import BinnedDataframe
+from .summary import BinnedDataframe, BuildAghast
 
 
 __all__ = ["Define", "SystematicWeights", "CutFlow",
-           "SelectPhaseSpace", "BinnedDataframe"]
+           "SelectPhaseSpace", "BinnedDataframe", "BuildAghast"]
 
 
-known_stages = [Define, SystematicWeights, CutFlow, SelectPhaseSpace, BinnedDataframe]
+known_stages = [Define, SystematicWeights, CutFlow,
+                SelectPhaseSpace, BinnedDataframe, BuildAghast]
