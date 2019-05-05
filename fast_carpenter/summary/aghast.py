@@ -2,9 +2,15 @@ from __future__ import absolute_import
 import os
 from collections import defaultdict
 import numpy as np
-import aghast
 from . import binning_config as cfg
 from . import binned_dataframe as binned_df
+try:
+    import aghast
+except ImportError:
+    msg = "Aghast is not installed, but an Aghast-building stage has been requested"
+    msg += "\nInstall it using conda:"
+    msg += "\n\n       conda install aghast"
+    raise RuntimeError(msg)
 
 
 class Collector():

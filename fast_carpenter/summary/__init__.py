@@ -7,7 +7,10 @@ except ImportError as ex:
 
     class BuildAghast:
         def __init__(self, name, *arg, **kwargs):
-            raise RuntimeError("Aghast is not installed, but was requested for %s" % name)
+            msg = "Aghast is not installed, but was requested for %s" % name
+            msg += "\nInstall it using conda:"
+            msg += "\n\n       conda install aghast"
+            raise RuntimeError(msg)
 
 
 __all__ = ["BuildAghast", "BinnedDataframe"]
