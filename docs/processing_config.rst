@@ -65,6 +65,7 @@ All the built-in stages of ``fast_carpenter`` are available directly from the ``
       * :py:class:`fast_carpenter.CutFlow`
       * :py:class:`fast_carpenter.SelectPhaseSpace`
       * :py:class:`fast_carpenter.BinnedDataframe`
+      * :py:class:`fast_carpenter.BuildAghast`
 
 .. todo::
    Build that list programmatically, so its always up to date and uses the built-in docstrings for a description.
