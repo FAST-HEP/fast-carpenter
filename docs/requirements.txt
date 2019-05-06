@@ -1,3 +1,4 @@
 m2r
 sphinxcontrib-apidoc
 sphinxcontrib-programoutput
+sphinx-rtd-theme
