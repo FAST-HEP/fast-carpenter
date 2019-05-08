@@ -7,4 +7,5 @@ Example repositories
 
 Related Presentations
 ---------------------
-1. [IRIS-HEP 4th March 2019](https://indico.cern.ch/event/802182/contributions/3334624/)
+1. IRIS-HEP, 4th March 2019: `<https://indico.cern.ch/event/802182/contributions/3334624/>`_
+2. Analysis Descrition Languages for the LHC, 7th May 2019: `<https://indico.cern.ch/event/769263/contributions/3406084/>`_
