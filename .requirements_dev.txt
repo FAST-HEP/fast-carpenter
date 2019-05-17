@@ -1,8 +1,7 @@
 flake8==3.5.0
-tox==3.4.0
-Sphinx==1.8.1
 twine==1.12.1
 
-pytest==3.8.1
-pytest-runner==4.2
-pytest-cov==2.6.0
+pytest==4.5.0
+pytest-cov==2.7.1
+pytest-runner==4.4
+codecov==2.0.15
