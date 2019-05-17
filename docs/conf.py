@@ -261,7 +261,7 @@ def linkcode_resolve(domain, info):
         version = "master"
     else:
         version = "v" + version
-    url_root = "https://gitlab.cern.ch/fast-hep/public/fast-carpenter/blob/"
+    url_root = "https://github.com/FAST-HEP/fast-carpenter/tree/"
     return url_root + "%s/fast_carpenter/%s%s" % (version, fn, linespec)
 
 
