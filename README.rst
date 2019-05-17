@@ -5,13 +5,13 @@
    :alt: pypi package
 
 
-.. image:: https://gitlab.cern.ch/fast-hep/public/fast-carpenter/badges/master/pipeline.svg
-   :target: https://gitlab.cern.ch/fast-hep/public/fast-carpenter/commits/master
+.. image:: https://travis-ci.com/FAST-HEP/fast-carpenter.svg?branch=master
+   :target: https://travis-ci.com/FAST-HEP/fast-carpenter
    :alt: pipeline status
 
 
-.. image:: https://gitlab.cern.ch/fast-hep/public/fast-carpenter/badges/master/coverage.svg
-   :target: https://gitlab.cern.ch/fast-hep/public/fast-carpenter/commits/master
+.. image:: https://codecov.io/gh/FAST-HEP/fast-carpenter/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/FAST-HEP/fast-carpenter
    :alt: coverage report
 
 

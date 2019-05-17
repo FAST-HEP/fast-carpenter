@@ -42,7 +42,7 @@ For public examples of working with fast-carpenter and the other FAST tools, see
 Step 1: Create dataset configs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 fast-carpenter needs to know what input files to use, and will often need extra metadata (for example, does this data represent real or simulated data).
-This is where the `fast-curator <https://gitlab.cern.ch/fast-hep/public/fast-curator>`_ package comes in.
+This is where the `fast-curator <https://github.com/FAST-HEP/fast-curator>`_ package comes in.
 It provides the `fast_curator` command which we use to generate descriptions of the input files in a format that is both human and machine readable, using `YAML <https://en.wikipedia.org/wiki/YAML>`_.
 These can then be put in a repository and updated periodically with extra meta-data, or when new data becomes available.
 

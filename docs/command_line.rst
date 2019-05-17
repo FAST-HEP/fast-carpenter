@@ -19,7 +19,7 @@ If the output file already exists, and is a valid fast-curator description, the 
 Input ROOT files can also be stored on xrootd servers, with a file-path specified by the ``root://`` protocol.  
 You can also provide wild-cards for such files, but make sure to check that you pick all files that you expect; wildcarded searches on xrootd directories can depend on permissions, access rights, storage mirroring and so on.
 
-For an in-depth description of the dataset description files, see the `fast-curator pages <https://gitlab.cern.ch/fast-hep/public/fast-curator>`_.
+For an in-depth description of the dataset description files, see the `fast-curator pages <https://github.com/FAST-HEP/fast-curator>`_.
 
 .. command-output:: fast_curator --help
 

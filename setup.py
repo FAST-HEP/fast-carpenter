@@ -53,7 +53,7 @@ setup(
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
-    url='https://gitlab.cern.ch/fast-hep/public/fast-carpenter',
+    url='https://github.com/FAST-HEP/fast-carpenter',
     version='0.10.0',
     zip_safe=True,
 )

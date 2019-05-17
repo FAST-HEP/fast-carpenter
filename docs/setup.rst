@@ -15,18 +15,18 @@ Using virtaulenv or conda will avoid this complication
 
 From Source
 -----------
-If you want to edit the code or contribute something back, you might want to install things directly from gitlab.
+If you want to edit the code or contribute something back, you might want to install things directly from github.
 Any of these options should work:
 
 Directly with pip:
 ::
 
-        pip install -e 'git+https://gitlab.cern.ch/fast-hep/public/fast-carpenter.git#egg=fast_carpenter' --src .
+        pip install -e 'git+https://github.com/FAST-HEP/fast-carpenter.git#egg=fast_carpenter' --src .
 
 Clone first and install:
 ::
 
-        git clone https://gitlab.cern.ch/fast-hep/public/fast-carpenter.git
+        git clone https://github.com/FAST-HEP/fast-carpenter.git
         cd fast-carpenter
         python setup.py develop
 
