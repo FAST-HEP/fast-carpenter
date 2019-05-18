@@ -22,7 +22,3 @@ jobs:
     - stage: test
       script: flake8 --max-line-length=120 fast_carpenter tests
       name: flake8
-
-# coverage:
-#   stage: test
-#   script: make coverage
