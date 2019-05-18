@@ -3,13 +3,22 @@
 
 """The setup script."""
 
+import os
 from setuptools import setup, find_packages
+
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
 # with open('HISTORY.rst') as history_file:
 #     history = history_file.read()
+
+
+def get_version():
+    _globals = {}
+    with open(os.path.join("fast_carpenter", "version.py")) as version_file:
+        exec(version_file.read(), _globals)
+    return _globals["__version__"]
 
 
 requirements = ['atsge>=0.1.10', 'atuproot>=0.1.13', 'fast-flow', 'fast-curator', 'awkward',
@@ -24,7 +33,7 @@ setup(
     author="Ben Krikler",
     author_email='fast-hep@cern.ch',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
@@ -54,6 +63,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/FAST-HEP/fast-carpenter',
-    version='0.10.0',
+    version=get_version(),
     zip_safe=True,
 )
