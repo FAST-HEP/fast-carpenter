@@ -14,7 +14,8 @@ from .version import __version__, version_info
 
 
 __all__ = ["Define", "SystematicWeights", "CutFlow",
-           "SelectPhaseSpace", "BinnedDataframe", "BuildAghast"]
+           "SelectPhaseSpace", "BinnedDataframe", "BuildAghast",
+           "__version__", "version_info"]
 
 
 known_stages = [Define, SystematicWeights, CutFlow,
