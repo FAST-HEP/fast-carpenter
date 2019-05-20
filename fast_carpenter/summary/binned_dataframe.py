@@ -3,6 +3,7 @@ Summarize the data by producing binned and possibly weighted counts of the data.
 """
 import os
 import pandas as pd
+import numpy as np
 from . import binning_config as cfg
 
 
@@ -76,7 +77,7 @@ def densify_dataframe(in_df, binnings):
         if bins is None:
             index_values.append(in_index.unique(dim))
             continue
-        index_values.append(pd.IntervalIndex.from_breaks(bins, closed="left"))
+        index_values.append(pd.IntervalIndex.from_breaks(np.round(bins, 3), closed="left"))
     out_index = pd.MultiIndex.from_product(index_values, names=in_index.names)
     out_df = in_df.reindex(index=out_index, copy=False)
     return out_df
