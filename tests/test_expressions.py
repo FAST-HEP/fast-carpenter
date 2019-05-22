@@ -23,3 +23,9 @@ def test_evaluate(wrapped_tree):
 def test_evaluate_bool(wrapped_tree):
     all_true = expressions.evaluate(wrapped_tree, "Muon_Px == Muon_Px")
     assert all(all_true.all())
+
+
+def test_evaluate_dot(wrapped_tree):
+    wrapped_tree.new_variable("Muon.Px", wrapped_tree.array("Muon_Px"))
+    all_true = expressions.evaluate(wrapped_tree, "Muon.Px == Muon_Px")
+    assert all(all_true.all())

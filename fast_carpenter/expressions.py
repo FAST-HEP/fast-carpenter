@@ -66,7 +66,7 @@ class TreeToDictAdaptor():
             self.stops = stops
 
 
-attribute_re = re.compile(r"(\w+)\s*\.\s*(\w+)")
+attribute_re = re.compile(r"([a-zA-Z]\w*)\s*\.\s*(\w+)")
 
 
 def preprocess_expression(expression):
@@ -74,7 +74,8 @@ def preprocess_expression(expression):
     replace_dict = {}
     for match in attribute_re.finditer(expression):
         original = match.group(0)
-        alias = match.expand(r"\1__\2")
+        alias = match.expand(r"\1__DOT__\2")
+        print("alias", alias, original)
         alias_dict[alias] = original
         replace_dict[original] = alias
     clean_expr = attribute_re.sub(lambda x: replace_dict[x[0]], expression)
@@ -84,7 +85,7 @@ def preprocess_expression(expression):
 def evaluate(tree, expression):
     cleaned_expression, alias_dict = preprocess_expression(expression)
     adaptor = TreeToDictAdaptor(tree, alias_dict)
-    result = numexpr.evaluate(expression, local_dict=adaptor)
+    result = numexpr.evaluate(cleaned_expression, local_dict=adaptor)
     if adaptor.starts is not None:
         result = awkward.JaggedArray(adaptor.starts, adaptor.stops, result)
     return result
