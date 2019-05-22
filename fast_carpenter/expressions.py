@@ -1,3 +1,4 @@
+import re
 import numexpr
 import tokenize
 import awkward
@@ -34,13 +35,15 @@ class TreeToDictAdaptor():
     """
     Make an uproot tree look like a dict for numexpr
     """
-    def __init__(self, tree):
+    def __init__(self, tree, alias_dict):
         self.tree = tree
         self.starts = None
         self.stops = None
+        self.aliases = alias_dict
 
     def __getitem__(self, item):
-        array = self.tree.array(item)
+        full_item = self.aliases.get(item, item)
+        array = self.tree.array(full_item)
         starts = getattr(array, "starts", None)
         if starts is not None:
             self.set_starts_stop(starts, array.stops)
@@ -48,7 +51,7 @@ class TreeToDictAdaptor():
         return array
 
     def __contains__(self, item):
-        return item in self.tree
+        return item in self.tree or item in self.aliases
 
     def __iter__(self):
         for i in self.tree:
@@ -63,9 +66,25 @@ class TreeToDictAdaptor():
             self.stops = stops
 
 
+attribute_re = re.compile(r"([a-zA-Z]\w*)\s*\.\s*(\w+)")
+
+
+def preprocess_expression(expression):
+    alias_dict = {}
+    replace_dict = {}
+    for match in attribute_re.finditer(expression):
+        original = match.group(0)
+        alias = match.expand(r"\1__DOT__\2")
+        alias_dict[alias] = original
+        replace_dict[original] = alias
+    clean_expr = attribute_re.sub(lambda x: replace_dict[x.group(0)], expression)
+    return clean_expr, alias_dict
+
+
 def evaluate(tree, expression):
-    adaptor = TreeToDictAdaptor(tree)
-    result = numexpr.evaluate(expression, local_dict=adaptor)
+    cleaned_expression, alias_dict = preprocess_expression(expression)
+    adaptor = TreeToDictAdaptor(tree, alias_dict)
+    result = numexpr.evaluate(cleaned_expression, local_dict=adaptor)
     if adaptor.starts is not None:
         result = awkward.JaggedArray(adaptor.starts, adaptor.stops, result)
     return result
