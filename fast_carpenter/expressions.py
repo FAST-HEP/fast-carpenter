@@ -75,10 +75,9 @@ def preprocess_expression(expression):
     for match in attribute_re.finditer(expression):
         original = match.group(0)
         alias = match.expand(r"\1__DOT__\2")
-        print("alias", alias, original)
         alias_dict[alias] = original
         replace_dict[original] = alias
-    clean_expr = attribute_re.sub(lambda x: replace_dict[x[0]], expression)
+    clean_expr = attribute_re.sub(lambda x: replace_dict[x.group(0)], expression)
     return clean_expr, alias_dict
 
 
