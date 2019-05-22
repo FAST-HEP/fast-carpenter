@@ -59,45 +59,6 @@ def create_parser():
 
     return parser
 
-
-def process_args(args=None):
-    from argparse import ArgumentParser, Action
-
-    class StagesHelp(Action):
-        def __call__(self, parser, namespace, values, option_string=None):
-            full_output = option_string == "--help-stages-full"
-            help_stages(values, full_output=full_output)
-            sys.exit(0)
-
-    parser = argumentparser(description=__doc__)
-    parser.add_argument("dataset_cfg", type=str,
-                        help="dataset config to run over")
-    parser.add_argument("sequence_cfg", type=str,
-                        help="config for how to process events")
-    parser.add_argument("--outdir", default="output", type=str,
-                        help="where to save the results")
-    parser.add_argument("--mode", default="multiprocessing", type=str,
-                        help="which mode to run in (multiprocessing, htcondor, sge)")
-    parser.add_argument("--ncores", default=0, type=int,
-                        help="number of cores to run on")
-    parser.add_argument("--nblocks-per-dataset", default=-1, type=int,
-                        help="number of blocks per dataset")
-    parser.add_argument("--nblocks-per-sample", default=-1, type=int,
-                        help="number of blocks per sample")
-    parser.add_argument("--blocksize", default=1000000, type=int,
-                        help="number of events per block")
-    parser.add_argument("--quiet", default=false, action='store_true',
-                        help="keep progress report quiet")
-    parser.add_argument("--profile", default=false, action='store_true',
-                        help="profile the code")
-    parser.add_argument("--help-stages", nargs="?", default=none, action=stageshelp,
-                        metavar="stage-name-regex",
-                        help="print help specific to the available stages")
-    parser.add_argument("--help-stages-full", action=stageshelp, metavar="stage",
-                        help="print the full help specific to the available stages")
-    return parser.parse_args(args)
-
-
 def main(args=None):
     args = create_parser().parse_args(args)
 
