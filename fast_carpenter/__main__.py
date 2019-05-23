@@ -59,6 +59,7 @@ def create_parser():
 
     return parser
 
+
 def main(args=None):
     args = create_parser().parse_args(args)
 
@@ -71,6 +72,7 @@ def main(args=None):
     _, ret_val = run_carpenter(sequence, datasets, args)
     print(ret_val)
     return 0
+
 
 def run_carpenter(sequence, datasets, args):
     process = atup.AtUproot(args.outdir,
@@ -87,6 +89,7 @@ def run_carpenter(sequence, datasets, args):
     sequence = [(s, s.collector() if hasattr(s, "collector") else DummyCollector()) for s in sequence]
     ret_val = process.run(datasets, sequence)
     return sequence, ret_val
+
 
 if __name__ == "__main__":
     main()
