@@ -21,7 +21,7 @@ class DummyCollector():
         pass
 
 
-def process_args(args=None):
+def create_parser():
     from argparse import ArgumentParser, Action
 
     class StagesHelp(Action):
@@ -56,11 +56,12 @@ def process_args(args=None):
                         help="Print help specific to the available stages")
     parser.add_argument("--help-stages-full", action=StagesHelp, metavar="stage",
                         help="Print the full help specific to the available stages")
-    return parser.parse_args()
+
+    return parser
 
 
 def main(args=None):
-    args = process_args(args)
+    args = create_parser().parse_args(args)
 
     sequence = fast_flow.read_sequence_yaml(args.sequence_cfg, output_dir=args.outdir)
 
@@ -68,6 +69,12 @@ def main(args=None):
 
     mkdir_p(args.outdir)
 
+    _, ret_val = run_carpenter(sequence, datasets, args)
+    print(ret_val)
+    return 0
+
+
+def run_carpenter(sequence, datasets, args):
     process = atup.AtUproot(args.outdir,
                             quiet=args.quiet,
                             parallel_mode=args.mode,
@@ -81,8 +88,7 @@ def main(args=None):
 
     sequence = [(s, s.collector() if hasattr(s, "collector") else DummyCollector()) for s in sequence]
     ret_val = process.run(datasets, sequence)
-    print(ret_val)
-    return 0
+    return sequence, ret_val
 
 
 if __name__ == "__main__":
