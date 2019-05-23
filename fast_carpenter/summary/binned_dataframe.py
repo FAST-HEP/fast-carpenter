@@ -3,7 +3,6 @@ Summarize the data by producing binned and possibly weighted counts of the data.
 """
 import os
 import pandas as pd
-import numpy as np
 from . import binning_config as cfg
 
 
