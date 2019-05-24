@@ -158,12 +158,13 @@ class BinnedDataframe():
         return Collector(outfilename, self._dataset_col, binnings=binnings)
 
     def event(self, chunk):
+
+        all_inputs = [key for key in chunk.tree.keys() if any(key.decode() in dim for dim in self._bin_dims)]
         if chunk.config.dataset.eventtype == "mc":
             weights = list(self._weights.values())
-            all_inputs = self._bin_dims + weights
+            all_inputs += weights
         else:
             weights = None
-            all_inputs = self._bin_dims
 
         data = chunk.tree.pandas.df(all_inputs)
 
@@ -209,7 +210,7 @@ def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_we
             final_bin_dims.append(dimension)
             continue
         out_dimension = dimension + "_bins"
-        data[out_dimension] = pd.cut(data[dimension], binning, right=False)
+        data[out_dimension] = pd.cut(data.eval(dimension), binning, right=False)
         final_bin_dims.append(out_dimension)
 
     if weights:
