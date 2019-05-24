@@ -61,7 +61,7 @@ def bin_one_dimension(low=None, high=None, nbins=None, edges=None,
     # - bins: {nbins: 6 , low: 1  , high: 5 , overflow: True}
     # - bins: {edges: [0, 200., 900], overflow: True}
     if all([x is not None for x in (nbins, low, high)]):
-        bin_obj = np.linspace(low, high, nbins + 1)
+        bin_obj = np.linspace(eval(str(low)), eval(str(high)), eval(str(nbins)) + 1)
     elif edges:
         # array are fixed to float type, to be consistent with the float-type underflow and overflow bins
         bin_obj = np.array(edges, "f")
