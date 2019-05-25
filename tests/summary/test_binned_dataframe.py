@@ -20,6 +20,7 @@ def config_2():
                          binning.bins_nmuon],
                 weights=binning.weight_dict)
 
+
 @pytest.fixture
 def config_3():
     return dict(binning=[binning.bins_electron_pT],
@@ -47,6 +48,7 @@ def test_BinnedDataframe(binned_df_1, tmpdir):
 @pytest.fixture
 def binned_df_2(tmpdir, config_2):
     return bdf.BinnedDataframe("binned_df_2", out_dir="somewhere", **config_2)
+
 
 def test_BinnedDataframe_run_mc(binned_df_1, tmpdir, infile):
     chunk = FakeBEEvent(infile, "mc")
@@ -131,9 +133,11 @@ def test_binneddataframe_run_twice_data_mc(run_twice_data_mc, dataset_col, pad_m
     # htemp->GetMean() * htemp->GetEntries()
     assert totals["EventWeight:sumw"] == pytest.approx(231.91339 * 2)
 
+
 @pytest.fixture
 def binned_df_3(tmpdir, config_3):
     return bdf.BinnedDataframe("binned_df_3", out_dir="somewhere", **config_3)
+
 
 def test_BinnedDataframe_numexpr(binned_df_3, tmpdir):
     assert binned_df_3.name == "binned_df_3"
@@ -144,6 +148,7 @@ def test_BinnedDataframe_numexpr(binned_df_3, tmpdir):
     assert binned_df_3._binnings[0][-2] == 200
     assert len(binned_df_3._binnings[0]) == 2*10 + 1 + 2
     assert len(binned_df_3._weights) == 1
+
 
 def test_BinnedDataframe_numexpr_run_mc(binned_df_3, tmpdir, infile):
     chunk = FakeBEEvent(infile, "mc")
