@@ -210,7 +210,7 @@ def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_we
             final_bin_dims.append(dimension)
             continue
         out_dimension = dimension + "_bins"
-        data[out_dimension] = pd.cut(data.eval(dimension), binning, right=False)
+        data[out_dimension] = pd.cut(data.eval(dimension, engine='numexpr'), binning, right=False)
         final_bin_dims.append(out_dimension)
 
     if weights:
