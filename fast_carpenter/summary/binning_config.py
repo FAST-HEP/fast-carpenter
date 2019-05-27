@@ -1,5 +1,6 @@
 import six
 import numpy as np
+import pandas as pd
 
 
 class BadBinnedDataframeConfig(Exception):
@@ -61,6 +62,8 @@ def bin_one_dimension(low=None, high=None, nbins=None, edges=None,
     # - bins: {nbins: 6 , low: 1  , high: 5 , overflow: True}
     # - bins: {edges: [0, 200., 900], overflow: True}
     if all([x is not None for x in (nbins, low, high)]):
+        low, high, nbins = (pd.eval(low, engine='numexpr'),
+                            pd.eval(high, engine='numexpr'), pd.eval(nbins, engine='numexpr'))
         bin_obj = np.linspace(low, high, nbins + 1)
     elif edges:
         # array are fixed to float type, to be consistent with the float-type underflow and overflow bins
