@@ -251,18 +251,20 @@ def linkcode_resolve(domain, info):
         lineno = None
 
     if lineno:
-        linespec = "#L%d-%d" % (lineno, lineno + len(source) - 1)
+        linespec = "#L%d-L%d" % (lineno, lineno + len(source) - 1)
     else:
         linespec = ""
 
     fn = os.path.relpath(fn, start=os.path.dirname(fast_carpenter.__file__))
-    version = fast_carpenter.__version__
-    if 'dev' in version:
-        version = "master"
+    version = os.environ.get("READTHEDOCS_VERSION", "latest")
+    if version == "latest":
+        tgt_version = "master"
+    elif version == "stable":
+        tgt_version = "v" + fast_carpenter.__version__
     else:
-        version = "v" + version
+        tgt_version = version
     url_root = "https://github.com/FAST-HEP/fast-carpenter/tree/"
-    return url_root + "%s/fast_carpenter/%s%s" % (version, fn, linespec)
+    return url_root + "%s/fast_carpenter/%s%s" % (tgt_version, fn, linespec)
 
 
 # Control the napoleon extension for nicer docstrings
