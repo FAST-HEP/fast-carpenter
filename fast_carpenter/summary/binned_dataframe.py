@@ -29,6 +29,8 @@ class Collector():
                 getattr(output,"to_%s"%save_func)(self.filename+file_ext, **file_type)
             except AttributeError as err:
                 print("Incorrect file format: %s"%err)
+            except TypeError as err:
+                print("Incorrect args: %s"%err)
 
     def _prepare_output(self, dataset_readers_list):
         return combined_dataframes(dataset_readers_list,
