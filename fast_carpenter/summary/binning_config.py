@@ -89,9 +89,10 @@ def create_weights(stage_name, weights):
         weights = {weights: weights}
     return weights
 
-def create_file_format(stage_name,file_format):
+
+def create_file_format(stage_name, file_format):
     if file_format is None:
-        return [{'type':'.csv','float_format':'%.17g'}]
+        return [{'type': '.csv', 'float_format': '%.17g'}]
     if isinstance(file_format, list):
         file_format = [file_type if isinstance(file_type, dict) else {'type': file_type} for file_type in file_format]
     elif isinstance(file_format, dict):

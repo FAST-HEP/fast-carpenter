@@ -19,18 +19,18 @@ class Collector():
 
         output = self._prepare_output(dataset_readers_list)
 
-        valid_ext={'xlsx':'excel','h5':'hdf','msg':'msgpack','dta':'stata','pkl':'pickle','p':'pickle'}
+        valid_ext = {'xlsx': 'excel', 'h5': 'hdf', 'msg': 'msgpack', 'dta': 'stata', 'pkl': 'pickle', 'p': 'pickle'}
         for file_type in self.file_format:
-            file_ext=file_type.pop('type', None)
-            save_func=file_ext.split('.')[1]
+            file_ext = file_type.pop('type', None)
+            save_func = file_ext.split('.')[1]
             if save_func in valid_ext:
-                save_func=valid_ext[save_func]
+                save_func = valid_ext[save_func]
             try:
-                getattr(output,"to_%s"%save_func)(self.filename+file_ext, **file_type)
+                getattr(output, "to_%s" % save_func)(self.filename+file_ext, **file_type)
             except AttributeError as err:
-                print("Incorrect file format: %s"%err)
+                print("Incorrect file format: %s" % err)
             except TypeError as err:
-                print("Incorrect args: %s"%err)
+                print("Incorrect args: %s" % err)
 
     def _prepare_output(self, dataset_readers_list):
         return combined_dataframes(dataset_readers_list,
