@@ -56,3 +56,35 @@ def test_create_weights_dict():
     weights = mgr.create_weights(name, binning.weight_dict)
     assert len(weights) == 1
     assert weights["weighted"] == "EventWeight"
+
+
+def test_create_file_format_none():
+    name = "test_create_file_format_none"
+    file_format = mgr.create_file_format(name, None)
+    assert len(file_format) == 1
+    assert file_format[0]["type"] == ".csv"
+    assert file_format[0]["float_format"] == "%.17g"
+
+
+def test_create_file_format_list():
+    name = "test_create_file_format_list"
+    file_format = mgr.create_file_format(name, binning.file_format_list)
+    assert len(file_format) == 2
+    assert file_format[0]["type"] == ".pkl.compress"
+    assert file_format[0]["compression"] == "gzip"
+    assert file_format[1]["type"] == ".csv"
+
+
+def test_create_file_format_dict():
+    name = "test_create_file_format_dict"
+    file_format = mgr.create_file_format(name, binning.file_format_dict)
+    assert len(file_format) == 1
+    assert file_format[0]["type"] == ".h5"
+    assert file_format[0]["key"] == "df"
+
+
+def test_create_file_format_scalar():
+    name = "test_create_file_format_scalar"
+    file_format = mgr.create_file_format(name, binning.file_format_scalar)
+    assert len(file_format) == 1
+    assert file_format[0]["type"] == ".csv"
