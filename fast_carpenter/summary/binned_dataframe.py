@@ -7,6 +7,7 @@ from . import binning_config as cfg
 
 
 class Collector():
+    valid_ext = {'xlsx': 'excel', 'h5': 'hdf', 'msg': 'msgpack', 'dta': 'stata', 'pkl': 'pickle', 'p': 'pickle'}
     def __init__(self, filename, dataset_col, binnings, file_format):
         self.filename = filename
         self.dataset_col = dataset_col
@@ -19,12 +20,11 @@ class Collector():
 
         output = self._prepare_output(dataset_readers_list)
 
-        valid_ext = {'xlsx': 'excel', 'h5': 'hdf', 'msg': 'msgpack', 'dta': 'stata', 'pkl': 'pickle', 'p': 'pickle'}
         for file_type in self.file_format:
             file_ext = file_type.pop('type', None)
             save_func = file_ext.split('.')[1]
-            if save_func in valid_ext:
-                save_func = valid_ext[save_func]
+            if save_func in Collector.valid_ext:
+                save_func = Collector.valid_ext[save_func]
             try:
                 getattr(output, "to_%s" % save_func)(self.filename+file_ext, **file_type)
             except AttributeError as err:
@@ -129,7 +129,11 @@ class BinnedDataframe():
         variables, or a dictionary where the values are variables in the data and
         keys are the column names that these weights should be called in the
         output tables.
-      file_format (str or list[str], dict[str, str]): X
+      file_format (str or list[str], dict[str, str]): determines the file format to 
+        use to save the binned dataframe to disk.  Should be either a) a string with 
+        the file format, b) a dict containing the keyword `type` to give the file 
+        format and then all other keyword-argument pairs are passed on to the 
+        corresponding pandas function, or c) a list of values matching a) or b).
       dataset_col (bool): adds an extra binning column with the name for each dataset.
       pad_missing (bool): If ``False``, any bins that don't contain data are
         excluded from the stored dataframe.  Leaving this ``False`` can save
