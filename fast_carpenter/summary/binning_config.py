@@ -92,12 +92,15 @@ def create_weights(stage_name, weights):
 
 def create_file_format(stage_name, file_format):
     if file_format is None:
-        return [{'type': '.csv', 'float_format': '%.17g'}]
+        return [{'extension': '.csv', 'float_format': '%.17g'}]
     if isinstance(file_format, list):
-        file_format = [file_type if isinstance(file_type, dict) else {'type': file_type} for file_type in file_format]
+        file_format = [file_dict
+                       if isinstance(file_dict, dict)
+                       else {'extension': file_dict}
+                       for file_dict in file_format]
     elif isinstance(file_format, dict):
         file_format = [file_format]
     else:
         # else we've got a single, scalar value
-        file_format = [{'type': file_format}]
+        file_format = [{'extension': file_format}]
     return file_format

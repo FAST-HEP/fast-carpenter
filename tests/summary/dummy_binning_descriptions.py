@@ -15,10 +15,10 @@ weight_list = ["EventWeight"]
 weight_dict = dict(weighted="EventWeight")
 
 
-file_format_list = [dict(type=".pkl.compress", compression="gzip"), ".csv"]
+file_format_list = [dict(extension=".pkl.compress", compression="gzip"), ".csv"]
 
 
-file_format_dict = dict(type=".h5", key="df")
+file_format_dict = dict(extension=".h5", key="df")
 
 
 file_format_scalar = ".csv"
