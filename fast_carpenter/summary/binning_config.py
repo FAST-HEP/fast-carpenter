@@ -88,3 +88,19 @@ def create_weights(stage_name, weights):
         # else we've got a single, scalar value
         weights = {weights: weights}
     return weights
+
+
+def create_file_format(stage_name, file_format):
+    if file_format is None:
+        return [{'extension': '.csv', 'float_format': '%.17g'}]
+    if isinstance(file_format, list):
+        file_format = [file_dict
+                       if isinstance(file_dict, dict)
+                       else {'extension': file_dict}
+                       for file_dict in file_format]
+    elif isinstance(file_format, dict):
+        file_format = [file_format]
+    else:
+        # else we've got a single, scalar value
+        file_format = [{'extension': file_format}]
+    return file_format

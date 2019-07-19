@@ -7,17 +7,31 @@ from . import binning_config as cfg
 
 
 class Collector():
-    def __init__(self, filename, dataset_col, binnings):
+    valid_ext = {'xlsx': 'excel', 'h5': 'hdf', 'msg': 'msgpack', 'dta': 'stata', 'pkl': 'pickle', 'p': 'pickle'}
+
+    def __init__(self, filename, dataset_col, binnings, file_format):
         self.filename = filename
         self.dataset_col = dataset_col
         self.binnings = binnings
+        self.file_format = file_format
 
     def collect(self, dataset_readers_list):
         if len(dataset_readers_list) == 0:
             return
 
         output = self._prepare_output(dataset_readers_list)
-        output.to_csv(self.filename, float_format="%.17g")
+
+        for file_dict in self.file_format:
+            file_ext = file_dict.pop('extension', None)
+            save_func = file_ext.split('.')[1]
+            if save_func in Collector.valid_ext:
+                save_func = Collector.valid_ext[save_func]
+            try:
+                getattr(output, "to_%s" % save_func)(self.filename+file_ext, **file_dict)
+            except AttributeError as err:
+                print("Incorrect file format: %s" % err)
+            except TypeError as err:
+                print("Incorrect args: %s" % err)
 
     def _prepare_output(self, dataset_readers_list):
         return combined_dataframes(dataset_readers_list,
@@ -116,6 +130,11 @@ class BinnedDataframe():
         variables, or a dictionary where the values are variables in the data and
         keys are the column names that these weights should be called in the
         output tables.
+      file_format (str or list[str], dict[str, str]): determines the file format to
+        use to save the binned dataframe to disk.  Should be either a) a string with
+        the file format, b) a dict containing the keyword `extension` to give the file
+        format and then all other keyword-argument pairs are passed on to the
+        corresponding pandas function, or c) a list of values matching a) or b).
       dataset_col (bool): adds an extra binning column with the name for each dataset.
       pad_missing (bool): If ``False``, any bins that don't contain data are
         excluded from the stored dataframe.  Leaving this ``False`` can save
@@ -132,7 +151,7 @@ class BinnedDataframe():
 
     """
 
-    def __init__(self, name, out_dir, binning, weights=None, dataset_col=True, pad_missing=False):
+    def __init__(self, name, out_dir, binning, weights=None, dataset_col=True, pad_missing=False, file_format=None):
         self.name = name
         self.out_dir = out_dir
         ins, outs, binnings = cfg.create_binning_list(self.name, binning)
@@ -142,6 +161,7 @@ class BinnedDataframe():
         self._dataset_col = dataset_col
         self._weights = cfg.create_weights(self.name, weights)
         self._pad_missing = pad_missing
+        self._file_format = cfg.create_file_format(self.name, file_format)
         self.contents = None
 
     def collector(self):
@@ -150,12 +170,11 @@ class BinnedDataframe():
             outfilename += "dataset."
         outfilename += ".".join(self._out_bin_dims)
         outfilename += "--" + self.name
-        outfilename += ".csv"
         outfilename = os.path.join(self.out_dir, outfilename)
         binnings = None
         if self._pad_missing:
             binnings = dict(zip(self._out_bin_dims, self._binnings))
-        return Collector(outfilename, self._dataset_col, binnings=binnings)
+        return Collector(outfilename, self._dataset_col, binnings=binnings, file_format=self._file_format)
 
     def event(self, chunk):
 
