@@ -46,3 +46,29 @@ def test_w_mask_int(tree_w_mask_int, infile):
     assert len(tree_w_mask_int) == 25
     df = tree_w_mask_int.pandas.df("Muon_Px")
     assert len(df.index.unique(0)) == 25
+
+
+def test_masked_array(tree_w_mask_int, infile):
+    assert len(tree_w_mask_int) == 50
+    tree_w_mask_int.apply_mask(np.arange(0, len(tree_w_mask_int), 2))
+    assert len(tree_w_mask_int) == 25
+    array = tree_w_mask_int.masked_array("Muon_Px")
+    assert len(array) == 25
+
+
+def test_masked_arrays(tree_w_mask_int, infile):
+    assert len(tree_w_mask_int) == 50
+    tree_w_mask_int.apply_mask(np.arange(0, len(tree_w_mask_int), 2))
+    assert len(tree_w_mask_int) == 25
+
+    arrays = tree_w_mask_int.masked_arrays(["Muon_Px", "Muon_Py"], outputtype=dict)
+    assert isinstance(arrays, dict)
+    assert len(arrays) == 2
+    assert len(arrays["Muon_Py"]) == 25
+    assert len(arrays["Muon_Px"]) == 25
+
+    arrays = tree_w_mask_int.masked_arrays(["Muon_Px", "Muon_Py"], outputtype=tuple)
+    assert isinstance(arrays, tuple)
+    assert len(arrays) == 2
+    assert len(arrays[0]) == 25
+    assert len(arrays[1]) == 25

@@ -34,6 +34,22 @@ class MaskedUprootTree(object):
     def pandas(self):
         return MaskedUprootTree.PandasWrap(self)
 
+    def masked_array(self, *args, **kwargs):
+      array = self.tree.array(*args, **kwargs)
+      return array[self._mask]
+
+    def masked_arrays(self, *args, **kwargs):
+      arrays = self.tree.arrays(*args, **kwargs)
+      if isinstance(arrays, dict):
+        return {k: v[self._mask] for k, v in arrays.items()}
+      if isinstance(arrays, tuple):
+        return tuple([v[self._mask] for v in arrays])
+      if isinstance(arrays, list):
+        return [v[self._mask] for v in arrays]
+      if isinstance(arrays, pd.DataFrame):
+        return mask_df(arrays, self._mask, self.event_ranger.start_entry)
+      return arrays[self._mask]
+
     @property
     def mask(self):
         return self._mask
