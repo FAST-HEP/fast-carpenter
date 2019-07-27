@@ -35,38 +35,38 @@ class MaskedUprootTree(object):
         return MaskedUprootTree.PandasWrap(self)
 
     def unmasked_array(self, *args, **kwargs):
-      return self.tree.array(*args, **kwargs)
+        return self.tree.array(*args, **kwargs)
 
     def unmasked_arrays(self, *args, **kwargs):
-      return self.tree.arrays(*args, **kwargs)
+        return self.tree.arrays(*args, **kwargs)
 
     def array(self, *args, **kwargs):
-      array = self.tree.array(*args, **kwargs)
-      if self._mask is None:
-        return array
-      return array[self._mask]
+        array = self.tree.array(*args, **kwargs)
+        if self._mask is None:
+            return array
+        return array[self._mask]
 
     def arrays(self, *args, **kwargs):
-      arrays = self.tree.arrays(*args, **kwargs)
-      if self._mask is None:
-          return arrays
-      if isinstance(arrays, dict):
-          return {k: v[self._mask] for k, v in arrays.items()}
-      if isinstance(arrays, tuple):
-          return tuple([v[self._mask] for v in arrays])
-      if isinstance(arrays, list):
-          return [v[self._mask] for v in arrays]
-      if isinstance(arrays, pd.DataFrame):
-          return mask_df(arrays, self._mask, self.event_ranger.start_entry)
-      if isinstance(arrays, np.ndarray):
-          if arrays.ndim == 1:
-              return arrays[self._mask]
-          if arrays.ndim == 2:
-              if arrays.shape[1] == len(self):
-                  return arrays[:, self._mask]
-          msg = "Unexpected numpy array for mask, shape:%s, mask length: %s"
-          raise NotImplementedError(msg % (arrays.shape, len(self)))
-      return arrays[self._mask]
+        arrays = self.tree.arrays(*args, **kwargs)
+        if self._mask is None:
+            return arrays
+        if isinstance(arrays, dict):
+            return {k: v[self._mask] for k, v in arrays.items()}
+        if isinstance(arrays, tuple):
+            return tuple([v[self._mask] for v in arrays])
+        if isinstance(arrays, list):
+            return [v[self._mask] for v in arrays]
+        if isinstance(arrays, pd.DataFrame):
+            return mask_df(arrays, self._mask, self.event_ranger.start_entry)
+        if isinstance(arrays, np.ndarray):
+            if arrays.ndim == 1:
+                return arrays[self._mask]
+            if arrays.ndim == 2:
+                if arrays.shape[1] == len(self):
+                    return arrays[:, self._mask]
+            msg = "Unexpected numpy array for mask, shape:%s, mask length: %s"
+            raise NotImplementedError(msg % (arrays.shape, len(self)))
+        return arrays[self._mask]
 
     @property
     def mask(self):
