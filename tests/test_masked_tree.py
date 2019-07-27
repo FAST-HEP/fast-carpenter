@@ -65,8 +65,7 @@ def test_arrays(tree_w_mask_int, infile):
     arrays = tree_w_mask_int.arrays(["Muon_Px", "Muon_Py"], outputtype=dict)
     assert isinstance(arrays, dict)
     assert len(arrays) == 2
-    assert len(arrays["Muon_Py"]) == 25
-    assert len(arrays["Muon_Px"]) == 25
+    assert [len(v) for v in arrays.values()] == [25, 25]
 
     for outtype in [list, tuple]:
         arrays = tree_w_mask_int.arrays(["Muon_Px", "Muon_Py"], outputtype=outtype)
