@@ -90,4 +90,3 @@ def test_arrays(tree_w_mask_int, infile):
     assert isinstance(arrays, pd.DataFrame)
     assert len(arrays) == 25
     assert len(arrays.columns) == 2
-
