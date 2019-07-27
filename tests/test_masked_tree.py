@@ -1,6 +1,7 @@
 from __future__ import division
 import pytest
 import numpy as np
+import pandas as pd
 import fast_carpenter.masked_tree as m_tree
 
 
@@ -67,8 +68,26 @@ def test_arrays(tree_w_mask_int, infile):
     assert len(arrays["Muon_Py"]) == 25
     assert len(arrays["Muon_Px"]) == 25
 
-    arrays = tree_w_mask_int.arrays(["Muon_Px", "Muon_Py"], outputtype=tuple)
-    assert isinstance(arrays, tuple)
-    assert len(arrays) == 2
-    assert len(arrays[0]) == 25
-    assert len(arrays[1]) == 25
+    for outtype in [list, tuple]:
+        arrays = tree_w_mask_int.arrays(["Muon_Px", "Muon_Py"], outputtype=outtype)
+        assert isinstance(arrays, outtype)
+        assert len(arrays) == 2
+        assert len(arrays[0]) == 25
+        assert len(arrays[1]) == 25
+
+    arrays = tree_w_mask_int.arrays(["Muon_Px", "Muon_Py"],
+                                    outputtype=lambda *args: np.array(args))
+    assert isinstance(arrays, np.ndarray)
+    assert arrays.shape == (2, 25)
+
+    arrays = tree_w_mask_int.arrays(["Muon_Px"],
+                                    outputtype=lambda *args: np.array(args))
+    assert isinstance(arrays, np.ndarray)
+    assert arrays.shape == (1, 25)
+
+    arrays = tree_w_mask_int.arrays(["Muon_Px", "Muon_Py"],
+                                    outputtype=pd.DataFrame)
+    assert isinstance(arrays, pd.DataFrame)
+    assert len(arrays) == 25
+    assert len(arrays.columns) == 2
+

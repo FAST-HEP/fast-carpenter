@@ -62,7 +62,7 @@ class MaskedUprootTree(object):
             if arrays.ndim == 1:
                 return arrays[self._mask]
             if arrays.ndim == 2:
-                if arrays.shape[1] == len(self):
+                if arrays.shape[1] == len(self.tree):
                     return arrays[:, self._mask]
             msg = "Unexpected numpy array for mask, shape:%s, mask length: %s"
             raise NotImplementedError(msg % (arrays.shape, len(self)))
