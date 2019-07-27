@@ -139,3 +139,16 @@ def test_cutflow_2_collect(select_2, tmpdir, infile, full_event_range, multi_chu
     assert output.loc[("test_mc", 0, "All"), ("totals_incl", "unweighted")] == 4580 * 2
     assert output.loc[("test_data", 1, "NMuon > 1"), ("passed_only_cut", "unweighted")] == 289 * 2
     assert output.loc[("test_mc", 1, "NMuon > 1"), ("passed_only_cut", "unweighted")] == 289 * 2
+
+
+def test_sequential_stages(cutflow_1, select_2, infile, full_event_range, tmpdir):
+    cutflow_2 = stage.CutFlow("cutflow_2", str(tmpdir), selection=select_2, weights="EventWeight")
+    chunk = FakeBEEvent(MaskedUprootTree(infile, event_ranger=full_event_range), "data")
+    cutflow_1.event(chunk)
+    cutflow_2.event(chunk)
+
+    assert len(chunk.tree) == 289
+
+    collector = cutflow_1.collector()
+    assert collector.filename == str(tmpdir / "cuts_cutflow_1-NElectron.csv")
+
