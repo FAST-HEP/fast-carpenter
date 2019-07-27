@@ -161,3 +161,18 @@ def test_BinnedDataframe_numexpr_run_mc(binned_df_3, tmpdir, infile):
     bin_centers = pd.IntervalIndex(results.index.get_level_values('electron_pT')).mid
     mean = np.sum((bin_centers[1:-1] * results['n'][1:-1]) / results['n'][1:-1].sum())
     assert mean == pytest.approx(44.32584)
+
+
+def test_BinnedDataframe_numexpr_similar_branch(binned_df_3, tmpdir, full_wrapped_tree):
+    chunk = FakeBEEvent(full_wrapped_tree, "mc")
+    new_var = 2 * chunk.tree.array("Electron_Px")
+    chunk.tree.new_variable("tron_Px", new_var)
+    collector = binned_df_3.collector()
+
+    binned_df_3.event(chunk)
+    dataset_readers_list = (("test_dataset", (binned_df_3,)),)
+    results = collector._prepare_output(dataset_readers_list)
+
+    bin_centers = pd.IntervalIndex(results.index.get_level_values('electron_pT')).mid
+    mean = np.sum((bin_centers[1:-1] * results['n'][1:-1]) / results['n'][1:-1].sum())
+    assert mean == pytest.approx(44.32584)

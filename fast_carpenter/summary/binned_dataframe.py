@@ -2,6 +2,7 @@
 Summarize the data by producing binned and possibly weighted counts of the data.
 """
 import os
+import re
 import pandas as pd
 from . import binning_config as cfg
 
@@ -156,6 +157,7 @@ class BinnedDataframe():
         self.out_dir = out_dir
         ins, outs, binnings = cfg.create_binning_list(self.name, binning)
         self._bin_dims = ins
+        self.potential_inputs = set(sum((re.findall(r"\w+", dim) for dim in self._bin_dims), []))
         self._out_bin_dims = outs
         self._binnings = binnings
         self._dataset_col = dataset_col
@@ -177,8 +179,7 @@ class BinnedDataframe():
         return Collector(outfilename, self._dataset_col, binnings=binnings, file_format=self._file_format)
 
     def event(self, chunk):
-
-        all_inputs = [key for key in chunk.tree.keys() if any(key.decode() in dim for dim in self._bin_dims)]
+        all_inputs = [key for key in chunk.tree.keys() if key.decode() in self.potential_inputs]
         if chunk.config.dataset.eventtype == "mc":
             weights = list(self._weights.values())
             all_inputs += weights
