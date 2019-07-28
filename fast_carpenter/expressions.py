@@ -16,7 +16,6 @@ constants = {"nan": np.nan,
              "inf": np.inf,
              "pi": np.pi,
              "e": np.e,
-             #"-inf": float("-inf"),
              }
 
 
