@@ -1,3 +1,4 @@
+import numpy as np
 import re
 import numexpr
 import tokenize
@@ -9,6 +10,13 @@ except ImportError:
 
 
 __all__ = ["get_branches", "evaluate"]
+
+
+constants = {"nan": np.nan,
+             "inf": np.inf,
+             "pi": np.pi,
+             "e": np.e,
+             }
 
 
 def get_branches(cut, valid):
@@ -42,6 +50,8 @@ class TreeToDictAdaptor():
         self.aliases = alias_dict
 
     def __getitem__(self, item):
+        if item in constants:
+            return constants[item]
         full_item = self.aliases.get(item, item)
         array = self.tree.array(full_item)
         starts = getattr(array, "starts", None)

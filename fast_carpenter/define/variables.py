@@ -1,6 +1,7 @@
 """
 """
 import six
+from collections import namedtuple
 import numpy as np
 from awkward import JaggedArray
 from ..expressions import get_branches, evaluate
@@ -67,11 +68,9 @@ class Define():
         self._variables = _build_calculations(name, variables, approach="awkward")
 
     def event(self, chunk):
-        for output, expression, reduction, fill_missing in self._variables:
-            result = evaluate(chunk.tree, expression)
-            if reduction:
-                result = reduction(result)
-
+        for output, expression, reduction, fill_missing, mask in self._variables:
+            result = full_evaluate(chunk.tree, expression, fill_missing,
+                                   mask=mask, reduction=reduction)
             chunk.tree.new_variable(output, result)
         return True
 
@@ -116,14 +115,16 @@ def _build_calculations(stage_name, variables, approach):
 
 
 def _build_one_calc(stage_name, name, config, approach):
+    CalculationCfg = namedtuple("CalculationCfg", "name expression reduction fill_missing mask")
     reduction = None
+    mask = None
     fill_missing = np.nan
     if isinstance(config, six.string_types):
-        return name, config, reduction, fill_missing
+        return CalculationCfg(name, config, reduction, fill_missing, mask)
     if not isinstance(config, dict):
         msg = "{}: To define a new variable need either a string for just a formula or a dictionary"
         raise RuntimeError(msg.format(stage_name))
-    if [key for key in config.keys() if key not in ("reduce", "formula", "fill_missing")]:
+    if [key for key in config.keys() if key not in ("reduce", "formula", "fill_missing", "mask")]:
         msg = "{}: Unknown parameter parsed defining variable '{}'"
         raise RuntimeError(msg.format(stage_name, name))
     if "reduce" in config:
@@ -131,5 +132,16 @@ def _build_one_calc(stage_name, name, config, approach):
             reduction = get_pandas_reduction(stage_name, config["reduce"])
         else:
             reduction = get_awkward_reduction(stage_name, config["reduce"])
+    mask = config.get("mask", mask)
     fill_missing = config.get("fill_missing", fill_missing)
-    return name, config["formula"], reduction, fill_missing
+    return CalculationCfg(name, config["formula"], reduction, fill_missing, mask)
+
+
+def full_evaluate(tree, expression, fill_missing, mask=None, reduction=None):
+    result = evaluate(tree, expression)
+    if mask:
+        mask = evaluate(tree, mask)
+        result = result[mask]
+    if reduction:
+        result = reduction(result)
+    return result

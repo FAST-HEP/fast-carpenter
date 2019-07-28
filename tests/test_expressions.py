@@ -1,3 +1,4 @@
+import numpy as np
 from fast_carpenter import expressions
 
 
@@ -29,3 +30,11 @@ def test_evaluate_dot(wrapped_tree):
     wrapped_tree.new_variable("Muon.Px", wrapped_tree.array("Muon_Px"))
     all_true = expressions.evaluate(wrapped_tree, "Muon.Px == Muon_Px")
     assert all(all_true.all())
+
+
+def test_constants(infile):
+    nan_1_or_fewer_mu = expressions.evaluate(infile, "where(NMuon > 1, NMuon, nan)")
+    assert np.count_nonzero(~np.isnan(nan_1_or_fewer_mu)) == 289
+
+    ninf_1_or_fewer_mu = expressions.evaluate(infile, "where(NMuon > 1, NMuon, -inf)")
+    assert np.count_nonzero(np.isfinite(ninf_1_or_fewer_mu)) == 289
