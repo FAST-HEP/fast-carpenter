@@ -1,3 +1,4 @@
+import numpy as np
 import re
 import numexpr
 import tokenize
@@ -11,8 +12,10 @@ except ImportError:
 __all__ = ["get_branches", "evaluate"]
 
 
-constants = {"nan": float("nan"),
-             "inf": float("inf"),
+constants = {"nan": np.nan,
+             "inf": np.inf,
+             "pi": np.pi,
+             "e": np.e,
              #"-inf": float("-inf"),
              }
 
