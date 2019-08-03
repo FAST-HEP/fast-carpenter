@@ -114,8 +114,10 @@ def _build_calculations(stage_name, variables, approach):
     return calculations
 
 
+CalculationCfg = namedtuple("CalculationCfg", "name expression reduction fill_missing mask")
+
+
 def _build_one_calc(stage_name, name, config, approach):
-    CalculationCfg = namedtuple("CalculationCfg", "name expression reduction fill_missing mask")
     reduction = None
     mask = None
     fill_missing = np.nan
