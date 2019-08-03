@@ -238,7 +238,7 @@ def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_we
         data[weight_sq_dims] = data[weights] ** 2
 
     bins = data.groupby(final_bin_dims)
-    counts = bins.size()
+    counts = bins[data.columns[0]].count()
 
     if weights:
         sums = bins[weights].sum()
