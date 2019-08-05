@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+
+### Changed
+
+### Removed
+
+## [0.13.1] - 2019-08-05
+### Added
 - Adds support for masking variables in their definition, issue #59 [@benkrikler](https://github.com/benkrikler)
 - Adds several constants for variable expressions, issue #21 [@benkrikler](https://github.com/benkrikler)
 - Added this changelog [@benkrikler](https://github.com/benkrikler)

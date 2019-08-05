@@ -148,3 +148,5 @@ def test_sequential_stages(cutflow_1, select_2, infile, full_event_range, tmpdir
     cutflow_2.event(chunk)
 
     assert len(chunk.tree) == 2
+    jet_py = chunk.tree.array("Jet_Py")
+    assert pytest.approx(jet_py.flatten()) == [49.641838, 45.008915, -78.01798, 60.730812]
