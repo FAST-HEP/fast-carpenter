@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 
 
@@ -10,3 +11,12 @@ def test_add_retrieve(wrapped_tree):
     wrapped_tree.new_variable("Muon_momentum", muon_momentum)
     retrieve_momentum = wrapped_tree.array("Muon_momentum")
     assert (retrieve_momentum == muon_momentum).flatten().all()
+
+
+def test_overwrite(wrapped_tree):
+    muon_px = wrapped_tree.array("Muon_Px")
+    with pytest.raises(ValueError) as err:
+        wrapped_tree.new_variable("Muon_Px", muon_px / muon_px)
+    assert "Muon_Px" in str(err)
+    retrieve_momentum = wrapped_tree.array("Muon_Px")
+    assert len(wrapped_tree.keys(filtername=lambda x: x == "Muon_Px")) == 1
