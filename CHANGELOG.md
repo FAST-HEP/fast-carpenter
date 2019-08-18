@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.13.2] - 2019-08-18
 ### Changed
-- Fix itervalues for overwritten branches, pull request #66 [@benkrikler](https://github.com/benkrikler)
+- Protect against overwriting branches and add tests, pull request #66 [@benkrikler](https://github.com/benkrikler)
 
 ## [0.13.1] - 2019-08-05
 ### Added
