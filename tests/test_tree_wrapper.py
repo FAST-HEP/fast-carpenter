@@ -18,5 +18,4 @@ def test_overwrite(wrapped_tree):
     with pytest.raises(ValueError) as err:
         wrapped_tree.new_variable("Muon_Px", muon_px / muon_px)
     assert "Muon_Px" in str(err)
-    retrieve_momentum = wrapped_tree.array("Muon_Px")
     assert len(wrapped_tree.keys(filtername=lambda x: x.decode() == "Muon_Px")) == 1
