@@ -46,7 +46,8 @@ class WrappedTree(object):
         for array in self.extras.values():
             yield array
         for vals in self.tree.old_itervalues(*args, **kwargs):
-            yield vals
+            if vals.name not in self.extras:
+                yield vals
 
     def arrays(self, *args, **kwargs):
         self.update_array_args(kwargs)
