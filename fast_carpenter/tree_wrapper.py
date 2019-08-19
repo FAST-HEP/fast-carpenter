@@ -104,6 +104,9 @@ class WrappedTree(object):
             return len(self._values)
 
     def new_variable(self, name, value):
+        if name in self:
+            msg = "Trying to overwrite existing variable: '%s'"
+            raise ValueError(msg % name)
         if len(value) != len(self):
             msg = "New array %s does not have the right length: %d not %d"
             raise ValueError(msg % (name, len(value), len(self)))
