@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-## [0.13.2] - 2019-08-18
+## [0.13.2] - 2019-08-19
 ### Changed
 - Protect against overwriting branches and add tests, pull request #66 [@benkrikler](https://github.com/benkrikler)
 
