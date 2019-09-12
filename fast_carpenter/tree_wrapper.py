@@ -82,6 +82,10 @@ class WrappedTree(object):
             self.fLeaves = []
             self.event_ranger = event_ranger
 
+        @property
+        def _recoveredbaskets(self):
+            return []
+
         def array(self, entrystart=None, entrystop=None, blocking=True, **kws):
             array = self._values
             if entrystart:
