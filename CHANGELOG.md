@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- Add changes to support uproot 3.9.1 and greater, issue #68 [@benkrikler](https://github.com/benkrikler)
 
 ### Removed
 
