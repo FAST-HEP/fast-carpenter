@@ -7,6 +7,7 @@ minimal coding on my side...
 """
 import uproot
 from uproot.interp.jagged import asjagged
+from uproot.interp.numerical import asdtype
 import copy
 import awkward
 
@@ -19,7 +20,7 @@ def wrapped_interpret(branch, *args, **kwargs):
 
     if isinstance(branch, WrappedTree.FakeBranch):
         if isinstance(branch._values, awkward.JaggedArray):
-            return asjagged(branch._values.content)
+            return asjagged(asdtype(branch._values.content.dtype.fields))
         else:
             return branch._values
 
