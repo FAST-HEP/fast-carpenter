@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.13.4] - 2019-09-21
+### Changed
+- Fixed interpretation of user-defined variables for uproot, issue #67, PR #71 [@benkrikler](https://github.com/benkrikler)
+
 ## [0.13.3] - 2019-09-12
 ### Changed
 - Add changes to support uproot 3.9.1 and greater, issue #68 [@benkrikler](https://github.com/benkrikler)
