@@ -1,4 +1,5 @@
 import pandas as pd
+import copy
 import numpy as np
 import pytest
 import fast_carpenter.summary.binned_dataframe as bdf
@@ -148,6 +149,26 @@ def test_BinnedDataframe_numexpr(binned_df_3, tmpdir):
     assert binned_df_3._binnings[0][-2] == 200
     assert len(binned_df_3._binnings[0]) == 2*10 + 1 + 2
     assert len(binned_df_3._weights) == 1
+
+
+def test_BinnedDataframe_user_var_run(config_3, tmpdir, full_wrapped_tree):
+    config_4 = copy.deepcopy(config_3)
+    config_4["binning"][0]["in"] = "Electron_Pt"
+    binned_df_4 = bdf.BinnedDataframe("binned_df_4", out_dir="somewhere", **config_4)
+
+    chunk = FakeBEEvent(full_wrapped_tree, "mc")
+    px, py = chunk.tree.arrays(["Electron_Px", "Electron_Py"], outputtype=tuple)
+    pt = np.hypot(px, py)
+    chunk.tree.new_variable("Electron_Pt", pt)
+    collector = binned_df_4.collector()
+
+    binned_df_4.event(chunk)
+    dataset_readers_list = (("test_dataset", (binned_df_4,)),)
+    results = collector._prepare_output(dataset_readers_list)
+
+    bin_centers = pd.IntervalIndex(results.index.get_level_values('electron_pT')).mid
+    mean = np.sum((bin_centers[1:-1] * results['n'][1:-1]) / results['n'][1:-1].sum())
+    assert mean == pytest.approx(44.32584)
 
 
 def test_BinnedDataframe_numexpr_run_mc(binned_df_3, tmpdir, infile):
