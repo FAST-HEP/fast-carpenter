@@ -1,4 +1,5 @@
 import numpy as np
+from awkward import JaggedArray
 from fast_carpenter import expressions
 
 
@@ -38,3 +39,18 @@ def test_constants(infile):
 
     ninf_1_or_fewer_mu = expressions.evaluate(infile, "where(NMuon > 1, NMuon, -inf)")
     assert np.count_nonzero(np.isfinite(ninf_1_or_fewer_mu)) == 289
+
+
+def test_3D_jagged(wrapped_tree):
+    fake_3d = [[np.arange(np.random.randint(3))
+                for _ in range(np.random.randint(4))]
+               for _ in range(len(wrapped_tree))]
+    fake_3d = JaggedArray.fromiter(fake_3d)
+    wrapped_tree.new_variable("Fake3D", fake_3d)
+    assert isinstance(fake_3d.count(), JaggedArray)
+
+    aliased = expressions.evaluate(wrapped_tree, "Fake3D")
+    assert all(aliased == fake_3d)
+
+    doubled = expressions.evaluate(wrapped_tree, "Fake3D * 2")
+    assert all(doubled.min() == 0)
