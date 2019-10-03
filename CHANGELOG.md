@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.14.0] - 2019-10-03
+### Added
+- Support for ND jagged array in expressions, PR #73
+- Automatic conversion of ObjectArrays from uproot to JaggedArrays, PR #73
+
 ## [0.13.4] - 2019-09-21
 ### Changed
 - Fixed interpretation of user-defined variables for uproot, issue #67, PR #71 [@benkrikler](https://github.com/benkrikler)
