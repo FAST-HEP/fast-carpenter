@@ -81,7 +81,7 @@ class TreeToDictAdaptor():
     def strip_jaggedness(self, array):
         array, new_counts = deconstruct_jaggedness(array, counts=[])
         if self.counts is not None:
-            if not np.array_equal(self.counts, new_counts):
+            if not all(np.array_equal(c, n) for c, n in zip(self.counts, new_counts)):
                 raise RuntimeError("Operation using arrays with different jaggedness")
         else:
             self.counts = new_counts
