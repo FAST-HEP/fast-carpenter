@@ -197,3 +197,27 @@ def test_BinnedDataframe_numexpr_similar_branch(binned_df_3, tmpdir, full_wrappe
     bin_centers = pd.IntervalIndex(results.index.get_level_values('electron_pT')).mid
     mean = np.sum((bin_centers[1:-1] * results['n'][1:-1]) / results['n'][1:-1].sum())
     assert mean == pytest.approx(44.32584)
+
+
+def test_explode():
+    df = pd.DataFrame({'A': [[1, 2, 3], [9], [], [3, 4]], 'B': 1})
+    exploded = bdf.explode(df)
+    assert len(exploded) == 7
+    assert all(df.B == 1)
+
+    df["C"] = df.A.copy()
+    exploded = bdf.explode(df)
+    assert len(exploded) == 7
+    assert all(df.B == 1)
+    assert all(df.A == df.C)
+
+    df["D"] = [[1], [3], [4, 5], []]
+    with pytest.raises(ValueError) as e:
+        exploded = bdf.explode(df)
+    assert "different jaggedness" in str(e)
+
+    df2 = pd.DataFrame({'A': [[np.arange(i + 1) + j for i in range((j % 2) + 1)] for j in range(4)],
+                        'B': np.arange(4)[::-1],
+                        })
+    exploded = bdf.explode(df2)
+    assert len(exploded) == 8

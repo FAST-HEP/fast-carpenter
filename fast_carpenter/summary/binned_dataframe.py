@@ -188,7 +188,7 @@ class BinnedDataframe():
         else:
             weights = None
 
-        data = chunk.tree.pandas.df(all_inputs)
+        data = chunk.tree.pandas.df(all_inputs, flatten=False)
         data = explode(data)
 
         binned_values = _bin_values(data, dimensions=self._bin_dims,
@@ -265,27 +265,28 @@ def explode(df, fill_value=float("nan")):
     lst_cols = [col for col, dtype in df.dtypes.items() if is_object_dtype(dtype)]
     if not lst_cols:
         return df
+
     # all columns except `lst_cols`
     idx_cols = df.columns.difference(lst_cols)
+
     # check all lists have same length
     lens = pd.DataFrame({col: df[col].str.len() for col in lst_cols})
     different_length = (lens.nunique(axis=1) > 1).any()
     if different_length:
-        raise RuntimeError("Cannot bin multiple arrays with different jaggedness")
+        raise ValueError("Cannot bin multiple arrays with different jaggedness")
     lens = lens[lst_cols[0]]
 
-    # preserve original index values
-    idx = np.repeat(df.index.values, lens)
     # create "exploded" DF
-    res = (pd.DataFrame({
-                col: np.repeat(df[col].values, lens)
-                for col in idx_cols},
-                index=idx)
-             .assign(**{col: np.concatenate(df.loc[lens > 0, col].values)
-                        for col in lst_cols}))
+    flattened = {col: df.loc[lens > 0, col].values for col in lst_cols}
+    flattened = {col: sum(map(list, vals), []) for col, vals in flattened.items()}
+    res = pd.DataFrame({col: np.repeat(df[col].values, lens) for col in idx_cols})
+    res = res.assign(**flattened)
+
     # append those rows that have empty lists
     if (lens == 0).any():
         # at least one list in cells is empty
         res = (res.append(df.loc[lens == 0, idx_cols], sort=False)
                   .fillna(fill_value))
-    return res
+
+    # Check that rows are fully "exploded"
+    return explode(res)
