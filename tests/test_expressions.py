@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 from awkward import JaggedArray
 from fast_carpenter import expressions
@@ -59,3 +60,20 @@ def test_3D_jagged(wrapped_tree):
     assert doubled[1, 0, :] == [2]
     assert doubled[2, 0, :] == [4]
     assert all(doubled[2, 1, :] == [4, 6])
+
+    doubled = expressions.evaluate(wrapped_tree, "Fake3D + Fake3D")
+    assert (doubled == fake_3d * 2).all().all().all()
+    assert len(doubled[0, :, :]) == 0
+    assert doubled[1, 0, :] == [2]
+    assert doubled[2, 0, :] == [4]
+    assert all(doubled[2, 1, :] == [4, 6])
+
+    fake_3d_2 = [[np.arange(i + 3) + j
+                  for i in range(j % 2)]
+                 for j in range(len(wrapped_tree))]
+    fake_3d_2 = JaggedArray.fromiter(fake_3d_2)
+    wrapped_tree.new_variable("SecondFake3D", fake_3d_2)
+
+    with pytest.raises(RuntimeError) as e:
+        expressions.evaluate(wrapped_tree, "SecondFake3D + Fake3D")
+    assert "different jaggedness" in str(e)
