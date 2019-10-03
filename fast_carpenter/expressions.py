@@ -43,7 +43,7 @@ def deconstruct_jaggedness(array, counts):
     if not isinstance(array, awkward.array.base.AwkwardArrayWithContent):
         return array, counts
 
-    array.compact()
+    array = array.compact()
     counts.insert(0, array.counts)
     return deconstruct_jaggedness(array.content, counts)
 

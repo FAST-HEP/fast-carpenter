@@ -23,9 +23,23 @@ def test_evaluate(wrapped_tree):
     assert all(mu_pt.counts == Muon_py.counts)
 
 
-def test_evaluate_bool(wrapped_tree):
-    all_true = expressions.evaluate(wrapped_tree, "Muon_Px == Muon_Px")
+def test_evaulate_matches_array(wrapped_tree):
+    mu_px_array = wrapped_tree.array("Muon_Px") < 0.3
+    mu_px_evalu = expressions.evaluate(wrapped_tree, "Muon_Px < 0.3")
+    assert (mu_px_evalu == mu_px_array).all().all()
+
+
+def test_evaluate_bool(full_wrapped_tree):
+    all_true = expressions.evaluate(full_wrapped_tree, "Muon_Px == Muon_Px")
     assert all(all_true.all())
+
+    mu_cut = expressions.evaluate(full_wrapped_tree, "NMuon > 1")
+    ele_cut = expressions.evaluate(full_wrapped_tree, "NElectron > 1")
+    jet_cut = expressions.evaluate(full_wrapped_tree, "NJet > 1")
+    mu_px = expressions.evaluate(full_wrapped_tree, "Muon_Px > 0.3")
+    mu_px = mu_px.pad(2)[:, 1]
+    combined = mu_cut & (ele_cut | jet_cut) & mu_px
+    assert np.count_nonzero(combined) == 2
 
 
 def test_evaluate_dot(wrapped_tree):
