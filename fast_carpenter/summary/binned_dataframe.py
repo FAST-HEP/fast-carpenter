@@ -3,7 +3,9 @@ Summarize the data by producing binned and possibly weighted counts of the data.
 """
 import os
 import re
+import numpy as np
 import pandas as pd
+from pandas.api.types import is_object_dtype
 from . import binning_config as cfg
 
 
@@ -187,6 +189,7 @@ class BinnedDataframe():
             weights = None
 
         data = chunk.tree.pandas.df(all_inputs)
+        data = explode(data)
 
         binned_values = _bin_values(data, dimensions=self._bin_dims,
                                     binnings=self._binnings,
@@ -250,3 +253,39 @@ def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_we
 
     histogram.index.set_names(out_dimensions, inplace=True)
     return histogram
+
+
+def explode(df, fill_value=float("nan")):
+    """
+    Based on this answer:
+    https://stackoverflow.com/questions/12680754/split-explode-pandas\
+    -dataframe-string-entry-to-separate-rows/40449726#40449726
+    """
+    # get the list columns
+    lst_cols = [col for col, dtype in df.dtypes.items() if is_object_dtype(dtype)]
+    if not lst_cols:
+        return df
+    # all columns except `lst_cols`
+    idx_cols = df.columns.difference(lst_cols)
+    # check all lists have same length
+    lens = pd.DataFrame({col: df[col].str.len() for col in lst_cols})
+    different_length = (lens.nunique(axis=1) > 1).any()
+    if different_length:
+        raise RuntimeError("Cannot bin multiple arrays with different jaggedness")
+    lens = lens[lst_cols[0]]
+
+    # preserve original index values
+    idx = np.repeat(df.index.values, lens)
+    # create "exploded" DF
+    res = (pd.DataFrame({
+                col: np.repeat(df[col].values, lens)
+                for col in idx_cols},
+                index=idx)
+             .assign(**{col: np.concatenate(df.loc[lens > 0, col].values)
+                        for col in lst_cols}))
+    # append those rows that have empty lists
+    if (lens == 0).any():
+        # at least one list in cells is empty
+        res = (res.append(df.loc[lens == 0, idx_cols], sort=False)
+                  .fillna(fill_value))
+    return res
