@@ -42,15 +42,20 @@ def test_constants(infile):
 
 
 def test_3D_jagged(wrapped_tree):
-    fake_3d = [[np.arange(np.random.randint(3))
-                for _ in range(np.random.randint(4))]
-               for _ in range(len(wrapped_tree))]
+    fake_3d = [[np.arange(i + 1) + j
+                for i in range(j % 3)]
+               for j in range(len(wrapped_tree))]
     fake_3d = JaggedArray.fromiter(fake_3d)
     wrapped_tree.new_variable("Fake3D", fake_3d)
     assert isinstance(fake_3d.count(), JaggedArray)
+    assert all((fake_3d.copy().count() == fake_3d.count()).all())
 
     aliased = expressions.evaluate(wrapped_tree, "Fake3D")
-    assert all(aliased == fake_3d)
+    assert (aliased == fake_3d).all().all().all()
 
     doubled = expressions.evaluate(wrapped_tree, "Fake3D * 2")
-    assert all(doubled.min() == 0)
+    assert (doubled == fake_3d * 2).all().all().all()
+    assert len(doubled[0, :, :]) == 0
+    assert doubled[1, 0, :] == [2]
+    assert doubled[2, 0, :] == [4]
+    assert all(doubled[2, 1, :] == [4, 6])

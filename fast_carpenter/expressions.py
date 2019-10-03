@@ -39,14 +39,28 @@ def get_branches(cut, valid):
     return branches
 
 
+def deconstruct_jaggedness(array, counts):
+    if not isinstance(array, awkward.array.base.AwkwardArrayWithContent):
+        return array, counts
+
+    array.compact()
+    counts.insert(0, array.counts)
+    return deconstruct_jaggedness(array.content, counts)
+
+
+def reconstruct_jaggedness(array, counts):
+    for count in counts:
+        array = awkward.JaggedArray.fromcounts(count, array)
+    return array
+
+
 class TreeToDictAdaptor():
     """
     Make an uproot tree look like a dict for numexpr
     """
     def __init__(self, tree, alias_dict):
         self.tree = tree
-        self.starts = None
-        self.stops = None
+        self.counts = None
         self.aliases = alias_dict
 
     def __getitem__(self, item):
@@ -54,10 +68,7 @@ class TreeToDictAdaptor():
             return constants[item]
         full_item = self.aliases.get(item, item)
         array = self.tree.array(full_item)
-        starts = getattr(array, "starts", None)
-        if starts is not None:
-            self.set_starts_stop(starts, array.stops)
-            return array.content
+        array = self.strip_jaggedness(array)
         return array
 
     def __contains__(self, item):
@@ -67,13 +78,20 @@ class TreeToDictAdaptor():
         for i in self.tree:
             yield i
 
-    def set_starts_stop(self, starts, stops):
-        if self.starts is not None:
-            if any(self.starts != starts) or any(self.stops != stops):
-                raise RuntimeError("Mismatched starts and stops")
+    def strip_jaggedness(self, array):
+        array, new_counts = deconstruct_jaggedness(array, counts=[])
+        if self.counts is not None:
+            if not np.array_equal(self.counts, new_counts):
+                raise RuntimeError("Operation using arrays with different jaggedness")
         else:
-            self.starts = starts
-            self.stops = stops
+            self.counts = new_counts
+        return array
+
+    def apply_jaggedness(self, array):
+        if self.counts is None:
+            return array
+        result = reconstruct_jaggedness(array, self.counts)
+        return result
 
 
 attribute_re = re.compile(r"([a-zA-Z]\w*)\s*\.\s*(\w+)")
@@ -95,6 +113,5 @@ def evaluate(tree, expression):
     cleaned_expression, alias_dict = preprocess_expression(expression)
     adaptor = TreeToDictAdaptor(tree, alias_dict)
     result = numexpr.evaluate(cleaned_expression, local_dict=adaptor)
-    if adaptor.starts is not None:
-        result = awkward.JaggedArray(adaptor.starts, adaptor.stops, result)
+    result = adaptor.apply_jaggedness(result)
     return result
