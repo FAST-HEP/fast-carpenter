@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.14.1] - 2019-10-04
 ### Added
+- Added version flag to CLI, PR #79. [@maikefischer](github.com/maikefischer)
 - Prohibit ncores < 1, PR #76 [@annakau](https://github.com/annakau)
 
 ### Changed
