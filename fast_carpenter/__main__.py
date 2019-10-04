@@ -11,10 +11,10 @@ import atuproot.atuproot_main as atup
 from .event_builder import EventBuilder
 from atsge.build_parallel import build_parallel
 from .utils import mkdir_p
+from .version import __version__
 atup.EventBuilder = EventBuilder
 atup.build_parallel = build_parallel
 logging.getLogger(__name__).setLevel(logging.INFO)
-from .version import __version__
 
 
 class DummyCollector():
