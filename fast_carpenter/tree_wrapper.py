@@ -6,9 +6,7 @@ a branch to uproot trees with no changes to actual code in uproot and with
 minimal coding on my side...
 """
 import uproot
-from uproot.interp.objects import asgenobj
-from uproot.interp.jagged import asjagged
-from uproot.interp.numerical import asdtype
+from uproot import asjagged, asdtype, asgenobj
 import copy
 import awkward
 
@@ -19,24 +17,20 @@ def recursive_type_wrap(array):
     return asdtype(array.dtype.fields)
 
 
-class asgenobj_then_jagged():
-    def __init__(self, original):
-        self.wrapping = original
-
+class wrapped_asgenobj(asgenobj):
     def finalize(self, *args, **kwargs):
-        result = self.wrapping.finalize(*args, **kwargs)
-        return awkward.JaggedArray.fromiter(result)
+        result = super(wrapped_asgenobj, self).finalize(*args, **kwargs)
+        result = awkward.JaggedArray.fromiter(result)
+        return result
 
-    def __getattr__(self, attr):
-        return getattr(self.wrapping, attr)
+
+uproot.interp.auto.asgenobj = wrapped_asgenobj
 
 
 def wrapped_interpret(branch, *args, **kwargs):
     from uproot.interp.auto import interpret
     result = interpret(branch, *args, **kwargs)
     if result:
-        if isinstance(result, asgenobj):
-            result = asgenobj_then_jagged(result)
         return result
 
     if isinstance(branch, WrappedTree.FakeBranch):
