@@ -6,10 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+### Changed
+### Removed
+
+## [0.14.1] - 2019-10-04
+### Added
+- Prohibit ncores < 1, PR #76 [@annakau](https://github.com/annakau)
 
 ### Changed
-
-### Removed
+- Binned dataframes can now be produced from ND jagged arrays
 
 ## [0.14.0] - 2019-10-03
 ### Added
