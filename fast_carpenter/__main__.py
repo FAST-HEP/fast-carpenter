@@ -11,6 +11,7 @@ import atuproot.atuproot_main as atup
 from .event_builder import EventBuilder
 from atsge.build_parallel import build_parallel
 from .utils import mkdir_p
+from .version import __version__
 atup.EventBuilder = EventBuilder
 atup.build_parallel = build_parallel
 logging.getLogger(__name__).setLevel(logging.INFO)
@@ -28,6 +29,11 @@ def create_parser():
         def __call__(self, parser, namespace, values, option_string=None):
             full_output = option_string == "--help-stages-full"
             help_stages(values, full_output=full_output)
+            sys.exit(0)
+
+    class VersionHelp(Action):
+        def __call__(self, parser, namespace, values, option_string=None):
+            print(__version__)
             sys.exit(0)
 
     parser = ArgumentParser(description=__doc__)
@@ -56,6 +62,7 @@ def create_parser():
                         help="Print help specific to the available stages")
     parser.add_argument("--help-stages-full", action=StagesHelp, metavar="stage",
                         help="Print the full help specific to the available stages")
+    parser.add_argument("--version", action=VersionHelp, nargs="?", help="Print version and exit")
 
     return parser
 
