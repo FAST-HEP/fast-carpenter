@@ -14,6 +14,7 @@ from .utils import mkdir_p
 atup.EventBuilder = EventBuilder
 atup.build_parallel = build_parallel
 logging.getLogger(__name__).setLevel(logging.INFO)
+from .version import __version__
 
 
 class DummyCollector():
@@ -39,7 +40,7 @@ def create_parser():
                         help="Where to save the results")
     parser.add_argument("--mode", default="multiprocessing", type=str,
                         help="Which mode to run in (multiprocessing, htcondor, sge)")
-    parser.add_argument("--ncores", default=0, type=int,
+    parser.add_argument("--ncores", default=1, type=int,
                         help="Number of cores to run on")
     parser.add_argument("--nblocks-per-dataset", default=-1, type=int,
                         help="Number of blocks per dataset")
@@ -56,12 +57,16 @@ def create_parser():
                         help="Print help specific to the available stages")
     parser.add_argument("--help-stages-full", action=StagesHelp, metavar="stage",
                         help="Print the full help specific to the available stages")
+    parser.add_argument("-v", "--version", action="version", version='%(prog)s ' + __version__)
 
     return parser
 
 
 def main(args=None):
     args = create_parser().parse_args(args)
+
+    if args.ncores < 1:
+        args.ncores = 1
 
     sequence = fast_flow.read_sequence_yaml(args.sequence_cfg, output_dir=args.outdir)
 
