@@ -21,7 +21,7 @@ class JaggedNth(object):
                 self.dtype = float
 
     def __call__(self, array):
-        mask = array.counts > self.index
+        mask = array.counts > abs(self.index)
         output = np.full(len(array), self.fill_missing, dtype=self.dtype)
         output[mask] = array[mask, self.index]
         return output
