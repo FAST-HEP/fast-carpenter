@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
+## [0.14.2] - 2019-10-06
+### Added
+- JaggedNth supports negative indexing, PR #81 [@pmk21](https://github.com/pmk21!)
+
 ## [0.14.1] - 2019-10-04
 ### Added
 - Added version flag to CLI, PR #79. [@maikefischer](github.com/maikefischer)
