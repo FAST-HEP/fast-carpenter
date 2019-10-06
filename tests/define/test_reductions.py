@@ -6,8 +6,7 @@ import fast_carpenter.define.reductions as reductions
 
 @pytest.fixture
 def jagged_1():
-    boundaries = [0, 3, 5, 6, 9, 12, 12]
-    return JaggedArray(boundaries[:-1], boundaries[1:], [0.0, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9, 10.0, 11.0])
+    return JaggedArray.fromiter([[0.0, 1.1, 2.2], [3.3, 4.4], [5.5], [6.6, 7.7, 8.8], [9.9, 10.0, 11.0], []])
 
 
 def test_jagged_nth(jagged_1):
@@ -18,6 +17,17 @@ def test_jagged_nth(jagged_1):
     assert np.isnan(reduced[2])
     assert reduced[3] == 7.7
     assert reduced[4] == 10.0
+    assert np.isnan(reduced[5])
+
+
+def test_jagged_nth_negative(jagged_1):
+    get_first_second = reductions.JaggedNth(-1, np.nan)
+    reduced = get_first_second(jagged_1)
+    assert reduced[0] == 2.2
+    assert reduced[1] == 4.4
+    assert reduced[2] == 5.5
+    assert reduced[3] == 8.8
+    assert reduced[4] == 11.0
     assert np.isnan(reduced[5])
 
 
