@@ -18,23 +18,30 @@ class Collector():
         self.binnings = binnings
         self.file_format = file_format
 
-    def collect(self, dataset_readers_list):
+    def collect(self, dataset_readers_list, doReturn=False, writeFiles=True):
         if len(dataset_readers_list) == 0:
-            return
+            if doReturn:
+                return pd.DataFrame()
+            else:
+                return None
 
         output = self._prepare_output(dataset_readers_list)
 
-        for file_dict in self.file_format:
-            file_ext = file_dict.pop('extension', None)
-            save_func = file_ext.split('.')[1]
-            if save_func in Collector.valid_ext:
-                save_func = Collector.valid_ext[save_func]
-            try:
-                getattr(output, "to_%s" % save_func)(self.filename+file_ext, **file_dict)
-            except AttributeError as err:
-                print("Incorrect file format: %s" % err)
-            except TypeError as err:
-                print("Incorrect args: %s" % err)
+        if writeFiles:
+            for file_dict in self.file_format:
+                file_ext = file_dict.pop('extension', None)
+                save_func = file_ext.split('.')[1]
+                if save_func in Collector.valid_ext:
+                    save_func = Collector.valid_ext[save_func]
+                try:
+                    getattr(output, "to_%s" % save_func)(self.filename+file_ext, **file_dict)
+                except AttributeError as err:
+                    print("Incorrect file format: %s" % err)
+                except TypeError as err:
+                    print("Incorrect args: %s" % err)
+
+        if doReturn:
+            return output
 
     def _prepare_output(self, dataset_readers_list):
         return combined_dataframes(dataset_readers_list,

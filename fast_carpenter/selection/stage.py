@@ -33,12 +33,20 @@ class Collector():
         self.filename = filename
         self.keep_unique_id = keep_unique_id
 
-    def collect(self, dataset_readers_list):
+    def collect(self, dataset_readers_list, doReturn=False, writeFiles=True):
         if len(dataset_readers_list) == 0:
-            return None
+            if doReturn:
+                return pd.DataFrame()
+            else:
+                return None
 
         output = self._prepare_output(dataset_readers_list)
-        output.to_csv(self.filename, float_format="%.17g")
+        
+        if writeFiles:
+            output.to_csv(self.filename, float_format="%.17g")
+
+        if doReturn:
+            return output
 
     def _prepare_output(self, dataset_readers_list):
         dataset_readers_list = [(d, [r.selection for r in readers])
