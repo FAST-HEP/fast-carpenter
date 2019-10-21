@@ -41,7 +41,7 @@ class Collector():
                 return None
 
         output = self._prepare_output(dataset_readers_list)
-        
+
         if writeFiles:
             output.to_csv(self.filename, float_format="%.17g")
 
