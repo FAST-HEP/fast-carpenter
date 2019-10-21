@@ -6,8 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+
 ### Changed
-### Removed
+- Pin atuproot to v0.1.13, PR #91
 
 ## [0.14.3] - 2019-10-07
 ### Added
