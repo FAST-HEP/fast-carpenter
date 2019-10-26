@@ -33,7 +33,7 @@ class Collector():
         self.filename = filename
         self.keep_unique_id = keep_unique_id
 
-    def collect(self, dataset_readers_list, doReturn=False, writeFiles=True):
+    def collect(self, dataset_readers_list, doReturn=True, writeFiles=True):
         if len(dataset_readers_list) == 0:
             if doReturn:
                 return pd.DataFrame()

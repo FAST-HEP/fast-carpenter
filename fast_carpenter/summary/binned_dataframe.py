@@ -18,7 +18,7 @@ class Collector():
         self.binnings = binnings
         self.file_format = file_format
 
-    def collect(self, dataset_readers_list, doReturn=False, writeFiles=True):
+    def collect(self, dataset_readers_list, doReturn=True, writeFiles=True):
         if len(dataset_readers_list) == 0:
             if doReturn:
                 return pd.DataFrame()
