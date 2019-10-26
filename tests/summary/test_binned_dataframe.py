@@ -68,6 +68,17 @@ def test_BinnedDataframe_run_mc(binned_df_1, tmpdir, infile):
     # htemp->GetMean() * htemp->GetEntries()
     assert totals["EventWeight:sumw"] == pytest.approx(231.91339)
 
+    coll_results = collector.collect(dataset_readers_list, writeFiles=False)
+
+    totals = results.sum()
+    # Based on: events->Draw("Jet_Py", "", "goff")
+    assert totals["n"] == 4616
+    
+    # Based on:
+    # events->Draw("EventWeight * (Jet_Py/Jet_Py)>>htemp", "", "goff")
+    # htemp->GetMean() * htemp->GetEntries()
+    assert totals["EventWeight:sumw"] == pytest.approx(231.91339)
+
 
 def test_BinnedDataframe_run_data(binned_df_2, tmpdir, infile):
     chunk = FakeBEEvent(infile, "data")
