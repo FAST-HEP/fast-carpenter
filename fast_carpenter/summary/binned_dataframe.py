@@ -30,7 +30,7 @@ class Collector():
             if save_func in Collector.valid_ext:
                 save_func = Collector.valid_ext[save_func]
             try:
-                getattr(output, "to_%s" % save_func)(self.filename+file_ext, **file_dict)
+                getattr(output, "to_%s" % save_func)(self.filename + file_ext, **file_dict)
             except AttributeError as err:
                 print("Incorrect file format: %s" % err)
             except TypeError as err:
@@ -270,7 +270,6 @@ def explode(df):
     idx_cols = df.columns.difference(lst_cols)
 
     # check all lists have same length
-    df2 = df.reset_index()
     lens = pd.DataFrame({col: df[col].str.len() for col in lst_cols})
     different_length = (lens.nunique(axis=1) > 1).any()
     if different_length:
