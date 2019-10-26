@@ -204,6 +204,7 @@ def test_explode():
     exploded = bdf.explode(df)
     assert len(exploded) == 6
     assert all(df.B == 1)
+    assert not df.isnull().any().any()
 
     df["C"] = df.A.copy()
     exploded = bdf.explode(df)
