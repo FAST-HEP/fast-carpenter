@@ -70,10 +70,10 @@ def test_BinnedDataframe_run_mc(binned_df_1, tmpdir, infile):
 
     coll_results = collector.collect(dataset_readers_list, writeFiles=False)
 
-    totals = results.sum()
+    totals = coll_results.sum()
     # Based on: events->Draw("Jet_Py", "", "goff")
     assert totals["n"] == 4616
-    
+
     # Based on:
     # events->Draw("EventWeight * (Jet_Py/Jet_Py)>>htemp", "", "goff")
     # htemp->GetMean() * htemp->GetEntries()
