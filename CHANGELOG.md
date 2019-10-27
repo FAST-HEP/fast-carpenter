@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Existing collectors may now return their results within python, in addition to writing them to disk PR #90 [@lgray](https://github.com/lgray). 
    - This behavior can, at present, only be controlled within python, and is meant for exposing certain aspects of FAST-carpenter plumbing to [coffea](https://github.com/CoffeaTeam/coffea).
 ### Changed
+- Fix bug in BinnedDataframe stage, issue #89, PR #93 [@benkrikler](httsp://github.com/benkrikler)
 - Pin atuproot to v0.1.13, PR #91
 
 ## [0.14.3] - 2019-10-07

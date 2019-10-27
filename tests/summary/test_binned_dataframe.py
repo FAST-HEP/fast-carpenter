@@ -213,12 +213,13 @@ def test_BinnedDataframe_numexpr_similar_branch(binned_df_3, tmpdir, full_wrappe
 def test_explode():
     df = pd.DataFrame({'A': [[1, 2, 3], [9], [], [3, 4]], 'B': 1})
     exploded = bdf.explode(df)
-    assert len(exploded) == 7
+    assert len(exploded) == 6
     assert all(df.B == 1)
+    assert not df.isnull().any().any()
 
     df["C"] = df.A.copy()
     exploded = bdf.explode(df)
-    assert len(exploded) == 7
+    assert len(exploded) == 6
     assert all(df.B == 1)
     assert all(df.A == df.C)
 
