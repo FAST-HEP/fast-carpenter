@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tidy the print out at the end of processing, PR #94.
 
 ### Changed
+- Fix bug in BinnedDataframe stage, issue #89, PR #93 [@benkrikler](httsp://github.com/benkrikler)
 - Pin atuproot to v0.1.13, PR #91
 
 ## [0.14.3] - 2019-10-07

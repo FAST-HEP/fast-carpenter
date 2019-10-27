@@ -34,7 +34,7 @@ class Collector():
                 if save_func in Collector.valid_ext:
                     save_func = Collector.valid_ext[save_func]
                 try:
-                    getattr(output, "to_%s" % save_func)(self.filename+file_ext, **file_dict)
+                    getattr(output, "to_%s" % save_func)(self.filename + file_ext, **file_dict)
                 except AttributeError as err:
                     print("Incorrect file format: %s" % err)
                 except TypeError as err:
@@ -262,7 +262,7 @@ def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_we
     return histogram
 
 
-def explode(df, fill_value=float("nan")):
+def explode(df):
     """
     Based on this answer:
     https://stackoverflow.com/questions/12680754/split-explode-pandas\
@@ -288,12 +288,6 @@ def explode(df, fill_value=float("nan")):
     flattened = {col: sum(map(list, vals), []) for col, vals in flattened.items()}
     res = pd.DataFrame({col: np.repeat(df[col].values, lens) for col in idx_cols})
     res = res.assign(**flattened)
-
-    # append those rows that have empty lists
-    if (lens == 0).any():
-        # at least one list in cells is empty
-        res = (res.append(df.loc[lens == 0, idx_cols], sort=False)
-                  .fillna(fill_value))
 
     # Check that rows are fully "exploded"
     return explode(res)
