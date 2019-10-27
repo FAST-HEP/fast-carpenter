@@ -7,19 +7,10 @@ from .help import help_stages
 import fast_flow.v1 as fast_flow
 import fast_curator
 import logging
-import atuproot.atuproot_main as atup
-from .event_builder import EventBuilder
-from atsge.build_parallel import build_parallel
+from .backends import get_backend
 from .utils import mkdir_p
 from .version import __version__
-atup.EventBuilder = EventBuilder
-atup.build_parallel = build_parallel
 logging.getLogger(__name__).setLevel(logging.INFO)
-
-
-class DummyCollector():
-    def collect(self, *args, **kwargs):
-        pass
 
 
 def create_parser():
@@ -65,35 +56,15 @@ def create_parser():
 def main(args=None):
     args = create_parser().parse_args(args)
 
-    if args.ncores < 1:
-        args.ncores = 1
-
     sequence = fast_flow.read_sequence_yaml(args.sequence_cfg, output_dir=args.outdir, backend="fast_carpenter")
 
     datasets = fast_curator.read.from_yaml(args.dataset_cfg)
 
-    mkdir_p(args.outdir)
+    backend = get_backend("alphatwirl")
 
-    _, ret_val = run_carpenter(sequence, datasets, args)
+    _, ret_val = backend.execute(sequence, datasets, args)
     print(ret_val)
     return 0
-
-
-def run_carpenter(sequence, datasets, args):
-    process = atup.AtUproot(args.outdir,
-                            quiet=args.quiet,
-                            parallel_mode=args.mode,
-                            process=args.ncores,
-                            max_blocks_per_dataset=args.nblocks_per_dataset,
-                            max_blocks_per_process=args.nblocks_per_sample,
-                            nevents_per_block=args.blocksize,
-                            profile=args.profile,
-                            profile_out_path="profile.txt",
-                            )
-
-    sequence = [(s, s.collector() if hasattr(s, "collector") else DummyCollector()) for s in sequence]
-    ret_val = process.run(datasets, sequence)
-    return sequence, ret_val
 
 
 if __name__ == "__main__":
