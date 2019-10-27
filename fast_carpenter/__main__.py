@@ -75,7 +75,8 @@ def main(args=None):
     mkdir_p(args.outdir)
 
     _, ret_val = run_carpenter(sequence, datasets, args)
-    print(ret_val)
+    dfs = [df for df in ret_val[0] if df is not None]
+    print(len(dfs), "dataframes have been written to director '%s'" % args.outdir)
     return 0
 
 
