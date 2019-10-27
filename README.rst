@@ -24,6 +24,8 @@
    :target: https://gitter.im/FAST-HEP/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
    :alt: Gitter
 
+.. image:: https://zenodo.org/badge/187055992.svg
+   :target: https://zenodo.org/badge/latestdoi/187055992
 
 fast-carpenter
 ==============
