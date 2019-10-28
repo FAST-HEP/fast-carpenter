@@ -75,8 +75,13 @@ def main(args=None):
     mkdir_p(args.outdir)
 
     _, ret_val = run_carpenter(sequence, datasets, args)
-    dfs = [df for df in ret_val[0] if df is not None]
-    print(len(dfs), "dataframes have been written to director '%s'" % args.outdir)
+    if not args.profile:
+        # This breaks in AlphaTwirl when used with the profile option
+        dfs = [df for df in ret_val[0] if df is not None]
+        count = len(dfs)
+    else:
+        count = "All"
+    print(count, "dataframes have been written to directory '%s'" % args.outdir)
     return 0
 
 
