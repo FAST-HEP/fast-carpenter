@@ -91,3 +91,19 @@ def test_3D_jagged(wrapped_tree):
     with pytest.raises(RuntimeError) as e:
         expressions.evaluate(wrapped_tree, "SecondFake3D + Fake3D")
     assert "different jaggedness" in str(e)
+
+
+@pytest.mark.parametrize('input, expected', [
+    ("Muon.Px > 30", ("Muon__DOT__Px > 30", {'Muon__DOT__Px': 'Muon.Px'})),
+    ("events.Muon.Px > 30", ("events__DOT__Muon__DOT__Px > 30",
+                             {'events__DOT__Muon__DOT__Px': 'events.Muon.Px'})),
+    ('l1CaloTowerTree.L1CaloTowerTree.L1CaloTower.et > 50',
+        ('l1CaloTowerTree__DOT__L1CaloTowerTree__DOT__L1CaloTower__DOT__et > 50',
+         {'l1CaloTowerTree__DOT__L1CaloTowerTree__DOT__L1CaloTower__DOT__et':
+             'l1CaloTowerTree.L1CaloTowerTree.L1CaloTower.et'}))
+])
+def test_preprocess_expression(input, expected):
+    # note: maybe hypothesis.strategies.from_regex is better than parametrize
+    clean_expr, alias_dict = expressions.preprocess_expression(input)
+    assert clean_expr == expected[0]
+    assert alias_dict == expected[1]

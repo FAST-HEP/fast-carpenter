@@ -62,8 +62,11 @@ def main(args=None):
 
     backend = get_backend("alphatwirl")
 
-    _, ret_val = backend.execute(sequence, datasets, args)
-    print(ret_val)
+    results = backend.execute(sequence, datasets, args)
+
+    print("Summary of results")
+    print(results)
+    print("Output written to directory '%s'" % args.outdir)
     return 0
 
 

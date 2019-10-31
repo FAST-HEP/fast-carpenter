@@ -94,7 +94,7 @@ class TreeToDictAdaptor():
         return result
 
 
-attribute_re = re.compile(r"([a-zA-Z]\w*)\s*\.\s*(\w+)")
+attribute_re = re.compile(r"([a-zA-Z]\w*)\s*(\.\s*(\w+))+")
 
 
 def preprocess_expression(expression):
@@ -102,7 +102,7 @@ def preprocess_expression(expression):
     replace_dict = {}
     for match in attribute_re.finditer(expression):
         original = match.group(0)
-        alias = match.expand(r"\1__DOT__\2")
+        alias = original.replace('.', '__DOT__')
         alias_dict[alias] = original
         replace_dict[original] = alias
     clean_expr = attribute_re.sub(lambda x: replace_dict[x.group(0)], expression)

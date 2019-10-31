@@ -68,6 +68,17 @@ def test_BinnedDataframe_run_mc(binned_df_1, tmpdir, infile):
     # htemp->GetMean() * htemp->GetEntries()
     assert totals["EventWeight:sumw"] == pytest.approx(231.91339)
 
+    coll_results = collector.collect(dataset_readers_list, writeFiles=False)
+
+    totals = coll_results.sum()
+    # Based on: events->Draw("Jet_Py", "", "goff")
+    assert totals["n"] == 4616
+
+    # Based on:
+    # events->Draw("EventWeight * (Jet_Py/Jet_Py)>>htemp", "", "goff")
+    # htemp->GetMean() * htemp->GetEntries()
+    assert totals["EventWeight:sumw"] == pytest.approx(231.91339)
+
 
 def test_BinnedDataframe_run_data(binned_df_2, tmpdir, infile):
     chunk = FakeBEEvent(infile, "data")
@@ -202,12 +213,13 @@ def test_BinnedDataframe_numexpr_similar_branch(binned_df_3, tmpdir, full_wrappe
 def test_explode():
     df = pd.DataFrame({'A': [[1, 2, 3], [9], [], [3, 4]], 'B': 1})
     exploded = bdf.explode(df)
-    assert len(exploded) == 7
+    assert len(exploded) == 6
     assert all(df.B == 1)
+    assert not df.isnull().any().any()
 
     df["C"] = df.A.copy()
     exploded = bdf.explode(df)
-    assert len(exploded) == 7
+    assert len(exploded) == 6
     assert all(df.B == 1)
     assert all(df.A == df.C)
 

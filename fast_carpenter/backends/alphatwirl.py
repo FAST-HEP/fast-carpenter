@@ -50,4 +50,10 @@ def execute(sequence, datasets, args):
 
         ret_val = process.run(datasets, sequence)
 
-    return sequence, ret_val
+    if not args.profile:
+        # This breaks in AlphaTwirl when used with the profile option
+        summary = {s.name: df for s, df in zip(sequence, ret_val[0]) if df is not None]
+    else:
+        summary = " (Results summary not available with profile mode) "
+
+    return summary, ret_val
