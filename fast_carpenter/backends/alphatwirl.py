@@ -52,7 +52,7 @@ def execute(sequence, datasets, args):
 
     if not args.profile:
         # This breaks in AlphaTwirl when used with the profile option
-        summary = {s.name: df for s, df in zip(sequence, ret_val[0]) if df is not None]
+        summary = {s.name: df.index.names for s, df in zip(sequence, ret_val[0]) if df is not None]
     else:
         summary = " (Results summary not available with profile mode) "
 
