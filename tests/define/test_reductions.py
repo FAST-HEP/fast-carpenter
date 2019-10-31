@@ -20,6 +20,20 @@ def test_jagged_nth(jagged_1):
     assert np.isnan(reduced[5])
 
 
+def test_jagged_nth_3D(jagged_1):
+    fake_3d = [[np.arange(i + 1) + j
+                for i in range(j % 3)]
+               for j in range(5)]
+    get_second = reductions.JaggedNth(1, np.nan)
+    reduced = get_second(fake_3d)
+    assert reduced[0] == 1.1
+    assert reduced[1] == 4.4
+    assert np.isnan(reduced[2])
+    assert reduced[3] == 7.7
+    assert reduced[4] == 10.0
+    assert np.isnan(reduced[5])
+
+
 def test_jagged_nth_negative(jagged_1):
     get_first_second = reductions.JaggedNth(-1, np.nan)
     reduced = get_first_second(jagged_1)
