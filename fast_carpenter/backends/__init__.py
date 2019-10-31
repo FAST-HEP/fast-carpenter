@@ -13,8 +13,13 @@ def get_coffea():
     return coffea
 
 
-known_backends = {"alphatwirl": get_alphatwirl,
-                  "coffea": get_coffea,
+known_backends = {"multiprocessing": get_alphatwirl,
+                  "htcondor": get_alphatwirl,
+                  "sge": get_alphatwirl,
+                  "alphatwirl:multiprocessing": get_alphatwirl,
+                  "alphatwirl:htcondor": get_alphatwirl,
+                  "alphatwirl:sge": get_alphatwirl,
+                  "coffea:local": get_coffea,
                   }
 
 
