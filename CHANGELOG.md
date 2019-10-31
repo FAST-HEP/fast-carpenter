@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## unreleased
 ### Changed
 - Added support for variables with multiple dots in the name (nested branches). Issue #95, PR #97 [@kreczko](https://github.com/kreczko)
-
+- Add protection against multiple dimensions using the same output name in a BinnedDataframe stage, Issue #92. [@benkrikler](https://github.com/benkrikler)
 
 ## [0.15.0] - 2019-10-27
 ### Added
