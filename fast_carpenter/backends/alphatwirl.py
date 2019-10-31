@@ -19,7 +19,7 @@ class AtuprootContext:
         from atsge.build_parallel import build_parallel
         atup.EventBuilder = EventBuilder
         atup.build_parallel = build_parallel
-        print("BEK", self.atup.AtUproot)
+        return self
 
     def __exit__(self, *args, **kwargs):
         self.atup.EventBuilder = self._orig_event_builder
