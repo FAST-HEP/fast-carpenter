@@ -24,14 +24,30 @@ def test_jagged_nth_3D(jagged_1):
     fake_3d = [[np.arange(i + 1) + j
                 for i in range(j % 3)]
                for j in range(5)]
+    fake_3d = JaggedArray.fromiter(fake_3d)
     get_second = reductions.JaggedNth(1, np.nan)
     reduced = get_second(fake_3d)
-    assert reduced[0] == 1.1
-    assert reduced[1] == 4.4
-    assert np.isnan(reduced[2])
-    assert reduced[3] == 7.7
-    assert reduced[4] == 10.0
-    assert np.isnan(reduced[5])
+    assert len(reduced[0]) == 0
+    assert len(reduced[1]) == 1
+    assert np.isnan(reduced[1])
+    assert len(reduced[2]) == 2
+    assert np.isnan(reduced[2][0])
+    assert reduced[2][1] == 3
+    assert len(reduced[3]) == 0
+    assert len(reduced[4]) == 1
+    assert np.isnan(reduced[4])
+
+    get_first = reductions.JaggedNth(0, np.nan)
+    reduced = get_first(fake_3d)
+    assert len(reduced[0]) == 0
+    assert len(reduced[1]) == 1
+    assert reduced[1][0] == 1
+    assert len(reduced[2]) == 2
+    assert reduced[2][0] == 2
+    assert reduced[2][1] == 2
+    assert len(reduced[3]) == 0
+    assert len(reduced[4]) == 1
+    assert reduced[4] == 4
 
 
 def test_jagged_nth_negative(jagged_1):
