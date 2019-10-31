@@ -62,7 +62,7 @@ def main(args=None):
 
     backend = get_backend("alphatwirl")
 
-    results = backend.execute(sequence, datasets, args)
+    results, _ = backend.execute(sequence, datasets, args)
 
     print("Summary of results")
     print(results)
