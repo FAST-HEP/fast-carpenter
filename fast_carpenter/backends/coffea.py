@@ -86,7 +86,9 @@ def execute(sequence, datasets, args):
     fp = FASTProcessor(sequence)
 
     executor = futures_executor
-    exe_args = {'workers': 4,
+    exe_args = {'workers': args.ncores,
+                'chunksize': args.blocksize,
+                'maxchunks': args.nblocks_per_dataset,
                 'function_args': {'flatten': False}}
 
     coffea_datasets = {}
