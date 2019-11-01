@@ -27,8 +27,9 @@
 .. image:: https://zenodo.org/badge/187055992.svg
    :target: https://zenodo.org/badge/latestdoi/187055992
 
-fast-carpenter
-==============
+.. image:: https://raw.githubusercontent.com/FAST-HEP/logos-etc/master/fast-carpenter-black.png
+   :target: https://github.com/fast-hep/fast-carpenter
+   :alt: fast-carpenter
 
 Turns your trees into tables (ie. reads ROOT TTrees, writes summary Pandas DataFrames)
 
