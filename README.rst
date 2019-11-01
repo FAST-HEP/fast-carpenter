@@ -50,7 +50,7 @@ Powered by:
 * uproot: to load ROOT Trees into memory as numpy arrays
 * fast-flow: to manage the processing config files
 * fast-curator: to orchestrate the lists of datasets to be processed
-* coffee: to help the developer(s) write code
+* Espresso: to keep the developer(s) writing code
 
 A tool from the Faster Analysis Software Taskforce: http://fast-hep.web.cern.ch/
 
