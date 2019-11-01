@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - An API for different "backends" which run the actual data processing
+- Add a backed for Coffea with local-multiprocessing executor. PR #102 [@BenKrikler](https://github.com/benkrikler)
 
 ### Changed
 - Refactor AlphaTwirl code to use the "backend" API. PR #101 [@BenKrikler](https://github.com/benkrikler)
