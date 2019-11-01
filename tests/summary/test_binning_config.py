@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 import fast_carpenter.summary.binning_config as mgr
 from . import dummy_binning_descriptions as binning
@@ -88,3 +89,10 @@ def test_create_file_format_scalar():
     file_format = mgr.create_file_format(name, binning.file_format_scalar)
     assert len(file_format) == 1
     assert file_format[0]["extension"] == ".csv"
+
+
+def test_duplicate_out_error():
+    name = "test_duplicate_out_error"
+    with pytest.raises(mgr.BadBinnedDataframeConfig) as e:
+        mgr.create_binning_list(name, [binning.bins_nmuon, binning.bins_nmuon])
+    assert "repeat" in str(e) and name in str(e)
