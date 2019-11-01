@@ -25,6 +25,9 @@ def create_binning_list(name, bin_list, make_bins=None):
         outs.append(_out)
         indices.append(_index)
         binnings.append(_bins)
+    if len(set(outs)) != len(outs):
+        msg = "{}: some binning dimensions repeat `out` names"
+        raise BadBinnedDataframeConfig(msg.format(name))
     return ins, outs, binnings
 
 
