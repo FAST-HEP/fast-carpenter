@@ -158,7 +158,7 @@ def test_BinnedDataframe_numexpr(binned_df_3, tmpdir):
     assert binned_df_3._bin_dims[0] == "sqrt(Electron_Px**2 + Electron_Py**2)"
     assert binned_df_3._binnings[0][1] == 0.0
     assert binned_df_3._binnings[0][-2] == 200
-    assert len(binned_df_3._binnings[0]) == 2*10 + 1 + 2
+    assert len(binned_df_3._binnings[0]) == 2 * 10 + 1 + 2
     assert len(binned_df_3._weights) == 1
 
 

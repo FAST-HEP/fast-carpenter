@@ -58,7 +58,7 @@ def main(args=None):
 
     sequence = fast_flow.read_sequence_yaml(args.sequence_cfg, output_dir=args.outdir, backend="fast_carpenter")
     datasets = fast_curator.read.from_yaml(args.dataset_cfg)
-    backend = get_backend("alphatwirl")
+    backend = get_backend(args.mode)
 
     mkdir_p(args.outdir)
     results, _ = backend.execute(sequence, datasets, args)
