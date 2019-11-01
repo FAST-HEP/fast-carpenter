@@ -27,8 +27,9 @@
 .. image:: https://zenodo.org/badge/187055992.svg
    :target: https://zenodo.org/badge/latestdoi/187055992
 
-fast-carpenter
-==============
+.. image:: https://raw.githubusercontent.com/FAST-HEP/logos-etc/master/fast-carpenter-black.png
+   :target: https://github.com/fast-hep/fast-carpenter
+   :alt: fast-carpenter
 
 Turns your trees into tables (ie. reads ROOT TTrees, writes summary Pandas DataFrames)
 
@@ -49,7 +50,7 @@ Powered by:
 * uproot: to load ROOT Trees into memory as numpy arrays
 * fast-flow: to manage the processing config files
 * fast-curator: to orchestrate the lists of datasets to be processed
-* coffee: to help the developer(s) write code
+* Espresso: to keep the developer(s) writing code
 
 A tool from the Faster Analysis Software Taskforce: http://fast-hep.web.cern.ch/
 
