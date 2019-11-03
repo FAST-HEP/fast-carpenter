@@ -33,6 +33,7 @@
 
 Turns your trees into tables (ie. reads ROOT TTrees, writes summary Pandas DataFrames)
 
+
 fast-carpenter can:
 
 
@@ -41,6 +42,7 @@ fast-carpenter can:
 * Cut out events or define phase-space "regions"
 * Produce histograms stored as CSV files using multiple weighting schemes
 * Make use of user-defined stages to manipulate the data
+
 
 Powered by:
 
@@ -51,6 +53,7 @@ Powered by:
 * fast-flow: to manage the processing config files
 * fast-curator: to orchestrate the lists of datasets to be processed
 * Espresso: to keep the developer(s) writing code
+
 
 A tool from the Faster Analysis Software Taskforce: http://fast-hep.web.cern.ch/
 
