@@ -39,10 +39,6 @@ class Collector():
 
         final_df = pd.concat(all_dfs, keys=keys, names=['dataset'], sort=True)
 
-#            for reader in readers:
-#                if final_df is None: final_df = pd.concat([reader.contents], keys=[dataset], names=['dataset'])
-#                else: final_df = pd.concat([final_df, reader.contents], keys=[dataset], names=['dataset'])
-
         return final_df.reset_index()
 
 
@@ -74,9 +70,7 @@ class EventByEventDataframe(object):
 
     def collector(self):
 
-        outfilename = "df_"
-        outfilename += self.name
-        outfilename += ".hd5"
+        outfilename = "df_" + self.name + ".hd5"
         outfilename = os.path.join(self.out_dir, outfilename)
         return Collector(outfilename)
 
@@ -87,7 +81,3 @@ class EventByEventDataframe(object):
             self.contents = rhs.contents
             return
         self.contents = pd.concat([self.contents, rhs.contents])
-
-
-if __name__ == "__main__":
-    print("hello")
