@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [0.16.1] - 2020-02-16
+### Fixed
+- Unit test that was broken by Pandas >1.0.0
+- Bug in explode function when an dimension contains strings, issue #109, PR #110 [@BenKrikler](https://github.com/benkrikler)
 
 ## [0.16.0] - 2019-11-1
 ### Added
