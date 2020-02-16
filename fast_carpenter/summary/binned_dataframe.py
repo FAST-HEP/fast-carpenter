@@ -262,6 +262,9 @@ def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_we
     return histogram
 
 
+_explodable_types = (tuple, list, np.ndarray)
+
+
 def explode(df):
     """
     Based on this answer:
@@ -270,6 +273,8 @@ def explode(df):
     """
     # get the list columns
     lst_cols = [col for col, dtype in df.dtypes.items() if is_object_dtype(dtype)]
+    # Be more specific about which objects are ok
+    lst_cols = [col for col in lst_cols if isinstance(df[col][0], _explodable_types)]
     if not lst_cols:
         return df
 

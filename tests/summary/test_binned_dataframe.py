@@ -130,11 +130,15 @@ def test_binneddataframe_run_twice_data_mc(run_twice_data_mc, dataset_col, pad_m
     results = collector._prepare_output(dataset_readers_list)
 
     assert results.index.nlevels == 2 + int(dataset_col)
-    if pad_missing or not dataset_col:
+    if tuple(map(int, pd.__version__.split("."))) >= (1, 0, 0):
         length = (4 * 12) * (1 + int(dataset_col))
     else:
-        length = 95  # When dataset_col True and pad_missing False one bin is missing
-        assert len(results) == length
+        # Pre Pandas 1.0.0 the following lengths were needed.
+        if pad_missing or not dataset_col:
+            length = (4 * 12) * (1 + int(dataset_col))
+        else:
+            length = 95  # When dataset_col True and pad_missing False one bin is missing
+    assert len(results) == length
 
     totals = results.sum()
     # Based on: events->Draw("Jet_Py", "", "goff")
@@ -233,3 +237,12 @@ def test_explode():
                         })
     exploded = bdf.explode(df2)
     assert len(exploded) == 8
+
+    df = pd.DataFrame({'number': [1, 8, 3], 'string': ['one', 'eight', 'three']})
+    exploded = bdf.explode(df)
+    assert len(exploded) == 3
+
+    df["list"] = [list(range(i)) for i in df.number]
+    exploded = bdf.explode(df)
+    assert len(exploded) == 1 + 8 + 3
+    assert np.array_equal(exploded.list, [0, 0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2])
