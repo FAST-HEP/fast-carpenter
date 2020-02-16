@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [0.17.0] - 2020-02-16
+### Add
+- New stage: Event-by-Event dataframes (like a skim), PR #108 [@davignon](https://github.com/davignon/)
+
 ## [0.16.1] - 2020-02-16
 ### Fixed
 - Unit test that was broken by Pandas >1.0.0
