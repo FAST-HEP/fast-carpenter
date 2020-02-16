@@ -131,13 +131,14 @@ def test_binneddataframe_run_twice_data_mc(run_twice_data_mc, dataset_col, pad_m
 
     assert results.index.nlevels == 2 + int(dataset_col)
     if tuple(map(int, pd.__version__.split("."))) >= (1, 0, 0):
-        assert len(results.dropna(how="all")) == (4 * 12) * (1 + int(dataset_col))
+        length = (4 * 12) * (1 + int(dataset_col))
     else:
         # Pre Pandas 1.0.0 the following lengths were needed.
         if pad_missing or not dataset_col:
             length = (4 * 12) * (1 + int(dataset_col))
         else:
             length = 95  # When dataset_col True and pad_missing False one bin is missing
+    assert len(results) == length
 
     totals = results.sum()
     # Based on: events->Draw("Jet_Py", "", "goff")
