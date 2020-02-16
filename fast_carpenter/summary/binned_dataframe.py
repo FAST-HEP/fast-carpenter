@@ -263,6 +263,8 @@ def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_we
 
 
 _explodable_types = (tuple, list, np.ndarray)
+
+
 def explode(df):
     """
     Based on this answer:
