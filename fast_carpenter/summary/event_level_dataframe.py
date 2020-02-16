@@ -43,6 +43,9 @@ class Collector():
 
 
 class EventByEventDataframe(object):
+    """
+    Write out a pandas dataframe with event-level values
+    """
 
     def __init__(self, name, out_dir, collections, mask=None, flatten=True):
 

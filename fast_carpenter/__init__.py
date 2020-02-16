@@ -9,7 +9,7 @@ __email__ = 'fast-hep@cern.ch'
 from .define.variables import Define
 from .define.systematics import SystematicWeights
 from .selection.stage import CutFlow, SelectPhaseSpace
-from .summary import BinnedDataframe, BuildAghast
+from .summary import BinnedDataframe, BuildAghast, EventByEventDataframe
 from .version import __version__, version_info
 
 
@@ -19,4 +19,5 @@ __all__ = ["Define", "SystematicWeights", "CutFlow",
 
 
 known_stages = [Define, SystematicWeights, CutFlow,
-                SelectPhaseSpace, BinnedDataframe, BuildAghast]
+                SelectPhaseSpace, BinnedDataframe, BuildAghast,
+                EventByEventDataframe]
