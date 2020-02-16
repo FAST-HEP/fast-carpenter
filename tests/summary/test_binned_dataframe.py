@@ -233,3 +233,12 @@ def test_explode():
                         })
     exploded = bdf.explode(df2)
     assert len(exploded) == 8
+
+    df = pd.DataFrame({'number': [1, 8, 3], 'string': ['one', 'eight', 'three']})
+    exploded = bdf.explode(df)
+    assert len(exploded) == 3
+
+    df["list"] = [list(range(i)) for i in df.number]
+    exploded = bdf.explode(df)
+    assert len(exploded) == 1 + 8 + 3
+    assert np.array_equal(exploded.list, [0, 0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2])
