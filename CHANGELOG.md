@@ -6,8 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ## [0.17.1] - 2020-02-16
-### Fixed
+### Changed
 - Updated version in setup.py to mark as a new version
+- Upgrade atsge to v0.2.0
 
 ## [0.17.0] - 2020-02-16
 ### Add
