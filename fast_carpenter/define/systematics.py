@@ -31,6 +31,10 @@ class SystematicWeights():
           variable to use for the "nominal" variation, or a dictionary containing
           any of the keys, ``nominal``, ``up``, or ``down``.  Each of these should
           then have a value providing the expression to use for that variation/
+      out_format (str): The format string to use to build the name of the
+          output variations.  Defaults to "weight_{}".  Should contain a pair
+          of empty braces which will be replaced with the name for the current
+          variation, e.g. "nominal" or "PileUp_up".
 
     Other Parameters:
       name (str):  The name of this stage (handled automatically by fast-flow)
@@ -53,11 +57,11 @@ class SystematicWeights():
         weight_energy_scale_down =  WeightEnergyScaleDown * TriggerEfficiency * ReconEfficiency
         weight_recon_up =  WeightEnergyScale * TriggerEfficiency * ReconEfficiency_up
     """
-    def __init__(self, name, out_dir, weights):
+    def __init__(self, name, out_dir, weights, out_format="weight_{}"):
         self.name = name
         self.out_dir = out_dir
         weights = _normalize_weights(name, weights)
-        variations = _build_variations(name, weights)
+        variations = _build_variations(name, weights, out_fmt=out_format)
         self.variable_maker = Define(name + "_builder", out_dir, variations)
 
     def event(self, chunk):
@@ -73,15 +77,15 @@ def _normalize_weights(stage_name, variable_list):
     return {name: _normalize_one_variation(stage_name, cfg) for name, cfg in variable_list.items()}
 
 
-def _build_variations(stage_name, weights, out_name="weight_{}"):
+def _build_variations(stage_name, weights, out_fmt="weight_{}"):
     nominal_weights = {n: w["nominal"] for n, w in weights.items()}
-    variations = [{out_name.format("nominal"): "*".join(nominal_weights.values())}]
+    variations = [{out_fmt.format("nominal"): "*".join(nominal_weights.values())}]
     weights_to_vary = {(n, var): w[var] for n, w in weights.items() for var in ("up", "down") if var in w}
     for (name, direction), variable in weights_to_vary.items():
         combination = nominal_weights.copy()
         combination[name] = variable
         combination = "*".join(combination.values())
-        variations.append({out_name.format(name + "_" + direction): combination})
+        variations.append({out_fmt.format(name + "_" + direction): combination})
     return variations
 
 
