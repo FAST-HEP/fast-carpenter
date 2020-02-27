@@ -81,8 +81,12 @@ def test_build_variations():
     assert isinstance(formulae, list)
     assert all(map(lambda x: isinstance(x, dict) and len(x) == 1, formulae))
     formulae = {list(i.keys())[0]: list(i.values())[0] for i in formulae}
-    assert formulae["Weight_nominal_test"] == "(PILEUP)*(Iso)*(Blahblah)"
-    assert formulae["Weight_pileup_up_test"] == "(PILEUP_UP)*(Iso)*(Blahblah)"
-    assert formulae["Weight_pileup_down_test"] == "(PILEUP_DOWN)*(Iso)*(Blahblah)"
-    assert formulae["Weight_isolation_up_test"] == "(PILEUP)*(IsoUp)*(Blahblah)"
-    assert formulae["Weight_another_left_test"] == "(PILEUP)*(Iso)*(BlahblahLeft)"
+
+    def prep(string):
+        return set(string.split("*"))
+
+    assert prep(formulae["Weight_nominal_test"]) == prep("(PILEUP)*(Iso)*(Blahblah)")
+    assert prep(formulae["Weight_pileup_up_test"]) == prep("(PILEUP_UP)*(Iso)*(Blahblah)")
+    assert prep(formulae["Weight_pileup_down_test"]) == prep("(PILEUP_DOWN)*(Iso)*(Blahblah)")
+    assert prep(formulae["Weight_isolation_up_test"]) == prep("(PILEUP)*(IsoUp)*(Blahblah)")
+    assert prep(formulae["Weight_another_left_test"]) == prep("(PILEUP)*(Iso)*(BlahblahLeft)")
