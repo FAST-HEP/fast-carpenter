@@ -35,6 +35,7 @@ class SystematicWeights():
           output variations.  Defaults to "weight_{}".  Should contain a pair
           of empty braces which will be replaced with the name for the current
           variation, e.g. "nominal" or "PileUp_up".
+      extra_variations (list[str]): A list of additional variations to allow
 
     Other Parameters:
       name (str):  The name of this stage (handled automatically by fast-flow)
@@ -57,10 +58,10 @@ class SystematicWeights():
         weight_energy_scale_down =  WeightEnergyScaleDown * TriggerEfficiency * ReconEfficiency
         weight_recon_up =  WeightEnergyScale * TriggerEfficiency * ReconEfficiency_up
     """
-    def __init__(self, name, out_dir, weights, out_format="weight_{}", valid_variations=[]):
+    def __init__(self, name, out_dir, weights, out_format="weight_{}", extra_variations=[]):
         self.name = name
         self.out_dir = out_dir
-        weights = _normalize_weights(name, weights, tuple(valid_variations))
+        weights = _normalize_weights(name, weights, tuple(extra_variations))
         variations = _build_variations(name, weights, out_fmt=out_format)
         self.variable_maker = Define(name + "_builder", out_dir, variations)
 
@@ -74,7 +75,8 @@ def _normalize_weights(stage_name, variable_list, valid_vars):
     if not isinstance(variable_list, dict):
         msg = "{}: Didn't receive a list of variables"
         raise BadSystematicWeightsConfig(msg.format(stage_name))
-    return {name: _normalize_one_variation(stage_name, cfg, name, valid_vars=valid_vars) for name, cfg in variable_list.items()}
+    return {name: _normalize_one_variation(stage_name, cfg, name, valid_vars=valid_vars)
+            for name, cfg in variable_list.items()}
 
 
 def _build_variations(stage_name, weights, out_fmt="weight_{}"):
