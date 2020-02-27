@@ -81,8 +81,8 @@ def test_build_variations():
     assert isinstance(formulae, list)
     assert all(map(lambda x: isinstance(x, dict) and len(x) == 1, formulae))
     formulae = {list(i.keys())[0]: list(i.values())[0] for i in formulae}
-    formulae["Weight_nominal_test"] == "PILEUP*Iso*Blahblah"
-    formulae["Weight_pileup_up_test"] == "PILEUP_UP*Iso*Blahblah"
-    formulae["Weight_pileup_down_test"] == "PILEUP_DOWN*Iso*Blahblah"
-    formulae["Weight_isolation_up_test"] == "PILEUP*IsoUp*Blahblah"
-    formulae["Weight_another_left_test"] == "PILEUP*Iso*BlahblahLeft"
+    assert formulae["Weight_nominal_test"] == "(PILEUP)*(Iso)*(Blahblah)"
+    assert formulae["Weight_pileup_up_test"] == "(PILEUP_UP)*(Iso)*(Blahblah)"
+    assert formulae["Weight_pileup_down_test"] == "(PILEUP_DOWN)*(Iso)*(Blahblah)"
+    assert formulae["Weight_isolation_up_test"] == "(PILEUP)*(IsoUp)*(Blahblah)"
+    assert formulae["Weight_another_left_test"] == "(PILEUP)*(Iso)*(BlahblahLeft)"

@@ -80,13 +80,16 @@ def _normalize_weights(stage_name, variable_list, valid_vars):
 
 
 def _build_variations(stage_name, weights, out_fmt="weight_{}"):
+    def _combine_weights(w):
+        return "(" + ")*(".join(w) + ")"
+
     nominal_weights = {n: w["nominal"] for n, w in weights.items()}
-    variations = [{out_fmt.format("nominal"): "*".join(nominal_weights.values())}]
+    variations = [{out_fmt.format("nominal"): _combine_weights(nominal_weights.values())}]
     weights_to_vary = {(n, var): w[var] for n, w in weights.items() for var in w if var != "nominal"}
     for (name, direction), variable in weights_to_vary.items():
         combination = nominal_weights.copy()
         combination[name] = variable
-        combination = "*".join(combination.values())
+        combination = _combine_weights(combination.values())
         variations.append({out_fmt.format(name + "_" + direction): combination})
     return variations
 
