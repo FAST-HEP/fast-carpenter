@@ -31,6 +31,11 @@ class SystematicWeights():
           variable to use for the "nominal" variation, or a dictionary containing
           any of the keys, ``nominal``, ``up``, or ``down``.  Each of these should
           then have a value providing the expression to use for that variation/
+      out_format (str): The format string to use to build the name of the
+          output variations.  Defaults to "weight_{}".  Should contain a pair
+          of empty braces which will be replaced with the name for the current
+          variation, e.g. "nominal" or "PileUp_up".
+      extra_variations (list[str]): A list of additional variations to allow
 
     Other Parameters:
       name (str):  The name of this stage (handled automatically by fast-flow)
@@ -53,11 +58,11 @@ class SystematicWeights():
         weight_energy_scale_down =  WeightEnergyScaleDown * TriggerEfficiency * ReconEfficiency
         weight_recon_up =  WeightEnergyScale * TriggerEfficiency * ReconEfficiency_up
     """
-    def __init__(self, name, out_dir, weights):
+    def __init__(self, name, out_dir, weights, out_format="weight_{}", extra_variations=[]):
         self.name = name
         self.out_dir = out_dir
-        weights = _normalize_weights(name, weights)
-        variations = _build_variations(name, weights)
+        weights = _normalize_weights(name, weights, tuple(extra_variations))
+        variations = _build_variations(name, weights, out_fmt=out_format)
         self.variable_maker = Define(name + "_builder", out_dir, variations)
 
     def event(self, chunk):
@@ -66,33 +71,41 @@ class SystematicWeights():
         return self.variable_maker.event(chunk)
 
 
-def _normalize_weights(stage_name, variable_list):
+def _normalize_weights(stage_name, variable_list, valid_vars):
     if not isinstance(variable_list, dict):
         msg = "{}: Didn't receive a list of variables"
         raise BadSystematicWeightsConfig(msg.format(stage_name))
-    return {name: _normalize_one_variation(stage_name, cfg) for name, cfg in variable_list.items()}
+    return {name: _normalize_one_variation(stage_name, cfg, name, valid_vars=valid_vars)
+            for name, cfg in variable_list.items()}
 
 
-def _build_variations(stage_name, weights, out_name="weight_{}"):
+def _build_variations(stage_name, weights, out_fmt="weight_{}"):
+    def _combine_weights(w):
+        return "(" + ")*(".join(w) + ")"
+
     nominal_weights = {n: w["nominal"] for n, w in weights.items()}
-    variations = [{out_name.format("nominal"): "*".join(nominal_weights.values())}]
-    weights_to_vary = {(n, var): w[var] for n, w in weights.items() for var in ("up", "down") if var in w}
+    variations = [{out_fmt.format("nominal"): _combine_weights(nominal_weights.values())}]
+    weights_to_vary = {(n, var): w[var] for n, w in weights.items() for var in w if var != "nominal"}
     for (name, direction), variable in weights_to_vary.items():
         combination = nominal_weights.copy()
         combination[name] = variable
-        combination = "*".join(combination.values())
-        variations.append({out_name.format(name + "_" + direction): combination})
+        combination = _combine_weights(combination.values())
+        variations.append({out_fmt.format(name + "_" + direction): combination})
     return variations
 
 
-def _normalize_one_variation(stage_name, cfg):
+def _normalize_one_variation(stage_name, cfg, name, valid_vars):
     if isinstance(cfg, six.string_types):
         return dict(nominal=cfg)
     if not isinstance(cfg, dict):
         msg = "{}: Each systematic weight should be either a dict or just a string"
         raise BadSystematicWeightsConfig(msg.format(stage_name))
-    bad_keys = [key for key in cfg if key not in ("nominal", "up", "down")]
+    if "nominal" not in cfg:
+        msg = "{}: No nominal weight provided for '{}'"
+        raise BadSystematicWeightsConfig(msg.format(stage_name, name))
+
+    bad_keys = [key for key in cfg if key not in ("nominal", "up", "down") + valid_vars]
     if bad_keys:
-        msg = "{}: Received unknown keys '{}'"
-        raise BadSystematicWeightsConfig(msg.format(stage_name, bad_keys))
+        msg = "{}: Received unknown keys,'{}', for '{}'"
+        raise BadSystematicWeightsConfig(msg.format(stage_name, bad_keys, name))
     return cfg

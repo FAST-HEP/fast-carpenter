@@ -41,3 +41,52 @@ def test_systematic_variations_1_mc(systematic_variations_1, fake_file):
     assert all(chunk.tree.weight_nominal == [0, 4, 8])
     assert all(chunk.tree.weight_varied_up == [0, 6., 12.])
     assert all(chunk.tree.weight_varied_down == [0, 3., 6.])
+
+
+def test_normalize_one_variation():
+    cfg = dict(nominal="one", up="two")
+    stage_name = "test_normalize_one_variation"
+    out = fast_syst._normalize_one_variation(stage_name, cfg, "test1", tuple())
+    assert len(out) == 2
+    assert out["nominal"] == "one"
+    assert out["up"] == "two"
+
+    with pytest.raises(fast_syst.BadSystematicWeightsConfig) as e:
+        fast_syst._normalize_one_variation(stage_name, dict(a="bad"), "test2", tuple())
+    assert "nominal" in str(e)
+
+    with pytest.raises(fast_syst.BadSystematicWeightsConfig) as e:
+        fast_syst._normalize_one_variation(stage_name, dict(nominal="one", a="bad"), "test3", tuple())
+    assert "unknown key" in str(e)
+
+    out = fast_syst._normalize_one_variation(stage_name, dict(nominal="one", a="bad"), "test3", tuple("a"))
+    assert len(out) == 2
+    assert out["nominal"] == "one"
+    assert out["a"] == "bad"
+
+    out = fast_syst._normalize_one_variation(stage_name, "just_a_string", "test4", tuple())
+    assert len(out) == 1
+    assert out["nominal"] == "just_a_string"
+
+
+def test_build_variations():
+    pileup = dict(nominal="PILEUP", up="PILEUP_UP", down="PILEUP_DOWN")
+    isolation = dict(nominal="Iso", up="IsoUp")
+    another = dict(nominal="Blahblah", left="BlahblahLeft")
+
+    all_vars = dict(pileup=pileup, isolation=isolation, another=another)
+    stage_name = "test_build_variations"
+    formulae = fast_syst._build_variations(stage_name, all_vars, out_fmt="Weight_{}_test")
+    assert len(formulae) == 5
+    assert isinstance(formulae, list)
+    assert all(map(lambda x: isinstance(x, dict) and len(x) == 1, formulae))
+    formulae = {list(i.keys())[0]: list(i.values())[0] for i in formulae}
+
+    def prep(string):
+        return set(string.split("*"))
+
+    assert prep(formulae["Weight_nominal_test"]) == prep("(PILEUP)*(Iso)*(Blahblah)")
+    assert prep(formulae["Weight_pileup_up_test"]) == prep("(PILEUP_UP)*(Iso)*(Blahblah)")
+    assert prep(formulae["Weight_pileup_down_test"]) == prep("(PILEUP_DOWN)*(Iso)*(Blahblah)")
+    assert prep(formulae["Weight_isolation_up_test"]) == prep("(PILEUP)*(IsoUp)*(Blahblah)")
+    assert prep(formulae["Weight_another_left_test"]) == prep("(PILEUP)*(Iso)*(BlahblahLeft)")
