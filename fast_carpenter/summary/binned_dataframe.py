@@ -100,7 +100,7 @@ def densify_dataframe(in_df, binnings):
         if bins is None:
             index_values.append(in_index.unique(dim))
             continue
-        index_values.append(pd.IntervalIndex.from_breaks(bins, closed="left"))
+        index_values.append(bins)
     out_index = pd.MultiIndex.from_product(index_values, names=in_index.names)
     out_df = in_df.reindex(index=out_index, copy=False)
     return out_df

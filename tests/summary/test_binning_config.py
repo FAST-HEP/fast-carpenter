@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+import pandas as pd
 import fast_carpenter.summary.binning_config as mgr
 from . import dummy_binning_descriptions as binning
 
@@ -19,10 +20,10 @@ def test_create_one_dimension_aT():
     assert _in == "MET_px"
     assert _out == "met_px"
     assert _index is None
-    assert isinstance(_bins, np.ndarray)
-    assert np.all(_bins[1:-1] == np.linspace(0, 100, 11))
-    assert _bins[0] == float("-inf")
-    assert _bins[-1] == float("inf")
+    assert isinstance(_bins, pd.IntervalIndex)
+    assert np.all(_bins.left[1:] == np.linspace(0, 100, 30))
+    assert _bins[0].left == float("-inf")
+    assert _bins[-1].right == float("inf")
 
 
 def test_create_one_dimension_HT():
@@ -31,10 +32,10 @@ def test_create_one_dimension_HT():
     assert _in == "Jet_Py"
     assert _out == "py_leadJet"
     assert _index == 0
-    assert isinstance(_bins, np.ndarray)
-    assert np.all(_bins[1:-1] == [0, 20, 100])
-    assert _bins[0] == float("-inf")
-    assert _bins[-1] == float("inf")
+    assert isinstance(_bins, pd.IntervalIndex)
+    assert np.all(_bins.left[1:] == [0, 20, 100])
+    assert _bins[0].left == float("-inf")
+    assert _bins[-1].right == float("inf")
 
 
 def test_create_binning_list():

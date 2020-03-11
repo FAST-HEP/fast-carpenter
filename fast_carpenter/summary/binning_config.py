@@ -77,6 +77,7 @@ def bin_one_dimension(low=None, high=None, nbins=None, edges=None,
         bin_obj = np.insert(bin_obj, 0, float("-inf"))
     if overflow:
         bin_obj = np.append(bin_obj, float("inf"))
+    bin_obj = pd.IntervalIndex.from_breaks(bin_obj, closed="left")
     return bin_obj
 
 

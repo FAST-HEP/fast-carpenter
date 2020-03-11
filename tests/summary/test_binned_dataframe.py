@@ -40,9 +40,11 @@ def make_binned_df_1(config_1):
 def test_BinnedDataframe(binned_df_1, tmpdir):
     assert binned_df_1.name == "binned_df_1"
     assert len(binned_df_1._binnings) == 2
-    # bin length for met_px: nbins, plus 1 for edge, plus 2 for +-inf
     assert binned_df_1._bin_dims[0] == "MET_px"
-    assert len(binned_df_1._binnings[0]) == 29 + 1 + 2
+    # length of bin lists = nbins plus 2 for +/-inf
+    assert len(binned_df_1._binnings[0]) == 29 + 2
+    # length of bin lists = len(edges) - 1 plus 2 for +/-inf
+    assert len(binned_df_1._binnings[1]) == 3 - 1 + 2
     assert len(binned_df_1._weights) == 1
 
 
@@ -158,11 +160,11 @@ def binned_df_3(tmpdir, config_3):
 def test_BinnedDataframe_numexpr(binned_df_3, tmpdir):
     assert binned_df_3.name == "binned_df_3"
     assert len(binned_df_3._binnings) == 1
-    # bin length for electron_pT nbins, plus 1 for edge, plus 2 for +-inf
     assert binned_df_3._bin_dims[0] == "sqrt(Electron_Px**2 + Electron_Py**2)"
-    assert binned_df_3._binnings[0][1] == 0.0
-    assert binned_df_3._binnings[0][-2] == 200
-    assert len(binned_df_3._binnings[0]) == 2 * 10 + 1 + 2
+    assert binned_df_3._binnings[0][1].left == 0.0
+    assert binned_df_3._binnings[0][-1].left == 200
+    # length of bin lists = nbins plus 2 for +/-inf
+    assert len(binned_df_3._binnings[0]) == 2 * 10 + 2
     assert len(binned_df_3._weights) == 1
 
 
@@ -246,3 +248,32 @@ def test_explode():
     exploded = bdf.explode(df)
     assert len(exploded) == 1 + 8 + 3
     assert np.array_equal(exploded.list, [0, 0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2])
+
+
+def test_densify_dataframe_integers():
+    index = [("one", 1), ("one", 3), ("two", 2), ("three", 1), ("three", 2)]
+    index = pd.MultiIndex.from_tuples(index, names=["foo", "bar"])
+    df = pd.DataFrame({'A': np.arange(5, 0, -1), 'B': list("abcde")}, index=index)
+    out_df = bdf.densify_dataframe(df, {"bar": list(range(1, 4))})
+
+    assert len(out_df) == 9
+    assert out_df.loc[("one", 2)].isna().all()
+    assert out_df.loc[("two", 1)].isna().all()
+    assert out_df.loc[("two", 3)].isna().all()
+    assert out_df.loc[("three", 3)].isna().all()
+
+
+def test_densify_dataframe_intervals():
+    index = [("one", 1), ("one", 3), ("two", 2), ("three", 1), ("three", 2)]
+    index = [(a, pd.Interval(b, b + 1)) for a, b in index]
+    index = pd.MultiIndex.from_tuples(index, names=["foo", "bar"])
+    df = pd.DataFrame({'A': np.arange(5, 0, -1), 'B': list("abcde")}, index=index)
+    out_df = bdf.densify_dataframe(df, {"bar": pd.IntervalIndex.from_breaks(range(1, 5))})
+    print(df)
+    print(out_df)
+
+    assert len(out_df) == 9
+    assert out_df.loc[("one", pd.Interval(2, 3))].isna().all()
+    assert out_df.loc[("two", pd.Interval(1, 2))].isna().all()
+    assert out_df.loc[("two", pd.Interval(3, 4))].isna().all()
+    assert out_df.loc[("three", pd.Interval(3, 4))].isna().all()
