@@ -42,7 +42,7 @@ def test_BinnedDataframe(binned_df_1, tmpdir):
     assert len(binned_df_1._binnings) == 2
     # bin length for met_px: nbins, plus 1 for edge, plus 2 for +-inf
     assert binned_df_1._bin_dims[0] == "MET_px"
-    assert len(binned_df_1._binnings[0]) == 10 + 1 + 2
+    assert len(binned_df_1._binnings[0]) == 29 + 1 + 2
     assert len(binned_df_1._weights) == 1
 
 
@@ -131,11 +131,11 @@ def test_binneddataframe_run_twice_data_mc(run_twice_data_mc, dataset_col, pad_m
 
     assert results.index.nlevels == 2 + int(dataset_col)
     if tuple(map(int, pd.__version__.split("."))) >= (1, 0, 0):
-        length = (4 * 12) * (1 + int(dataset_col))
+        length = (4 * 31) * (1 + int(dataset_col))
     else:
         # Pre Pandas 1.0.0 the following lengths were needed.
         if pad_missing or not dataset_col:
-            length = (4 * 12) * (1 + int(dataset_col))
+            length = (4 * 31) * (1 + int(dataset_col))
         else:
             length = 95  # When dataset_col True and pad_missing False one bin is missing
     assert len(results) == length
