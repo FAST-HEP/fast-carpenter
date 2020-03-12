@@ -1,4 +1,4 @@
-bins_met_px = {"in": "MET_px", "out": "met_px", "bins": dict(nbins=10, low=0, high=100)}
+bins_met_px = {"in": "MET_px", "out": "met_px", "bins": dict(nbins=29, low=0, high=100)}
 
 
 bins_py = {"in": "Jet_Py", "out": "py_leadJet", "bins": dict(edges=[0, 20., 100.], overflow=True), "index": 0}
