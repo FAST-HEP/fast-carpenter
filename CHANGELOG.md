@@ -5,9 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.17.4] - 2020-03-12
+### Changed
+- `pad_missing` was replacing bin contents when set to True, PR #116 [@BenKrikler](https://github.com/benkrikler)
+
 ## [0.17.3] - 2020-02-27
 ### Changed
-- Allow SystematicWeights stage to be used twice, PR #115 [@BenKrikler](https://github.com/benkrikler/)
+- Allow SystematicWeights stage to be used twice, PR #115 [@BenKrikler](https://github.com/benkrikler)
 
 ## [0.17.2] - 2020-02-25
 ### Changed
