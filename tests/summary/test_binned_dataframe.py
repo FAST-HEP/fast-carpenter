@@ -139,8 +139,9 @@ def test_binneddataframe_run_twice_data_mc(run_twice_data_mc, dataset_col, pad_m
         if pad_missing or not dataset_col:
             length = (4 * 31) * (1 + int(dataset_col))
         else:
-            length = 95  # When dataset_col True and pad_missing False one bin is missing
-    assert len(results) == length
+            length = None
+    if length:
+        assert len(results) == length
 
     totals = results.sum()
     # Based on: events->Draw("Jet_Py", "", "goff")
