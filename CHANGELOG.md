@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.17.5] - 2020-04-03
+### Changed
+- Add `observed` option to BinnedDataframe for speed boost with many bins, PR #118 [@BenKrikler](https://github.com/benkrikler)
+
 ## [0.17.4] - 2020-03-12
 ### Changed
 - `pad_missing` was replacing bin contents when set to True, PR #116 [@BenKrikler](https://github.com/benkrikler)
