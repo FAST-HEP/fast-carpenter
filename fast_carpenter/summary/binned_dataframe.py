@@ -161,7 +161,7 @@ class BinnedDataframe():
 
     """
 
-    def __init__(self, name, out_dir, binning, weights=None, dataset_col=True, pad_missing=False, file_format=None):
+    def __init__(self, name, out_dir, binning, weights=None, dataset_col=True, pad_missing=False, file_format=None, observed=False):
         self.name = name
         self.out_dir = out_dir
         ins, outs, binnings = cfg.create_binning_list(self.name, binning)
@@ -173,6 +173,7 @@ class BinnedDataframe():
         self._weights = cfg.create_weights(self.name, weights)
         self._pad_missing = pad_missing
         self._file_format = cfg.create_file_format(self.name, file_format)
+        self._observed = observed
         self.contents = None
 
     def collector(self):
@@ -202,7 +203,8 @@ class BinnedDataframe():
                                     binnings=self._binnings,
                                     weights=weights,
                                     out_weights=self._weights.keys(),
-                                    out_dimensions=self._out_bin_dims)
+                                    out_dimensions=self._out_bin_dims,
+                                    observed=self._observed)
         if self.contents is None:
             self.contents = binned_values
         else:
@@ -228,7 +230,7 @@ def _make_column_labels(weights):
     return [count_label] + labels
 
 
-def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_weights=None):
+def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_weights=None, observed=True):
     if not out_dimensions:
         out_dimensions = dimensions
     if not out_weights:
@@ -247,7 +249,7 @@ def _bin_values(data, dimensions, binnings, weights, out_dimensions=None, out_we
         weight_sq_dims = [w + "_squared" for w in weights]
         data[weight_sq_dims] = data[weights] ** 2
 
-    bins = data.groupby(final_bin_dims)
+    bins = data.groupby(final_bin_dims, observed=observed)
     counts = bins[data.columns[0]].count()
 
     if weights:
