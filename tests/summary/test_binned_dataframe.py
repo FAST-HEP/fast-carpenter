@@ -115,7 +115,7 @@ def test_BinnedDataframe_run_twice(binned_df_1, tmpdir, infile):
     assert totals["EventWeight:sumw"] == pytest.approx(231.91339 * 2)
 
 
-@pytest.fixture #(scope="function")
+@pytest.fixture
 def run_twice_data_mc(config_1, infile, observed):
     chunk_mc = FakeBEEvent(infile, "mc")
     chunk_data = FakeBEEvent(infile, "data")
