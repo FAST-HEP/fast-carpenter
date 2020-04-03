@@ -86,6 +86,14 @@ def test_BinnedDataframe_run_data(binned_df_2, tmpdir, infile):
     chunk = FakeBEEvent(infile, "data")
     binned_df_2.event(chunk)
 
+    collector = binned_df_2.collector()
+    dataset_readers_list = (("test_dataset", (binned_df_2,)),)
+    results = collector._prepare_output(dataset_readers_list)
+
+    totals = results.sum()
+    # Based on: events->Draw("Jet_Py", "", "goff")
+    assert totals["n"] == 4616
+
 
 def test_BinnedDataframe_run_twice(binned_df_1, tmpdir, infile):
     chunk = FakeBEEvent(infile, "mc")
@@ -108,9 +116,10 @@ def test_BinnedDataframe_run_twice(binned_df_1, tmpdir, infile):
 
 
 @pytest.fixture
-def run_twice_data_mc(config_1, infile):
+def run_twice_data_mc(config_1, infile, observed):
     chunk_mc = FakeBEEvent(infile, "mc")
     chunk_data = FakeBEEvent(infile, "data")
+    config_1["observed"] = observed
 
     binned_dfs = [make_binned_df_1(config_1) for _ in range(4)]
     binned_dfs[0].event(chunk_mc)
@@ -122,9 +131,11 @@ def run_twice_data_mc(config_1, infile):
                            ("test_data", (binned_dfs[2], binned_dfs[3])))
 
 
+@pytest.mark.skipif(int(pd.__version__.split(".")[0]) < 1, reason="requires Pandas 1.0 or higher")
 @pytest.mark.parametrize("dataset_col", [True, False])
 @pytest.mark.parametrize("pad_missing", [True, False])
-def test_binneddataframe_run_twice_data_mc(run_twice_data_mc, dataset_col, pad_missing):
+@pytest.mark.parametrize("observed", [True, False])
+def test_binneddataframe_run_twice_data_mc(run_twice_data_mc, dataset_col, pad_missing, observed):
     binned_df_1, dataset_readers_list = run_twice_data_mc
     binned_df_1._pad_missing = pad_missing
     binned_df_1._dataset_col = dataset_col
@@ -132,16 +143,13 @@ def test_binneddataframe_run_twice_data_mc(run_twice_data_mc, dataset_col, pad_m
     results = collector._prepare_output(dataset_readers_list)
 
     assert results.index.nlevels == 2 + int(dataset_col)
-    if tuple(map(int, pd.__version__.split("."))) >= (1, 0, 0):
-        length = (4 * 31) * (1 + int(dataset_col))
-    else:
-        # Pre Pandas 1.0.0 the following lengths were needed.
-        if pad_missing or not dataset_col:
-            length = (4 * 31) * (1 + int(dataset_col))
-        else:
-            length = None
-    if length:
-        assert len(results) == length
+    if pad_missing or not observed:
+        length = (4 * 31)
+    elif observed:
+        length = 111
+
+    length *= 1 + int(dataset_col)
+    assert len(results) == length
 
     totals = results.sum()
     # Based on: events->Draw("Jet_Py", "", "goff")
