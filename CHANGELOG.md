@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [0.17.5] - 2020-04-03
-### Changed
+### Added
 - Add `observed` option to BinnedDataframe for speed boost with many bins, PR #118 [@BenKrikler](https://github.com/benkrikler)
+
+### Changed
+- Pin the version for the Mantichora package that AlphaTwirl depends on
 
 ## [0.17.4] - 2020-03-12
 ### Changed
