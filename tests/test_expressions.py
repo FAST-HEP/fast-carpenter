@@ -107,3 +107,7 @@ def test_preprocess_expression(input, expected):
     clean_expr, alias_dict = expressions.preprocess_expression(input)
     assert clean_expr == expected[0]
     assert alias_dict == expected[1]
+
+
+def test_broadcast(wrapped_tree):
+    expressions.evaluate(wrapped_tree, "NJet * Jet_Py")
