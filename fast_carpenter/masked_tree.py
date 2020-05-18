@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 import pandas as pd
 import numpy as np
 from .tree_wrapper import WrappedTree
@@ -27,7 +29,8 @@ class MaskedUprootTree(object):
             df = self._owner.tree.pandas.df(*args, **kwargs)
             if self._owner._mask is None:
                 return df
-            masked = mask_df(df, self._owner._mask, self._owner.event_ranger.start_entry)
+            masked = mask_df(df, self._owner._mask,
+                             self._owner.event_ranger.start_entry)
             return masked
 
     @property
@@ -103,7 +106,8 @@ def _normalise_mask(mask, tree_length):
         return mask
     elif mask.dtype.kind == "b":
         if len(mask) != tree_length:
-            raise RuntimeError("boolean mask has a different length to the input tree")
+            raise RuntimeError(
+                "boolean mask has a different length to the input tree")
         return np.where(mask)[0]
 
 
@@ -118,3 +122,103 @@ def mask_df(df, mask, start_event):
     else:
         masked = df.loc[mask]
     return masked
+
+
+class MaskedTrees(object):
+    nonOverloadedFunctions = [
+        'pandas', 'array', 'arrays', 'mask', 'unmasked_array',
+        'unmasked_arrays', 'apply_mask', 'trees', '_mask', 'event_ranger',
+    ]
+
+    def __init__(self, trees, event_ranger, mask=None):
+        self.pandas = SimpleNamespace(df=self._df)
+        self.trees = {}
+        self._mask = mask
+        self.event_ranger = event_ranger
+        for name, tree in trees.items():
+            self.trees[name] = MaskedUprootTree(tree, event_ranger, mask)
+
+    def _df(self, *args, **Kwargs):
+        dfs = []
+        for name, tree in self.trees.items():
+            df = MaskedUprootTree.PandasWrap(tree).df(*args, **Kwargs)
+            df.columns = ["{}.".format(name) + str(col) for col in df.columns]
+            dfs.append(df)
+        return pd.concat(dfs, axis=1)
+
+    def unmasked_array(self, *args, **kwargs):
+        return self.tree.array(*args, **kwargs)
+
+    def unmasked_arrays(self, *args, **kwargs):
+        return self.tree.arrays(*args, **kwargs)
+
+    def array(self, *args, **kwargs):
+        array, exception = None, None
+        for tree in self.trees.values():
+            try:
+                array = tree.array(*args, **kwargs)
+                break
+            except Exception as e:
+                exception = e
+        if array is None:
+            raise exception
+
+        return array
+
+    def arrays(self, *args, **kwargs):
+        outputtype = kwargs.get('outputtype', dict)
+
+        arrays = list()
+        for name, tree in self.trees.items():
+            treeArrays = tree.arrays(*args, **kwargs)
+            outputtype = type(treeArrays)
+            arrays.append((name, treeArrays))
+
+        if outputtype is dict:
+            return {'{}.{}'.format(name, aName): value for (name, treeArray) in arrays for aName, value in treeArray.items()}
+        if outputtype is list:
+            return [value for (name, treeArray) in arrays for value in treeArray]
+        if outputtype is tuple:
+            return tuple([value for (name, treeArray) in arrays for value in treeArray])
+        if outputtype is pd.DataFrame:
+            dfs = []
+            for (name, treeArrays) in arrays:
+                df = treeArrays
+                df.columns = ["{}.".format(name) + str(col)
+                              for col in df.columns]
+                dfs.append(df)
+            # return mask_df(pd.concat(dfs, axis=1), self._mask, self.event_ranger.start_entry)
+            return pd.concat(dfs, axis=1)
+        if outputtype is np.ndarray and self._mask is not None:
+            results = [value for (_, value) in arrays]
+            return np.array(results)
+
+        return arrays
+
+    @property
+    def mask(self):
+        return self._mask
+
+    def apply_mask(self, new_mask):
+        for tree in self.trees.values():
+            tree.apply_mask(new_mask)
+            self._mask = tree._mask
+
+    def __len__(self):
+        # if self._mask is None:
+        return max([len(e) for e in self.trees.values()])
+        # return len(self._mask)
+
+    def __contains__(self, element):
+        return any([self.trees[name].__contains__(element) for name in self.trees])
+
+    def __getattr__(self, attr):
+        if attr in MaskedTrees.nonOverloadedFunctions:
+            return self.__getattribute__(attr)
+        for tree in self.trees.values():
+            if tree.__contains__(attr):
+                return getattr(tree, attr)
+        raise AttributeError('Cannot find attribute "{}"'.format(attr))
+
+    def reset_mask(self):
+        self._mask = None
