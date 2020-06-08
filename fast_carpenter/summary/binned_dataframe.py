@@ -202,7 +202,11 @@ class BinnedDataframe():
         return Collector(outfilename, self._dataset_col, binnings=binnings, file_format=self._file_format)
 
     def event(self, chunk):
-        all_inputs = [key for key in chunk.tree.keys() if key.decode() in self.potential_inputs]
+        all_keys = list(chunk.tree.keys())
+        if isinstance(all_keys[0], bytes):
+            all_keys = [key.decode() for key in all_keys]
+
+        all_inputs = [key for key in all_keys if key in self.potential_inputs]
         if chunk.config.dataset.eventtype == "mc" or self.weight_data:
             weights = list(self._weights.values())
             all_inputs += weights
