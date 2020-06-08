@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import pandas as pd
 import numpy as np
 from .tree_wrapper import WrappedTree
+from .dataspace import recursive_index
 
 
 class MaskedUprootTree(object):
@@ -42,6 +43,9 @@ class MaskedUprootTree(object):
 
     def unmasked_arrays(self, *args, **kwargs):
         return self.tree.arrays(*args, **kwargs)
+
+    def __getitem__(self, key):
+        return self.tree[key]
 
     def array(self, *args, **kwargs):
         array = self.tree.array(*args, **kwargs)
@@ -128,15 +132,23 @@ class MaskedTrees(object):
     nonOverloadedFunctions = [
         'pandas', 'array', 'arrays', 'mask', 'unmasked_array',
         'unmasked_arrays', 'apply_mask', 'trees', '_mask', 'event_ranger',
+        '_index', '__getitem__',
     ]
 
     def __init__(self, trees, event_ranger, mask=None):
         self.pandas = SimpleNamespace(df=self._df)
         self.trees = {}
+        self.provenance = {}
         self._mask = mask
         self.event_ranger = event_ranger
+        self._index = {}
         for name, tree in trees.items():
             self.trees[name] = MaskedUprootTree(tree, event_ranger, mask)
+            self.provenance[name] = name.split('/') if '/' in name else [name]
+            self._index.update(recursive_index(self._index, self.provenance[name], self.trees[name]))
+
+    def __getitem__(self, key):
+        return self._index[key]
 
     def _df(self, *args, **Kwargs):
         dfs = []
@@ -154,16 +166,18 @@ class MaskedTrees(object):
 
     def array(self, *args, **kwargs):
         array, exception = None, None
-        for tree in self.trees.values():
-            try:
-                array = tree.array(*args, **kwargs)
-                break
-            except Exception as e:
-                exception = e
+        try:
+            value = self._index[args[0]]
+            array = value.array(*args[1:], **kwargs)
+        except Exception as e:
+            print(self._index)
+            exception = e
         if array is None:
             raise exception
 
-        return array
+        if self._mask is None:
+            return array
+        return array[self._mask]
 
     def arrays(self, *args, **kwargs):
         outputtype = kwargs.get('outputtype', dict)
@@ -210,7 +224,8 @@ class MaskedTrees(object):
         # return len(self._mask)
 
     def __contains__(self, element):
-        return any([self.trees[name].__contains__(element) for name in self.trees])
+        # TODO: return a masked wrapper instead
+        return element in self._index
 
     def __getattr__(self, attr):
         if attr in MaskedTrees.nonOverloadedFunctions:
