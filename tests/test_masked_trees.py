@@ -175,3 +175,23 @@ def test_multitree_array(multitree_w_mask_int, infile):
     assert 'l1CaloTowerEmuTree.L1CaloTowerTree.L1CaloTower.iet' in multitree_w_mask_int
     array = multitree_w_mask_int.array("l1CaloTowerEmuTree.L1CaloTowerTree.L1CaloTower.iet")
     assert len(array) == 25
+
+
+def test_multitree_add_variable(multitree_no_mask):
+    assert 'XYZ' not in multitree_no_mask
+    new_var = multitree_no_mask.array("l1CaloTowerEmuTree.L1CaloTowerTree.L1CaloTower.iet")
+    multitree_no_mask.new_variable("XYZ", new_var)
+    assert 'XYZ' in multitree_no_mask
+
+    retrieve_xyz = multitree_no_mask.array("XYZ")
+    assert (retrieve_xyz == new_var).flatten().all()
+
+
+def test_multitree_add_variable_and_full_query(multitree_no_mask):
+    assert 'XYZ' not in multitree_no_mask
+    new_var = multitree_no_mask.array("l1CaloTowerEmuTree.L1CaloTowerTree.L1CaloTower.iet")
+    multitree_no_mask.new_variable("XYZ", new_var)
+    assert 'XYZ' in multitree_no_mask
+
+    retrieve_xyz = multitree_no_mask.arrays("XYZ")
+    assert (retrieve_xyz == new_var).flatten().all()
