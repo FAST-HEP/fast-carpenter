@@ -16,6 +16,7 @@ def infile():
 def single_tree_input(infile):
     return {'events': infile}
 
+
 @pytest.fixture
 def multiple_trees_input():
     input_file = '/tmp/CMS_L1T_study.root'
@@ -39,7 +40,12 @@ def event_range():
 
 @pytest.fixture
 def full_event_range():
-    return FakeEventRange(0, 4580, 0)
+    return FakeEventRange(0, 4580, 4580)
+
+
+@pytest.fixture
+def full_event_range_multitree():
+    return FakeEventRange(0, 1853, 1853)
 
 
 @pytest.fixture
