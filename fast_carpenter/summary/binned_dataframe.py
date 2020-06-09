@@ -245,7 +245,7 @@ weight_labels = ("sumw", "sumw2")
 
 
 def _make_column_labels(weights):
-    labels = [w + ":" + l for l in weight_labels for w in weights]
+    labels = [weight + ":" + label for label in weight_labels for weight in weights]
     return [count_label] + labels
 
 
