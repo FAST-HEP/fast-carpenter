@@ -208,3 +208,12 @@ def test_multitree_add_variable_and_full_query(multitree_no_mask):
 
     retrieve_xyz = multitree_no_mask.arrays("XYZ")["XYZ"]
     assert (retrieve_xyz == new_var).flatten().all()
+
+
+def test_multitree_aliases(multitree_no_mask):
+    test_for = 'l1CaloTowerTree.L1CaloTowerTree.L1CaloTower.et'
+    assert test_for in multitree_no_mask
+    alias = test_for.replace('.', '__DOT__')
+    assert alias in multitree_no_mask
+
+    assert (multitree_no_mask[test_for] == multitree_no_mask[alias])

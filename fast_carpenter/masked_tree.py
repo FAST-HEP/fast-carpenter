@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 from .tree_wrapper import WrappedTree
-from .dataspace import recursive_index
+from .dataspace import create_aliases, recursive_index
 
 
 class MaskedUprootTree(object):
@@ -150,6 +150,7 @@ class MaskedTrees(object):
             self.trees[name] = MaskedUprootTree(tree, event_ranger, mask)
             self.provenance[name] = name.split('/') if '/' in name else [name]
             self._index.update(recursive_index(self._index, self.provenance[name], self.trees[name]))
+        self._index = create_aliases(self._index)
 
     def __getitem__(self, key):
         return self._index[key]
