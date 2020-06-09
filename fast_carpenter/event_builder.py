@@ -71,6 +71,8 @@ class EventBuilder(object):
         # which prevent memmaps from begin created. Use a fallback - the
         # localsource option
         try:
+            # TODO: we probably need iterate here or something else to enforce
+            # nevents_per_block, start_block, stop_block
             rootfile = uproot.open(self.config.inputPaths[0])
             if isinstance(self.config.treeName, (list, tuple)):
                 tree = {name: rootfile[name] for name in self.config.treeName}
