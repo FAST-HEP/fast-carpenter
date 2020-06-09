@@ -206,5 +206,5 @@ def test_multitree_add_variable_and_full_query(multitree_no_mask):
     multitree_no_mask.new_variable("XYZ", new_var)
     assert 'XYZ' in multitree_no_mask
 
-    retrieve_xyz = multitree_no_mask.arrays("XYZ")
+    retrieve_xyz = multitree_no_mask.arrays("XYZ")["XYZ"]
     assert (retrieve_xyz == new_var).flatten().all()
