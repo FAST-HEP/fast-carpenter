@@ -1,7 +1,8 @@
-from types import SimpleNamespace
+import types
 
 import pandas as pd
 import numpy as np
+
 from .tree_wrapper import WrappedTree
 from .dataspace import recursive_index
 
@@ -132,14 +133,17 @@ class MaskedTrees(object):
     nonOverloadedFunctions = [
         'pandas', 'array', 'arrays', 'mask', 'unmasked_array',
         'unmasked_arrays', 'apply_mask', 'trees', '_mask', 'event_ranger',
-        '_index', '__getitem__',
+        '_index', '__getitem__', 'reset_mask', 'new_variable', 'keys',
     ]
 
     def __init__(self, trees, event_ranger, mask=None):
-        self.pandas = SimpleNamespace(df=self._df)
+        self.pandas = types.SimpleNamespace(df=self._df)
         self.trees = {}
         self.provenance = {}
         self._mask = mask
+        # TODO: need to make sure event_ranger act very low level to prevent reads.
+        # currently, that is broken and only works for DFs
+        # MAskedTrees is probably too late to deal with event ranges
         self.event_ranger = event_ranger
         self._index = {}
         for name, tree in trees.items():
@@ -150,13 +154,8 @@ class MaskedTrees(object):
     def __getitem__(self, key):
         return self._index[key]
 
-    def _df(self, *args, **Kwargs):
-        dfs = []
-        for name, tree in self.trees.items():
-            df = MaskedUprootTree.PandasWrap(tree).df(*args, **Kwargs)
-            df.columns = ["{}.".format(name) + str(col) for col in df.columns]
-            dfs.append(df)
-        return pd.concat(dfs, axis=1)
+    def _df(self, *args, **kwargs):
+        return self.arrays(*args, **kwargs, outputtype=pd.DataFrame)
 
     def unmasked_array(self, *args, **kwargs):
         return self.tree.array(*args, **kwargs)
@@ -170,7 +169,6 @@ class MaskedTrees(object):
             value = self._index[args[0]]
             array = value.array(*args[1:], **kwargs)
         except Exception as e:
-            print(self._index)
             exception = e
         if array is None:
             raise exception
@@ -180,32 +178,36 @@ class MaskedTrees(object):
         return array[self._mask]
 
     def arrays(self, *args, **kwargs):
-        outputtype = kwargs.get('outputtype', dict)
+        outputtype = kwargs.pop('outputtype', dict)
 
-        arrays = list()
-        for name, tree in self.trees.items():
-            treeArrays = tree.arrays(*args, **kwargs)
-            outputtype = type(treeArrays)
-            arrays.append((name, treeArrays))
+        arrays = dict()
+        names = []
+        if args:
+            if isinstance(args[0], (list, tuple)):
+                names = args[0]
+            if isinstance(args[0], (str, bytes)):
+                names = [args[0]]
+        else:
+            names = self.keys()
+
+        for name in names:
+
+            arrays[name] = self.array(name, **kwargs)
 
         if outputtype is dict:
-            return {'{}.{}'.format(name, aName): value for (name, treeArray) in arrays for aName, value in treeArray.items()}
+            return arrays
         if outputtype is list:
-            return [value for (name, treeArray) in arrays for value in treeArray]
+            return list(arrays.values())
         if outputtype is tuple:
-            return tuple([value for (name, treeArray) in arrays for value in treeArray])
+            return tuple(arrays.values())
         if outputtype is pd.DataFrame:
-            dfs = []
-            for (name, treeArrays) in arrays:
-                df = treeArrays
-                df.columns = ["{}.".format(name) + str(col)
-                              for col in df.columns]
-                dfs.append(df)
-            # return mask_df(pd.concat(dfs, axis=1), self._mask, self.event_ranger.start_entry)
-            return pd.concat(dfs, axis=1)
-        if outputtype is np.ndarray and self._mask is not None:
-            results = [value for (_, value) in arrays]
-            return np.array(results)
+            return pd.DataFrame.from_dict(arrays)
+        if isinstance(outputtype, (types.FunctionType, types.LambdaType)):
+            # probe output type
+            t = outputtype(1)
+            outputtype = type(t)
+        if outputtype is np.ndarray:
+            return np.array(list(arrays.values()))
 
         return arrays
 
@@ -237,3 +239,24 @@ class MaskedTrees(object):
 
     def reset_mask(self):
         self._mask = None
+        for tree in self.trees.values():
+            tree.reset_mask()
+
+    def reset_cache(self):
+        for tree in self.trees.values():
+            tree.reset_cache()
+
+    def new_variable(self, name, value):
+        if name in self:
+            msg = "Trying to overwrite existing variable: '%s'"
+            raise ValueError(msg % name)
+        if len(value) != len(self):
+            msg = "New array %s does not have the right length: %d not %d"
+            raise ValueError(msg % (name, len(value), len(self)))
+
+        outputtype = WrappedTree.FakeBranch
+
+        self._index[name] = outputtype(name, value, self.event_ranger)
+
+    def keys(self):
+        return self._index.keys()
