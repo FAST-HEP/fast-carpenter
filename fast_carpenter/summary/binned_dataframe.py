@@ -70,12 +70,18 @@ def _merge_dataframes(dataset_readers_list):
     for dataset, readers in dataset_readers_list:
         dataset_df = readers[0]
         for df in readers[1:]:
-            if df is None:
+            if df is None or df.empty:
                 continue
             dataset_df = dataset_df.add(df, fill_value=0.)
+        if dataset_df is None or dataset_df.empty:
+            continue
         all_dfs.append(dataset_df)
         keys.append(dataset)
-    final_df = pd.concat(all_dfs, keys=keys, names=['dataset'], sort=True)
+    if all_dfs:
+        final_df = pd.concat(all_dfs, keys=keys, names=['dataset'], sort=True)
+    else:
+        final_df = pd.DataFrame()
+
     return final_df
 
 
@@ -204,6 +210,8 @@ class BinnedDataframe():
 
         data = chunk.tree.pandas.df(all_inputs, flatten=False)
         data = explode(data)
+        if data is None or data.empty:
+            return True
 
         binned_values = _bin_values(data, dimensions=self._bin_dims,
                                     binnings=self._binnings,
@@ -279,6 +287,9 @@ def explode(df):
     https://stackoverflow.com/questions/12680754/split-explode-pandas\
     -dataframe-string-entry-to-separate-rows/40449726#40449726
     """
+    if df is None or df.empty:
+        return df
+
     # get the list columns
     lst_cols = [col for col, dtype in df.dtypes.items() if is_object_dtype(dtype)]
     # Be more specific about which objects are ok

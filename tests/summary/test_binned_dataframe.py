@@ -258,6 +258,9 @@ def test_explode():
     assert len(exploded) == 1 + 8 + 3
     assert np.array_equal(exploded.list, [0, 0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2])
 
+    exploded = bdf.explode(pd.DataFrame(columns=["one", "two", "3"]))
+    assert exploded.empty is True
+
 
 def test_densify_dataframe_integers():
     index = [("one", 1), ("one", 3), ("two", 2), ("three", 1), ("three", 2)]
