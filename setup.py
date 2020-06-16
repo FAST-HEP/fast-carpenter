@@ -21,7 +21,7 @@ def get_version():
     return _globals["__version__"]
 
 
-requirements = ['atuproot==0.1.13', 'atsge==0.2.1', 'mantichora==0.9.7',
+requirements = ['atuproot==0.1.13', 'atsge==0.2.1', 'atpbar==1.0.8', 'mantichora==0.9.7',
                 'fast-flow', 'fast-curator', 'awkward',
                 'pandas', 'numpy', 'numba', 'numexpr', 'uproot>=3']
 repositories = []

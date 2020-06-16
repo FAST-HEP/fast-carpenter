@@ -88,9 +88,9 @@ def test_3D_jagged(wrapped_tree):
     fake_3d_2 = JaggedArray.fromiter(fake_3d_2)
     wrapped_tree.new_variable("SecondFake3D", fake_3d_2)
 
-    with pytest.raises(RuntimeError) as e:
+    with pytest.raises(ValueError) as e:
         expressions.evaluate(wrapped_tree, "SecondFake3D + Fake3D")
-    assert "different jaggedness" in str(e)
+    assert "Cannot broadcast" in str(e)
 
 
 @pytest.mark.parametrize('input, expected', [
@@ -107,3 +107,10 @@ def test_preprocess_expression(input, expected):
     clean_expr, alias_dict = expressions.preprocess_expression(input)
     assert clean_expr == expected[0]
     assert alias_dict == expected[1]
+
+
+def test_broadcast(wrapped_tree):
+    expressions.evaluate(wrapped_tree, "NJet * Jet_Py + NElectron * Jet_Px")
+
+    with pytest.raises(ValueError):
+        expressions.evaluate(wrapped_tree, "Jet_Py + Muon_Px")

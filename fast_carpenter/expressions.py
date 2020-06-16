@@ -3,10 +3,13 @@ import re
 import numexpr
 import tokenize
 import awkward
+import logging
 try:
     from StringIO import StringIO
 except ImportError:
     from io import StringIO
+
+logger = logging.getLogger(__name__)
 
 
 __all__ = ["get_branches", "evaluate"]
@@ -58,34 +61,59 @@ class TreeToDictAdaptor():
     """
     Make an uproot tree look like a dict for numexpr
     """
-    def __init__(self, tree, alias_dict):
+    def __init__(self, tree, alias_dict, needed_variables):
         self.tree = tree
-        self.counts = None
         self.aliases = alias_dict
+        self.vars, self.counts = self.broadcast_variables(needed_variables)
+
+    def broadcast_variables(self, variables):
+        arrays = {}
+        most_jagged = (-1, None)
+        for var in variables:
+            if var in constants:
+                continue
+            array = self.get_raw(var)
+            contents, counts = deconstruct_jaggedness(array, counts=[])
+            arrays[var] = (contents, counts, array)
+            if len(counts) > most_jagged[0]:
+                most_jagged = (len(counts), var)
+        most_jagged = most_jagged[1]
+
+        broadcast_to = arrays[most_jagged][1]
+        broadcast_vars = {most_jagged: arrays[most_jagged]}
+        for var, (contents, counts, raw) in arrays.items():
+            if var == most_jagged:
+                continue
+
+            # Check broadcastable
+            for left, right in zip(broadcast_to, counts):
+                if not np.array_equal(left, right):
+                    raise ValueError("Unable to broadcast all values")
+            for copies in broadcast_to[len(counts):]:
+                contents = np.repeat(contents, copies)
+
+            broadcast_vars[var] = (contents, broadcast_to, raw)
+        return broadcast_vars, broadcast_to
 
     def __getitem__(self, item):
         if item in constants:
             return constants[item]
+        result = self.vars[item][0]
+        return result
+
+    def get_raw(self, item):
+        if item in constants:
+            return constants[item]
         full_item = self.aliases.get(item, item)
         array = self.tree.array(full_item)
-        array = self.strip_jaggedness(array)
         return array
 
     def __contains__(self, item):
-        return item in self.tree or item in self.aliases
+        return item in self.vars
 
     def __iter__(self):
-        for i in self.tree:
+        for i in self.vars:
             yield i
-
-    def strip_jaggedness(self, array):
-        array, new_counts = deconstruct_jaggedness(array, counts=[])
-        if self.counts is not None:
-            if not all(np.array_equal(c, n) for c, n in zip(self.counts, new_counts)):
-                raise RuntimeError("Operation using arrays with different jaggedness")
-        else:
-            self.counts = new_counts
-        return array
 
     def apply_jaggedness(self, array):
         if self.counts is None:
@@ -111,7 +139,14 @@ def preprocess_expression(expression):
 
 def evaluate(tree, expression):
     cleaned_expression, alias_dict = preprocess_expression(expression)
-    adaptor = TreeToDictAdaptor(tree, alias_dict)
+    context = numexpr.necompiler.getContext({}, frame_depth=1)
+    variables = numexpr.necompiler.getExprNames(cleaned_expression, context)[0]
+    try:
+        adaptor = TreeToDictAdaptor(tree, alias_dict, variables)
+    except ValueError:
+        msg = "Cannot broadcast all variables in expression: %s" % expression
+        logger.error(msg)
+        raise ValueError(msg)
     result = numexpr.evaluate(cleaned_expression, local_dict=adaptor)
     result = adaptor.apply_jaggedness(result)
     return result

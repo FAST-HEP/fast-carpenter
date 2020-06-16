@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.18.0] - 2020-06-17
+### Added
+- Add broadcasting between variables of different jaggedness in expressions, PR #122 [@BenKrikler](httsp://github.com/benkrikler)
+
 ### Removed
 - Testing against Python <= 3.5, PR #124
 
