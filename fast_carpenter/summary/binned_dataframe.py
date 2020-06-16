@@ -293,7 +293,7 @@ def explode(df):
     # get the list columns
     lst_cols = [col for col, dtype in df.dtypes.items() if is_object_dtype(dtype)]
     # Be more specific about which objects are ok
-    lst_cols = [col for col in lst_cols if isinstance(df[col][0], _explodable_types)]
+    lst_cols = [col for col in lst_cols if isinstance(df[col].iloc[0], _explodable_types)]
     if not lst_cols:
         return df
 
