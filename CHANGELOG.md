@@ -5,15 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.18.0] - 2020-06-17
+### Added
+- Add broadcasting between variables of different jaggedness in expressions, PR #122 [@BenKrikler](httsp://github.com/benkrikler)
+
 ### Removed
 - Testing against Python <= 3.5, PR #124
 
 ### Fixed
 - Fix handling of empty data chunks in BinnedDataframe stage, PR #124 [@BenKrikler](https://github.com/benkrikler)
-
-## [0.18.0] - 2020-05-07
-### Added
-- Add broadcasting between variables of different jaggedness in expressions, PR #122 [@BenKrikler](httsp://github.com/benkrikler)
 
 ## [0.17.5] - 2020-04-03
 ### Added
