@@ -53,6 +53,12 @@ def binned_df_2(tmpdir, config_2):
     return bdf.BinnedDataframe("binned_df_2", out_dir="somewhere", **config_2)
 
 
+@pytest.fixture
+def binned_df_2_weightData(tmpdir, config_2):
+    return bdf.BinnedDataframe("binned_df_2_weightData", out_dir="somewhere",
+                               weight_data=True, **config_2)
+
+
 def test_BinnedDataframe_run_mc(binned_df_1, tmpdir, infile):
     chunk = FakeBEEvent(infile, "mc")
     collector = binned_df_1.collector()
@@ -93,6 +99,20 @@ def test_BinnedDataframe_run_data(binned_df_2, tmpdir, infile):
     totals = results.sum()
     # Based on: events->Draw("Jet_Py", "", "goff")
     assert totals["n"] == 4616
+
+
+def test_BinnedDataframe_run_dataWeighted(binned_df_2_weightData, tmpdir, infile):
+    chunk = FakeBEEvent(infile, "data")
+    binned_df_2_weightData.event(chunk)
+
+    collector = binned_df_2_weightData.collector()
+    dataset_readers_list = (("test_dataset", (binned_df_2_weightData,)),)
+    results = collector._prepare_output(dataset_readers_list)
+
+    totals = results.sum()
+    # Based on: events->Draw("Jet_Py", "", "goff")
+    assert totals["n"] == 4616
+    assert totals["weighted:sumw"] == pytest.approx(231.91339)
 
 
 def test_BinnedDataframe_run_twice(binned_df_1, tmpdir, infile):
