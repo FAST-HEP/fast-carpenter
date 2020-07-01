@@ -173,7 +173,7 @@ class BinnedDataframe():
     """
 
     def __init__(self, name, out_dir, binning, weights=None, dataset_col=True,
-                 pad_missing=False, file_format=None, observed=False):
+                 pad_missing=False, file_format=None, observed=False, weight_data=False):
         self.name = name
         self.out_dir = out_dir
         ins, outs, binnings = cfg.create_binning_list(self.name, binning)
@@ -187,6 +187,7 @@ class BinnedDataframe():
         self._file_format = cfg.create_file_format(self.name, file_format)
         self._observed = observed
         self.contents = None
+        self.weight_data = weight_data
 
     def collector(self):
         outfilename = "tbl_"
@@ -202,7 +203,7 @@ class BinnedDataframe():
 
     def event(self, chunk):
         all_inputs = [key for key in chunk.tree.keys() if key.decode() in self.potential_inputs]
-        if chunk.config.dataset.eventtype == "mc":
+        if chunk.config.dataset.eventtype == "mc" or self.weight_data:
             weights = list(self._weights.values())
             all_inputs += weights
         else:
