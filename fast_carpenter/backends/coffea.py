@@ -89,7 +89,7 @@ def load_execution_cfg(cfg_file):
         return cfg
 
 
-def configure_parsl(n_threads, monitoring):
+def configure_parsl(n_threads, monitoring, **kwargs):
     from parsl.config import Config
     from parsl.executors.threads import ThreadPoolExecutor
     from parsl.addresses import address_by_hostname
@@ -126,8 +126,12 @@ def create_executor(args):
         exe_args.setdefault('flatten', False)
     elif exe_type == "parsl":
         executor = cop.parsl_executor
-        exe_args.setdefault('config', configure_parsl(args.ncores, monitoring=False))
+        exe_args.setdefault('n_threads', args.ncores)
+        exe_args.setdefault('monitoring', False)
+        exe_args['config'] = configure_parsl(**exe_args)
         exe_args.setdefault('flatten', False)
+    elif exe_type == "dask":
+        executor = cop.dask_executor
     else:
         msg = "Coffea executor not yet included in fast-carpenter: '%s'"
         raise NotImplementedError(msg % exe_type)
