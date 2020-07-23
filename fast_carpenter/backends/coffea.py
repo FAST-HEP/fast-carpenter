@@ -81,14 +81,52 @@ class FASTProcessor(cop.ProcessorABC):
         return accumulator
 
 
+def load_execution_cfg(cfg_file):
+    import yaml
+    with open(cfg_file, "r") as infile:
+        cfg = yaml.safe_load(infile)
+        return cfg
+
+
+def configure_parsl(n_threads, monitoring):
+    from parsl.config import Config
+    from parsl.executors.threads import ThreadPoolExecutor
+    from parsl.addresses import address_by_hostname
+
+    if monitoring:
+        from parsl.monitoring import MonitoringHub
+        monitoring = MonitoringHub(hub_address=address_by_hostname(),
+                                   hub_port=55055,
+                                   logging_level=logging.INFO,
+                                   resource_monitoring_interval=10,
+                                  )
+    else:
+        monitoring = None
+
+    local_threads = ThreadPoolExecutor(max_threads=n_threads,
+                                       label='local_threads')
+    config = Config(executors=[local_threads],
+                    monitoring=monitoring,
+                    strategy=None,
+                    app_cache=True,
+                    )
+    return config
+
+
 def create_executor(args):
     exe_type = args.mode.split(":", 1)[1].lower()
-    if  exe_type == "local":
+    exe_args = {}
+    if args.execution_cfg:
+        exe_args = load_execution_cfg(args.execution_cfg)
+
+    if exe_type == "local":
         executor = cop.futures_executor
-        exe_args = {'workers': args.ncores,
-                    'chunksize': args.blocksize,
-                    'maxchunks': args.nblocks_per_dataset,
-                    'function_args': {'flatten': False}}
+        exe_args.setdefault('workers', args.ncores)
+        exe_args.setdefault('flatten', False)
+    elif exe_type == "parsl":
+        executor = cop.parsl_executor
+        exe_args.setdefault('config', configure_parsl(args.ncores, monitoring=False))
+        exe_args.setdefault('flatten', False)
     else:
         msg = "Coffea executor not yet included in fast-carpenter: '%s'"
         raise NotImplementedError(msg % exe_type)
@@ -107,5 +145,11 @@ def execute(sequence, datasets, args):
         coffea_datasets[ds.name].pop('name')
         coffea_datasets[ds.name]['treename'] = coffea_datasets[ds.name].pop('tree')
 
-    out = cop.run_uproot_job(coffea_datasets, 'events', fp, executor, executor_args=exe_args)
+    maxchunks = args.nblocks_per_dataset
+    if maxchunks < 1:
+        maxchunks = None
+    out = cop.run_uproot_job(coffea_datasets, 'events', fp,
+                             executor, executor_args=exe_args,
+                             chunksize=args.blocksize, maxchunks=maxchunks)
+
     return out["stages"], out["results"]
