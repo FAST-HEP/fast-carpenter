@@ -4,8 +4,7 @@ Functions to run a job using Coffea
 import copy
 from fast_carpenter.masked_tree import MaskedUprootTree
 from collections import namedtuple
-from coffea import processor
-from coffea.processor import futures_executor, run_uproot_job
+from coffea import processor as cop
 
 
 EventRanger = namedtuple("EventRanger", "start_entry stop_entry entries_in_block")
@@ -14,7 +13,7 @@ ChunkConfig = namedtuple("ChunkConfig", "dataset")
 ConfigProxy = namedtuple("ConfigProxy", "name eventtype")
 
 
-class stages_accumulator(processor.AccumulatorABC):
+class stages_accumulator(cop.AccumulatorABC):
     def __init__(self, stages):
         self._zero = copy.deepcopy(stages)
         self._value = copy.deepcopy(stages)
@@ -32,13 +31,13 @@ class stages_accumulator(processor.AccumulatorABC):
             stage.merge(other[i])
 
 
-class FASTProcessor(processor.ProcessorABC):
+class FASTProcessor(cop.ProcessorABC):
     def __init__(self, sequence):
 
         self._columns = list()
         self._sequence = sequence
-        accumulator_dict = {'stages': processor.dict_accumulator({})}
-        self._accumulator = processor.dict_accumulator(accumulator_dict)
+        accumulator_dict = {'stages': cop.dict_accumulator({})}
+        self._accumulator = cop.dict_accumulator(accumulator_dict)
 
     @property
     def columns(self):
@@ -82,14 +81,25 @@ class FASTProcessor(processor.ProcessorABC):
         return accumulator
 
 
+def create_executor(args):
+    exe_type = args.mode.split(":", 1)[1].lower()
+    if  exe_type == "local":
+        executor = cop.futures_executor
+        exe_args = {'workers': args.ncores,
+                    'chunksize': args.blocksize,
+                    'maxchunks': args.nblocks_per_dataset,
+                    'function_args': {'flatten': False}}
+    else:
+        msg = "Coffea executor not yet included in fast-carpenter: '%s'"
+        raise NotImplementedError(msg % exe_type)
+
+    return executor, exe_args
+
+
 def execute(sequence, datasets, args):
     fp = FASTProcessor(sequence)
 
-    executor = futures_executor
-    exe_args = {'workers': args.ncores,
-                'chunksize': args.blocksize,
-                'maxchunks': args.nblocks_per_dataset,
-                'function_args': {'flatten': False}}
+    executor, exe_args = create_executor(args)
 
     coffea_datasets = {}
     for ds in datasets:
@@ -97,5 +107,5 @@ def execute(sequence, datasets, args):
         coffea_datasets[ds.name].pop('name')
         coffea_datasets[ds.name]['treename'] = coffea_datasets[ds.name].pop('tree')
 
-    out = run_uproot_job(coffea_datasets, 'events', fp, executor, executor_args=exe_args)
+    out = cop.run_uproot_job(coffea_datasets, 'events', fp, executor, executor_args=exe_args)
     return out["stages"], out["results"]
