@@ -5,6 +5,7 @@ import copy
 from fast_carpenter.masked_tree import MaskedUprootTree
 from collections import namedtuple
 from coffea import processor as cop
+import logging
 
 
 EventRanger = namedtuple("EventRanger", "start_entry stop_entry entries_in_block")
@@ -99,7 +100,7 @@ def configure_parsl(n_threads, monitoring):
                                    hub_port=55055,
                                    logging_level=logging.INFO,
                                    resource_monitoring_interval=10,
-                                  )
+                                   )
     else:
         monitoring = None
 
