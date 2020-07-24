@@ -115,7 +115,7 @@ def configure_parsl(n_threads, monitoring, **kwargs):
 
 
 def create_executor(args):
-    exe_type = args.mode.split(":", 1)[1].lower()
+    exe_type = args.mode.split(":", 1)[-1].lower()
     exe_args = {}
     if args.execution_cfg:
         exe_args = load_execution_cfg(args.execution_cfg)
