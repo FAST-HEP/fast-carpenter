@@ -82,9 +82,12 @@ class FASTProcessor(cop.ProcessorABC):
         return accumulator
 
 
-def load_execution_cfg(cfg_file):
+def load_execution_cfg(config):
+    if not isinstance(config, str):
+        return config
+
     import yaml
-    with open(cfg_file, "r") as infile:
+    with open(config, "r") as infile:
         cfg = yaml.safe_load(infile)
         return cfg
 
@@ -128,7 +131,8 @@ def create_executor(args):
         executor = cop.parsl_executor
         exe_args.setdefault('n_threads', args.ncores)
         exe_args.setdefault('monitoring', False)
-        exe_args['config'] = configure_parsl(**exe_args)
+        if 'config' not in exe_args:
+            exe_args['config'] = configure_parsl(**exe_args)
         exe_args.setdefault('flatten', False)
     elif exe_type == "dask":
         executor = cop.dask_executor
