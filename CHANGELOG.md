@@ -8,9 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Pin alphatwirl explicitly to 0.25.5, PR #130
 
+### Removed
+- Removed help module from carpenter and moved to fast-flow, PR #131 [@BenKrikler](https://github.com/benkrikler)
+
 ## [0.18.2] - 2020-07-01
 ### Added
-- Add option to BinnedDataframe to apply weights to data like MC, PR #127 [@BenKrikler](httsp://github.com/benkrikler)
+- Add option to BinnedDataframe to apply weights to data like MC, PR #127 [@BenKrikler](https://github.com/benkrikler)
 
 ## [0.18.1] - 2020-06-17
 ### Fixed
@@ -18,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.18.0] - 2020-06-17
 ### Added
-- Add broadcasting between variables of different jaggedness in expressions, PR #122 [@BenKrikler](httsp://github.com/benkrikler)
+- Add broadcasting between variables of different jaggedness in expressions, PR #122 [@BenKrikler](https://github.com/benkrikler)
 
 ### Removed
 - Testing against Python <= 3.5, PR #124
