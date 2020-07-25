@@ -2,10 +2,9 @@
 Chop up those trees into nice little tables and dataframes
 """
 from __future__ import print_function
-import sys
 from . import known_stages
 import fast_flow.v1 as fast_flow
-from .help import argparse_help_stages
+from fast_flow.help import argparse_help_stages
 import fast_curator
 import logging
 from .backends import get_backend
