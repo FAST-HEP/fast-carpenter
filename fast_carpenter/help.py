@@ -1,13 +1,12 @@
 import inspect
 import sys
 import re
-from . import known_stages
 
 
 class StageGuidanceHelper:
     _common_config = ["name", "out_dir", "self"]
 
-    def __init__(self, stage_class, module_name):
+    def __init__(self, stage_class, module_name=""):
         self._stage = stage_class
         self.module_name = module_name
 
@@ -17,7 +16,10 @@ class StageGuidanceHelper:
 
     @property
     def class_name(self):
-        return self.module_name + "." + self.stage.__name__
+        name = self.stage.__name__
+        if self.module_name:
+            name = self.module_name + "." + name
+        return name
 
     def matches(self, regex):
         if regex:
@@ -68,15 +70,13 @@ def format_signature(args, vargs, kwargs, defaults, annots):
     return args
 
 
-all_stages = tuple(StageGuidanceHelper(s, "fast_carpenter") for s in known_stages)
-
-
-def help_stages(stage_name, full_output=False):
-    stages = all_stages
+def help_stages(stage_name, full_output, known_stages):
     if stage_name and stage_name.lower() != "all":
-        stages = tuple(s for s in stages if s.matches(stage_name))
+        stages = tuple(s for s in known_stages if s.matches(stage_name))
         if not stages:
             raise RuntimeError("Unknown stage:", stage_name)
+    else:
+        stages = known_stages[:]
 
     for i, stage in enumerate(stages):
         name = stage.class_name
@@ -90,3 +90,16 @@ def help_stages(stage_name, full_output=False):
         if i != len(stages) - 1:
             end_stage = "=" * 80 + "\n" if full_output else ""
             print(end_stage)
+
+
+def argparse_help_stages(known_stages, main_module, full_output):
+    from argparse import Action
+    stages = tuple(StageGuidanceHelper(s, main_module) if not isinstance(s, StageGuidanceHelper) else s
+                   for s in known_stages)
+
+    class StagesHelp(Action):
+        def __call__(self, parser, namespace, values, option_string=None):
+            help_stages(values, full_output=full_output, known_stages=stages)
+            sys.exit(0)
+
+    return StagesHelp
