@@ -117,6 +117,15 @@ def configure_parsl(n_threads, monitoring, **kwargs):
     return config
 
 
+def configure_dask(client, **kwargs):
+    from dask.distributed import Client
+
+    if client:
+        return Client(client)
+    else:
+        return Client(**kwargs)
+
+
 def create_executor(args):
     exe_type = args.mode.split(":", 1)[-1].lower()
     exe_args = {}
@@ -136,6 +145,12 @@ def create_executor(args):
         exe_args.setdefault('flatten', False)
     elif exe_type == "dask":
         executor = cop.dask_executor
+        exe_args.setdefault('processes', False)
+        exe_args.setdefault('threads_per_worker', 2)
+        exe_args.setdefault('n_workers', 2)
+        exe_args.setdefault('memory_limit', '1GB')
+        exe_args.setdefault('client', None)
+        exe_args['client'] = configure_dask(**exe_args)
     else:
         msg = "Coffea executor not yet included in fast-carpenter: '%s'"
         raise NotImplementedError(msg % exe_type)
