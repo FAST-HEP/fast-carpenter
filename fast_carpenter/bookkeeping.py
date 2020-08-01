@@ -1,8 +1,36 @@
 from datetime import datetime
+import os
 import io
+import pwd
+import platform
+import importlib
 import tarfile
 import yaml
 import pandas as pd
+
+
+_dependencies = ["pandas",
+                 "ROOT",
+                 "fast_flow",
+                 "fast_curator",
+                 "fast_plotter",
+                 "fast_datacard",
+                 "alphatwirl",
+                 "yaml",
+                 "coffea",
+                 "alphatwirl",
+                 "atuproot",
+                 "atsge",
+                 "numpy",
+                 "matplotlib",
+                 "pip",
+                 'atpbar',
+                 'mantichora',
+                 'awkward',
+                 'numba',
+                 'numexpr',
+                 'uproot',
+                ]
 
 
 def _to_yaml(contents):
@@ -40,16 +68,44 @@ def _add_textfile(filename, tarball, contents):
     tarball.addfile(info, io.BytesIO(data))
 
 
-def write_booking(outfilename, sequence, datasets, **other):
+def write_booking(outfilename, sequence, datasets, extra_dependencies=[], **other):
 
     with tarfile.open(outfilename, "w:gz") as outfile:
         _add_textfile("sequence.yml", outfile, sequence)
         _add_textfile("datasets.yml", outfile, datasets)
-        _add_textfile("metadata.yml", outfile, prepare_metadata(other))
+        meta = prepare_metadata(other, extra_dependencies)
+        _add_textfile("metadata.yml", outfile, meta)
 
 
-def prepare_metadata(other):
+def get_version(name):
+    try:
+        module = importlib.import_module(name)
+    except ImportError:
+        return "<not installed>"
+
+    version = getattr(module, "__version__", "<version unknown>")
+    return version
+
+
+def get_platform_details():
+    attrs = ["machine", "node", "processor", "release", "uname", "system", "architecture"]
+    attrs += ["python_" + a for a in ["build", "compiler", "version", "implementation"]]
+    return {a: getattr(platform, a)() for a in attrs}
+
+
+def get_user_details():
+    # Only reliable for *nix:
+    details = pwd.getpwuid(os.getuid())
+    return dict(name=details.pw_name)
+
+
+def prepare_metadata(other, extra_dependencies=[]):
     metadata = other.copy()
     metadata["sys_info"] = pd.util._print_versions.get_sys_info()
-    # metadata["pandas_dependencies"] = pd.util._get_#dependency_info()
+    deps = _dependencies + extra_dependencies
+    metadata["versions"] = {pkg: get_version(pkg) for pkg in deps}
+    metadata["workdir"] = os.getcwd()
+    metadata["platform"] = get_platform_details()
+    metadata["execution_time_iso"] = datetime.now().isoformat()
+    metadata["user"] = get_user_details()
     return metadata
