@@ -30,7 +30,7 @@ _dependencies = ["pandas",
                  'numba',
                  'numexpr',
                  'uproot',
-                ]
+                 ]
 
 
 def _to_yaml(contents):
