@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Put a tarball with book-keeping data in output directory, PR #131 [@BenKrikler](httsp://github.com/benkrikler)
+
 ### Fixed
 - Pin alphatwirl explicitly to 0.25.5, PR #130
 
