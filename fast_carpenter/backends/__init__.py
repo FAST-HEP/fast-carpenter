@@ -22,6 +22,8 @@ known_backends = {"multiprocessing": get_alphatwirl,
                   "alphatwirl:htcondor": get_alphatwirl,
                   "alphatwirl:sge": get_alphatwirl,
                   "coffea:local": get_coffea,
+                  "coffea:parsl": get_coffea,
+                  "coffea:dask": get_coffea,
                   }
 
 

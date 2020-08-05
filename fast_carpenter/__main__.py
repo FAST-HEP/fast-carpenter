@@ -43,6 +43,9 @@ def create_parser():
                         help="Keep progress report quiet")
     parser.add_argument("--profile", default=False, action='store_true',
                         help="Profile the code")
+    parser.add_argument("--execution-cfg", "-e", default=None,
+                        help="A configuration file for the execution system.  The exact format "
+                             "and contents of this file will depend on the value of the `--mode` option.")
     parser.add_argument("--help-stages", nargs="?", default=None, action=StagesHelp,
                         metavar="stage-name-regex",
                         help="Print help specific to the available stages")

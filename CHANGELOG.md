@@ -5,12 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Add Dask and Parsl backends from Coffea and support execution configuration via YAML, PR #129 [@BenKrikler](https://github.com/benkrikler) and [@asnaylor](https://github.com/asnaylor)
+
 ### Fixed
 - Pin alphatwirl explicitly to 0.25.5, PR #130
 
 ## [0.18.2] - 2020-07-01
 ### Added
-- Add option to BinnedDataframe to apply weights to data like MC, PR #127 [@BenKrikler](httsp://github.com/benkrikler)
+- Add option to BinnedDataframe to apply weights to data like MC, PR #127 [@BenKrikler](https://github.com/benkrikler)
 
 ## [0.18.1] - 2020-06-17
 ### Fixed
@@ -18,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.18.0] - 2020-06-17
 ### Added
-- Add broadcasting between variables of different jaggedness in expressions, PR #122 [@BenKrikler](httsp://github.com/benkrikler)
+- Add broadcasting between variables of different jaggedness in expressions, PR #122 [@BenKrikler](https://github.com/benkrikler)
 
 ### Removed
 - Testing against Python <= 3.5, PR #124
@@ -79,7 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - This behavior can, at present, only be controlled within python, and is meant for exposing certain aspects of FAST-carpenter plumbing to [coffea](https://github.com/CoffeaTeam/coffea).
 
 ### Changed
-- Fix bug in BinnedDataframe stage, issue #89, PR #93 [@benkrikler](httsp://github.com/benkrikler)
+- Fix bug in BinnedDataframe stage, issue #89, PR #93 [@benkrikler](https://github.com/benkrikler)
 - Pin atuproot to v0.1.13, PR #91
 - Tidy the print out at the end of processing, PR #94.
 
