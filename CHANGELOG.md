@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add Dask and Parsl backends from Coffea and support execution configuration via YAML, PR #129 [@BenKrikler](https://github.com/benkrikler) and [@asnaylor](https://github.com/asnaylor)
 
+### Fixed
+- Pin alphatwirl explicitly to 0.25.5, PR #130
+
 ## [0.18.2] - 2020-07-01
 ### Added
 - Add option to BinnedDataframe to apply weights to data like MC, PR #127 [@BenKrikler](https://github.com/benkrikler)
