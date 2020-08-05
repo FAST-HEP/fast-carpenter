@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Put a tarball with book-keeping data in output directory, PR #131 [@BenKrikler](httsp://github.com/benkrikler)
 - Add Dask and Parsl backends from Coffea and support execution configuration via YAML, PR #129 [@BenKrikler](https://github.com/benkrikler) and [@asnaylor](https://github.com/asnaylor)
 
 ### Fixed

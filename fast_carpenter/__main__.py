@@ -2,6 +2,7 @@
 Chop up those trees into nice little tables and dataframes
 """
 from __future__ import print_function
+import os
 import sys
 from .help import help_stages
 import fast_flow.v1 as fast_flow
@@ -9,6 +10,7 @@ import fast_curator
 import logging
 from .backends import get_backend
 from .utils import mkdir_p
+from .bookkeeping import write_booking
 from .version import __version__
 logging.getLogger(__name__).setLevel(logging.INFO)
 
@@ -52,6 +54,10 @@ def create_parser():
     parser.add_argument("--help-stages-full", action=StagesHelp, metavar="stage",
                         help="Print the full help specific to the available stages")
     parser.add_argument("-v", "--version", action="version", version='%(prog)s ' + __version__)
+    parser.add_argument("--bookkeeping", default=True, action='store_true',
+                        help="Enable creation of book-keeping tarball")
+    parser.add_argument("--no-bookkeeping", action='store_false', dest="bookkeeping",
+                        help="Disable creation of book-keeping tarball")
 
     return parser
 
@@ -59,11 +65,15 @@ def create_parser():
 def main(args=None):
     args = create_parser().parse_args(args)
 
-    sequence = fast_flow.read_sequence_yaml(args.sequence_cfg, output_dir=args.outdir, backend="fast_carpenter")
+    sequence, seq_cfg = fast_flow.read_sequence_yaml(args.sequence_cfg, output_dir=args.outdir,
+                                                     backend="fast_carpenter", return_cfg=True)
     datasets = fast_curator.read.from_yaml(args.dataset_cfg)
     backend = get_backend(args.mode)
 
     mkdir_p(args.outdir)
+    if args.bookkeeping:
+        book_keeping_file = os.path.join(args.outdir, "book-keeping.tar.gz")
+        write_booking(book_keeping_file, seq_cfg, datasets, cmd_line_args=args)
     results, _ = backend.execute(sequence, datasets, args)
 
     print("Summary of results")
