@@ -4,7 +4,6 @@ Chop up those trees into nice little tables and dataframes
 from __future__ import print_function
 from . import known_stages
 import os
-import sys
 import fast_flow.v1 as fast_flow
 from fast_flow.help import argparse_help_stages
 import fast_curator
@@ -45,6 +44,7 @@ def create_parser():
                              "and contents of this file will depend on the value of the `--mode` option.")
     parser.add_argument("--help-stages", metavar="stage-name-regex", nargs="?", default=None,
                         action=argparse_help_stages(known_stages, "fast_carpenter", full_output=False),
+                        help="Print help specific to the available stages")
     parser.add_argument("--help-stages-full", metavar="stage",
                         action=argparse_help_stages(known_stages, "fast_carpenter", full_output=True),
                         help="Print the full help specific to the available stages")
