@@ -2,10 +2,10 @@
 Chop up those trees into nice little tables and dataframes
 """
 from __future__ import print_function
+from . import known_stages
 import os
-import sys
-from .help import help_stages
 import fast_flow.v1 as fast_flow
+from fast_flow.help import argparse_help_stages
 import fast_curator
 import logging
 from .backends import get_backend
@@ -16,13 +16,7 @@ logging.getLogger(__name__).setLevel(logging.INFO)
 
 
 def create_parser():
-    from argparse import ArgumentParser, Action
-
-    class StagesHelp(Action):
-        def __call__(self, parser, namespace, values, option_string=None):
-            full_output = option_string == "--help-stages-full"
-            help_stages(values, full_output=full_output)
-            sys.exit(0)
+    from argparse import ArgumentParser
 
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("dataset_cfg", type=str,
@@ -48,10 +42,11 @@ def create_parser():
     parser.add_argument("--execution-cfg", "-e", default=None,
                         help="A configuration file for the execution system.  The exact format "
                              "and contents of this file will depend on the value of the `--mode` option.")
-    parser.add_argument("--help-stages", nargs="?", default=None, action=StagesHelp,
-                        metavar="stage-name-regex",
+    parser.add_argument("--help-stages", metavar="stage-name-regex", nargs="?", default=None,
+                        action=argparse_help_stages(known_stages, "fast_carpenter", full_output=False),
                         help="Print help specific to the available stages")
-    parser.add_argument("--help-stages-full", action=StagesHelp, metavar="stage",
+    parser.add_argument("--help-stages-full", metavar="stage",
+                        action=argparse_help_stages(known_stages, "fast_carpenter", full_output=True),
                         help="Print the full help specific to the available stages")
     parser.add_argument("-v", "--version", action="version", version='%(prog)s ' + __version__)
     parser.add_argument("--bookkeeping", default=True, action='store_true',
