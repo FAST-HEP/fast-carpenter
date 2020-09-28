@@ -101,7 +101,7 @@ def get_user_details():
 
 def prepare_metadata(other, extra_dependencies=[]):
     metadata = other.copy()
-    metadata["sys_info"] = pd.util._print_versions.get_sys_info()
+    metadata["sys_info"] = pd.util._print_versions._get_sys_info()
     deps = _dependencies + extra_dependencies
     metadata["versions"] = {pkg: get_version(pkg) for pkg in deps}
     metadata["workdir"] = os.getcwd()
