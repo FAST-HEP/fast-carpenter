@@ -22,22 +22,14 @@ class MaskedUprootTree(object):
             return
 
         self._mask = _normalise_mask(mask, len(self.tree))
+        self.pandas = types.SimpleNamespace(df=self._df)
 
-    class PandasWrap():
-        def __init__(self, owner):
-            self._owner = owner
-
-        def df(self, *args, **kwargs):
-            df = self._owner.tree.pandas.df(*args, **kwargs)
-            if self._owner._mask is None:
-                return df
-            masked = mask_df(df, self._owner._mask,
-                             self._owner.event_ranger.start_entry)
-            return masked
-
-    @property
-    def pandas(self):
-        return MaskedUprootTree.PandasWrap(self)
+    def _df(self, *args, **kwargs):
+        df = self.tree.pandas.df(*args, **kwargs)
+        if self._mask is None:
+            return df
+        masked = mask_df(df, self._mask, self.event_ranger.start_entry)
+        return masked
 
     def unmasked_array(self, *args, **kwargs):
         return self.tree.array(*args, **kwargs)
