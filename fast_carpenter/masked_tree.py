@@ -131,7 +131,6 @@ class MaskedTrees(object):
     def __init__(self, trees, event_ranger, mask=None):
         self.pandas = types.SimpleNamespace(df=self._df)
         self.trees = {}
-        self.provenance = {}
         self._mask = mask
         # TODO: need to make sure event_ranger act very low level to prevent reads.
         # currently, that is broken and only works for DFs
@@ -140,8 +139,8 @@ class MaskedTrees(object):
         self._index = {}
         for name, tree in trees.items():
             self.trees[name] = MaskedUprootTree(tree, event_ranger, mask)
-            self.provenance[name] = name.split('/') if '/' in name else [name]
-            self._index.update(recursive_index(self._index, self.provenance[name], self.trees[name]))
+            provenance = name.split('/') if '/' in name else [name]
+            self._index.update(recursive_index(self._index, provenance, self.trees[name]))
         self._index = create_aliases(self._index)
 
     def __getitem__(self, key):
