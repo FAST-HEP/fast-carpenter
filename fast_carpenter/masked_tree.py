@@ -149,12 +149,6 @@ class MaskedTrees(object):
     def _df(self, *args, **kwargs):
         return self.arrays(*args, **kwargs, outputtype=pd.DataFrame)
 
-    def unmasked_array(self, *args, **kwargs):
-        return self.tree.array(*args, **kwargs)
-
-    def unmasked_arrays(self, *args, **kwargs):
-        return self.tree.arrays(*args, **kwargs)
-
     def array(self, *args, **kwargs):
         array, exception = None, None
         try:
