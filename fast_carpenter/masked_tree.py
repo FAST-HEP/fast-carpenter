@@ -139,7 +139,7 @@ class MaskedTrees(object):
         self._index = {}
         for name, tree in trees.items():
             self.trees[name] = MaskedUprootTree(tree, event_ranger, mask)
-            provenance = name.split('/') if '/' in name else [name]
+            provenance = name.split('/')
             self._index.update(recursive_index(self._index, provenance, self.trees[name]))
         self._index = create_aliases(self._index)
 
