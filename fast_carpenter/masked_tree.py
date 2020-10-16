@@ -150,14 +150,10 @@ class MaskedTrees(object):
         return self.arrays(*args, **kwargs, outputtype=pd.DataFrame)
 
     def array(self, *args, **kwargs):
-        array, exception = None, None
-        try:
-            value = self._index[args[0]]
-            array = value.array(*args[1:], **kwargs)
-        except Exception as e:
-            exception = e
-        if array is None:
-            raise exception
+        array = None
+
+        value = self._index[args[0]]
+        array = value.array(*args[1:], **kwargs)
 
         if self._mask is None:
             return array
