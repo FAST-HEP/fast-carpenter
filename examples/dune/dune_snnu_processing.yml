@@ -1,8 +1,8 @@
 stages:
-  - BasicVars: fast_carpenter.Define
+  - BasicVars: Define
   # - HitVars: 2tree-analysis4.HitVars
-  - IndNorm: fast_carpenter.summary.BinnedDataframe
-  - ColNorm: fast_carpenter.summary.BinnedDataframe
+  - IndNorm: BinnedDataframe
+  - ColNorm: BinnedDataframe
 
 BasicVars:
   variables:
@@ -15,9 +15,9 @@ BasicVars:
 #           {mask1: isIndMarley0, mask2: isColMarley0, out_var1: Norm_Start_Tick_Ind, out_var2: Norm_Start_Tick_Col}
 
 stages:
-    - var_def: "fast_carpenter.Define"
+    - var_def: "Define"
     # - event_selection: 'fast_carpenter.CutFlow'
-    - histogram: "fast_carpenter.BinnedDataframe"
+    - histogram: "BinnedDataframe"
 
 var_def:
     variables:
