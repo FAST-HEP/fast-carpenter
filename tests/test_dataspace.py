@@ -24,14 +24,16 @@ def test_normalize_internal_path(path):
 @pytest.mark.parametrize(
     'index, provenance, name, value, expected',
     [
-        ({}, ['path', 'tree'], 'var', 3, {'path.tree.var': 3, 'var': 3}),
-        ({}, ['tree'], 'var', 42, {'tree.var': 42, 'var': 42}),
-        ({'var': 42}, ['tree'], 'var', 42, {'var': 42}),
+        ({}, ['path', 'tree'], 'var', 3, {'path.tree.var': 3}),
+        ({}, ['tree'], 'var', 42, {'tree.var': 42}),
+        ({'var': 42}, ['tree'], 'var', 42, {'tree.var': 42, 'var': 42}),
         ({'tree.var': 42}, ['tree'], 'var', 42, {'tree.var': 42}),
     ]
 )
 def test_add_to_index(index, provenance, name, value, expected):
-    index = ds.add_to_index(index, provenance, name, value)
+    if provenance:
+        name = '.'.join(provenance + [name])
+    index = ds.add_to_index(index, name, value)
     assert index == expected
 
 
