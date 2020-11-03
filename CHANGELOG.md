@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.19.1] - 2020-10-13
 ### Fixed
+- Fix for uproot 3.13.0, PR #138 [@benkrikler](https://github.com/benkrikler)
 - Fix call to pandas sys-info function for book-keeping, PR #130 [@bundocka](https://github.com/bundocka)
 
 ## [0.19.0] - 2020-08-19
