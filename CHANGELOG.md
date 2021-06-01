@@ -5,9 +5,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [unreleased]
+### Fixed
+- Remove numba dependency, PR #139 [@benkrikler](https://github.com/benkrikler)
+
+## [0.19.1] - 2020-10-13
+### Fixed
+- Fix for uproot 3.13.0, PR #138 [@benkrikler](https://github.com/benkrikler)
+- Fix call to pandas sys-info function for book-keeping, PR #130 [@bundocka](https://github.com/bundocka)
+
 ## [0.19.0] - 2020-08-19
 ### Added
-- Put a tarball with book-keeping data in output directory, PR #131 [@BenKrikler](httsp://github.com/benkrikler)
+- Put a tarball with book-keeping data in output directory, PR #131 [@BenKrikler](https://github.com/benkrikler)
 - Add Dask and Parsl backends from Coffea and support execution configuration via YAML, PR #129 [@BenKrikler](https://github.com/benkrikler) and [@asnaylor](https://github.com/asnaylor)
 
 ### Fixed
