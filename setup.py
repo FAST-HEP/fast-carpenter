@@ -22,8 +22,8 @@ def get_version():
 
 
 requirements = ['atuproot==0.1.13', 'atsge==0.2.1', 'atpbar==1.0.8', 'mantichora==0.9.7',
-                'alphatwirl==0.25.5', 'fast-flow>0.5.0', 'fast-curator', 'awkward',
-                'pandas>=1.1', 'numpy', 'numba', 'numexpr', 'uproot>=3']
+                'alphatwirl==0.25.5', 'fast-flow>0.5.0', 'fast-curator', 'awkward<1.0.0',
+                'pandas>=1.1', 'numpy', 'numba', 'numexpr', 'uproot >=3,<4']
 repositories = []
 
 setup_requirements = ['pytest-runner', ]
