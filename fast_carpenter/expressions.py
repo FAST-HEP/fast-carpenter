@@ -2,7 +2,7 @@ import numpy as np
 import re
 import numexpr
 import tokenize
-import awkward
+import awkward0
 import logging
 try:
     from StringIO import StringIO
@@ -43,7 +43,7 @@ def get_branches(cut, valid):
 
 
 def deconstruct_jaggedness(array, counts):
-    if not isinstance(array, awkward.array.base.AwkwardArrayWithContent):
+    if not isinstance(array, awkward0.array.base.AwkwardArrayWithContent):
         return array, counts
 
     array = array.compact()
@@ -53,7 +53,7 @@ def deconstruct_jaggedness(array, counts):
 
 def reconstruct_jaggedness(array, counts):
     for count in counts:
-        array = awkward.JaggedArray.fromcounts(count, array)
+        array = awkward0.JaggedArray.fromcounts(count, array)
     return array
 
 

@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from awkward import JaggedArray
+from awkward0 import JaggedArray
 from fast_carpenter import expressions
 
 
