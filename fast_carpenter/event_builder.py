@@ -72,8 +72,10 @@ class EventBuilder(object):
             rootfile = uproot3.open(self.config.inputPaths[0])
             tree = rootfile[self.config.treeName]
         except MemoryError:
-            rootfile = uproot3.open(self.config.inputPaths[0],
-                                   localsource=uproot3.FileSource.defaults)
+            rootfile = uproot3.open(
+                self.config.inputPaths[0],
+                localsource=uproot3.FileSource.defaults
+            )
             tree = rootfile[self.config.treeName]
 
         events = BEventsWrapped(tree,
