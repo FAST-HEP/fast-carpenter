@@ -34,7 +34,7 @@ requirements = [
     'numpy',
     'numexpr',
     'uproot>=4.1.8',
-    'uproot3',
+    'uproot3>=3.14.0',
 ]
 repositories = []
 

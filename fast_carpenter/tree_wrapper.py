@@ -43,7 +43,6 @@ uproot3.tree.interpret = wrapped_interpret
 
 
 class WrappedTree(object):
-    __replace_itervalues = uproot3.version.version < "3.13.0"
 
     def __init__(self, tree, event_ranger):
         self.tree = copy.copy(tree)
@@ -60,16 +59,12 @@ class WrappedTree(object):
         self.extras = {}
 
     def itervalues(self, *args, **kwargs):
-        if WrappedTree.__replace_itervalues:
-            for array in self.extras.values():
-                yield array
         for vals in self.tree.old_itervalues(*args, **kwargs):
             yield vals
 
     def iteritems(self, *args, **kwargs):
-        if not WrappedTree.__replace_itervalues:
-            for array in self.extras.values():
-                yield array.name, array
+        for array in self.extras.values():
+            yield array.name, array
         for vals in self.tree.old_iteritems(*args, **kwargs):
             yield vals
 
