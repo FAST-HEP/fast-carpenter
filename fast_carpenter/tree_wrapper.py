@@ -5,41 +5,9 @@ way uproot works.  However, it allows me to achieve the functionality of adding
 a branch to uproot trees with no changes to actual code in uproot and with
 minimal coding on my side...
 """
-import uproot3
-from uproot3 import asjagged, asdtype, asgenobj
 import copy
-import awkward0
 
-
-def recursive_type_wrap(array):
-    if isinstance(array, awkward0.JaggedArray):
-        return asjagged(recursive_type_wrap(array.content))
-    return asdtype(array.dtype.fields)
-
-
-class wrapped_asgenobj(asgenobj):
-    def finalize(self, *args, **kwargs):
-        result = super(wrapped_asgenobj, self).finalize(*args, **kwargs)
-        result = awkward0.JaggedArray.fromiter(result)
-        return result
-
-
-uproot3.interp.auto.asgenobj = wrapped_asgenobj
-
-
-def wrapped_interpret(branch, *args, **kwargs):
-    from uproot3.interp.auto import interpret
-    result = interpret(branch, *args, **kwargs)
-    if result:
-        return result
-
-    if isinstance(branch, WrappedTree.FakeBranch):
-        return recursive_type_wrap(branch._values)
-
-    return None
-
-
-uproot3.tree.interpret = wrapped_interpret
+from .uproot_layer import add_new_variable, FakeBranch
 
 
 class WrappedTree(object):
@@ -94,39 +62,6 @@ class WrappedTree(object):
     def pandas(self):
         return WrappedTree.PandasWrap(self)
 
-    class FakeBranch(object):
-        def __init__(self, name, values, event_ranger):
-            self.name = name
-            self._values = values
-            self._fLeaves = []
-            self.fLeaves = []
-            self.event_ranger = event_ranger
-
-        @property
-        def _recoveredbaskets(self):
-            return []
-
-        def array(self, entrystart=None, entrystop=None, blocking=True, **kws):
-            array = self._values
-            if entrystart:
-                entrystart -= self.event_ranger.start_entry
-            if entrystop:
-                entrystop -= self.event_ranger.start_entry
-
-            def wait():
-                values = array[entrystart:entrystop]
-                return values
-
-            if not blocking:
-                return wait
-            return wait()
-
-        def __getattr__(self, attr):
-            return getattr(self._values, attr)
-
-        def __len__(self):
-            return len(self._values)
-
     def new_variable(self, name, value):
         if name in self:
             msg = "Trying to overwrite existing variable: '%s'"
@@ -135,9 +70,9 @@ class WrappedTree(object):
             msg = "New array %s does not have the right length: %d not %d"
             raise ValueError(msg % (name, len(value), len(self)))
 
-        outputtype = WrappedTree.FakeBranch
+        outputtype = FakeBranch
+        name = add_new_variable(name)
 
-        name = uproot3.rootio._bytesid(name)
         self.extras[name] = outputtype(name, value, self.event_ranger)
 
     def __getattr__(self, attr):
