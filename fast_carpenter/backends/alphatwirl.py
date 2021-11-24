@@ -20,7 +20,7 @@ class AtuprootContext:
         self._orig_event_builder = atup.EventBuilder
         self._orig_build_parallel = atup.build_parallel
 
-        from ..event_builder import EventBuilder
+        from .alphatwirl_event_builder import EventBuilder
         from atsge.build_parallel import build_parallel
         atup.EventBuilder = EventBuilder
         atup.EventBuilder.data_import_plugin = self.plugins["data_import"]

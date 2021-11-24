@@ -1,6 +1,5 @@
-import uproot3
 from atuproot.BEvents import BEvents
-from .masked_tree import MaskedUprootTree
+from ..masked_tree import MaskedUprootTree
 
 
 class EventRanger():
