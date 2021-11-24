@@ -11,9 +11,9 @@ _DATA_IMPORT_PLUGINS = {
 
 def register_data_import_plugin(plugin_name: str, plugin_class: DataImportBase) -> None:
     """
-    Register a new backend for data import.
+    Register a new plugin_name for data import.
     """
-    _DATA_IMPORT_PLUGINS[backend_name] = backend_func
+    _DATA_IMPORT_PLUGINS[plugin_name] = plugin_class
 
 
 def _process_plugin_config(plugin_name: str, plugin_config: Path) -> None:
@@ -27,10 +27,10 @@ def _process_plugin_config(plugin_name: str, plugin_config: Path) -> None:
         raise ValueError(f"Plugin config file {plugin_config} does not exist")
     if not plugin_config.is_file():
         raise ValueError(f"Plugin config file {plugin_config} is not a file")
-    
+
     raise NotImplementedError("Plugin config file processing not implemented yet")
-    
-    
+
+
 def get_data_import_plugin(plugin_name: str, plugin_config: Path) -> DataImportBase:
     """
     Get a data import plugin by name.

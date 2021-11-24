@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Any, Dict, List
 
 from ._base import DataImportBase
 
@@ -7,6 +7,9 @@ class Uproot4DataImport(DataImportBase):
     """
     This class is a wrapper around the uproot library.
     """
+
+    def __init__(self, config: Dict[str, Any]) -> None:
+        super().__init__(config)
 
     def _process_config(self):
         pass
@@ -26,5 +29,5 @@ class Uproot4DataImport(DataImportBase):
         try:
             rootfile = uproot.open(input_file)
         except MemoryError:
-            rootfile = uproot.open(input_file, localsource=uproot3.FileSource.defaults)
+            rootfile = uproot.open(input_file, localsource=uproot.FileSource.defaults)
         return rootfile

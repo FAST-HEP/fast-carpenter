@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Any
+from typing import Any, Dict, List
+
 
 class DataImportBase(ABC):
     """
@@ -9,7 +10,7 @@ class DataImportBase(ABC):
 
     def __init__(self, config: Dict[str, Any]) -> None:
         self.config = config
-    
+
     @abstractmethod
     def _process_config(self) -> None:
         """
@@ -23,4 +24,3 @@ class DataImportBase(ABC):
         This method is called by the importer to open the files.
         """
         pass
-
