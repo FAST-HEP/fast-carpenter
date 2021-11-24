@@ -51,6 +51,8 @@ class BEventsWrapped(BEvents):
 
 
 class EventBuilder(object):
+    data_import_plugin = None
+
     def __init__(self, config):
         self.config = config
 
@@ -61,22 +63,8 @@ class EventBuilder(object):
         )
 
     def __call__(self):
-        if len(self.config.inputPaths) != 1:
-            # TODO - support multiple inputPaths
-            raise AttributeError("Multiple inputPaths not yet supported")
-
-        # Try to open the tree - some machines have configured limitations
-        # which prevent memmaps from begin created. Use a fallback - the
-        # localsource option
-        try:
-            rootfile = uproot3.open(self.config.inputPaths[0])
-            tree = rootfile[self.config.treeName]
-        except MemoryError:
-            rootfile = uproot3.open(
-                self.config.inputPaths[0],
-                localsource=uproot3.FileSource.defaults
-            )
-            tree = rootfile[self.config.treeName]
+        data = EventBuilder.data_import_plugin.open(self.config.inputPaths)
+        tree = data[self.config.treeName]
 
         events = BEventsWrapped(tree,
                                 self.config.nevents_per_block,

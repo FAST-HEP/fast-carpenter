@@ -1,6 +1,7 @@
 """
 Functions to run a job using alphatwirl
 """
+from typing import Dict, Any
 
 
 class DummyCollector():
@@ -9,6 +10,10 @@ class DummyCollector():
 
 
 class AtuprootContext:
+
+    def __init__(self, plugins: Dict[str, Any] = None) -> None:
+        self.plugins = plugins
+
     def __enter__(self):
         import atuproot.atuproot_main as atup
         self.atup = atup
@@ -18,6 +23,7 @@ class AtuprootContext:
         from ..event_builder import EventBuilder
         from atsge.build_parallel import build_parallel
         atup.EventBuilder = EventBuilder
+        atup.EventBuilder.data_import_plugin = self.plugins["data_import"]
         atup.build_parallel = build_parallel
         return self
 
@@ -26,7 +32,7 @@ class AtuprootContext:
         self.atup.build_parallel = self._orig_build_parallel
 
 
-def execute(sequence, datasets, args):
+def execute(sequence, datasets, args, plugins: Dict[str, Any] = None):
     """
     Run a job using alphatwirl and atuproot
     """
@@ -36,7 +42,7 @@ def execute(sequence, datasets, args):
 
     sequence = [(s, s.collector() if hasattr(s, "collector") else DummyCollector()) for s in sequence]
 
-    with AtuprootContext() as runner:
+    with AtuprootContext(plugins) as runner:
         process = runner.atup.AtUproot(args.outdir,
                                        quiet=args.quiet,
                                        parallel_mode=args.mode,
