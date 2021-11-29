@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-import fast_carpenter.event_builder as builder
+import fast_carpenter.backends.alphatwirl_event_builder as builder
 
 
 @pytest.fixture
