@@ -4,12 +4,6 @@ import uproot as uproot4
 from collections import namedtuple
 
 
-# @pytest.fixture
-# def infile():
-#     filename = "tests/data/CMS_HEP_tutorial_ww.root"
-#     return uproot3.open(filename)["events"]
-
-
 @pytest.fixture
 def test_input_file():
     return "tests/data/CMS_HEP_tutorial_ww.root"

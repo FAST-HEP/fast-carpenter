@@ -2,10 +2,9 @@ import pytest
 import numpy as np
 from awkward0 import JaggedArray
 from fast_carpenter import expressions
-from fast_carpenter.tree_adapter import Uproot4Methods
+from fast_carpenter import tree_adapter
 
-ArrayMethods = Uproot4Methods
-
+ArrayMethods = tree_adapter.Uproot4Methods
 
 def test_get_branches(input_tree):
     valid = input_tree.keys()
