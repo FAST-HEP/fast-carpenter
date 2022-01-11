@@ -4,10 +4,10 @@ import uproot as uproot4
 from collections import namedtuple
 
 
-@pytest.fixture
-def infile():
-    filename = "tests/data/CMS_HEP_tutorial_ww.root"
-    return uproot3.open(filename)["events"]
+# @pytest.fixture
+# def infile():
+#     filename = "tests/data/CMS_HEP_tutorial_ww.root"
+#     return uproot3.open(filename)["events"]
 
 
 @pytest.fixture
@@ -38,25 +38,30 @@ def full_event_range():
     return FakeEventRange(0, 4580, 0)
 
 
-def wrap_uproot3_tree(infile, event_range):
+def wrap_uproot3_tree(input_tree, event_range):
     import fast_carpenter.tree_wrapper as tree_w
-    tree = tree_w.WrappedTree(infile, event_range)
+    tree = tree_w.WrappedTree(input_tree, event_range)
     return tree
 
 
 @pytest.fixture
-def wrapped_tree(infile, event_range):
-    return wrap_uproot3_tree(infile, event_range)
+def wrapped_uproot3_tree(input_tree, event_range):
+    return wrap_uproot3_tree(input_tree, event_range)
 
 
 @pytest.fixture
-def full_wrapped_tree(infile, full_event_range):
-    return wrap_uproot3_tree(infile, full_event_range)
+def full_wrapped_uproot3_tree(input_tree, full_event_range):
+    return wrap_uproot3_tree(input_tree, full_event_range)
 
 
 def wrap_uproot4_tree(input_tree, event_range):
-    from fast_carpenter.tree_adapter import TreeToDictAdaptorV1
-    tree = TreeToDictAdaptorV1(input_tree, event_range=event_range)
+    from fast_carpenter import tree_adapter
+    tree = tree_adapter.create_ranged(
+        {
+            "adapter": "uproot4", "tree": input_tree,
+            "start": event_range.start_entry, "stop": event_range.stop_entry,
+        }
+    )
     return tree
 
 
@@ -68,6 +73,12 @@ def wrapped_uproot4_tree(uproot4_tree, event_range):
 @pytest.fixture
 def full_wrapped_uproot4_tree(uproot4_tree, full_event_range):
     return wrap_uproot4_tree(uproot4_tree, full_event_range)
+
+
+# setting the default to uproot4
+input_tree = uproot4_tree
+wrapped_tree = wrapped_uproot4_tree
+full_wrapped_tree = full_wrapped_uproot4_tree
 
 
 class Namespace():
