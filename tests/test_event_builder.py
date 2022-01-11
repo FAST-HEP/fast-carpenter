@@ -4,8 +4,9 @@ import fast_carpenter.backends.alphatwirl_event_builder as builder
 
 
 @pytest.fixture
-def wrapped_be(infile):
-    return builder.BEventsWrapped(infile, nevents_per_block=1000)
+def wrapped_be(uproot3_tree):
+    """ Not going to be used for uproot4 """
+    return builder.BEventsWrapped(uproot3_tree, nevents_per_block=1000)
 
 
 def test_contains(wrapped_be):
