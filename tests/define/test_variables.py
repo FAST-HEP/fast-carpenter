@@ -1,38 +1,7 @@
+import awkward as ak
 import pytest
+
 import fast_carpenter.define.variables as fast_vars
-
-
-@pytest.fixture
-def variable_simple():
-    define = "sqrt(MET_px**2 + MET_py**2)"
-    return define
-
-
-@pytest.fixture
-def variable_jagged():
-    define = dict(formula="sqrt(Electron_Px**2 + Electron_Py**2)")
-    return define
-
-
-@pytest.fixture
-def variable_jagged_reduce():
-    define = dict(formula="sqrt(Electron_Px**2 + Electron_Py**2)", reduce="max")
-    return define
-
-
-@pytest.fixture
-def variable_jagged_mask():
-    define = dict(formula="sqrt(Electron_Px**2 + Electron_Py**2)",
-                  mask="Electron_Pz>0")
-    return define
-
-
-@pytest.fixture
-def variable_jagged_mask_reduce():
-    define = dict(formula="sqrt(Electron_Px**2 + Electron_Py**2)",
-                  mask="Electron_Pz>0",
-                  reduce="max")
-    return define
 
 
 def build(name, config):
@@ -42,17 +11,23 @@ def build(name, config):
     return builder
 
 
-def test_calculation(variable_simple, variable_jagged, variable_jagged_reduce,
-                     variable_jagged_mask, variable_jagged_mask_reduce, infile):
-    simple = fast_vars.full_evaluate(infile, **build("simple", variable_simple))
-    jagged = fast_vars.full_evaluate(infile, **build("jagged", variable_jagged))
-    jagged_reduce = fast_vars.full_evaluate(infile, **build("jagged_reduce", variable_jagged_reduce))
-    jagged_mask = fast_vars.full_evaluate(infile, **build("jagged_mask", variable_jagged_mask))
-    jagged_mask_reduce = fast_vars.full_evaluate(infile, **build("jagged_mask_reduce", variable_jagged_mask_reduce))
+@pytest.mark.parametrize("name, define, mask", [
+    ("simple", dict(formula="sqrt(MET_px**2 + MET_py**2)"), None),
+    ("jagged", dict(formula="sqrt(Electron_Px**2 + Electron_Py**2)"), None),
+    ("jagged_reduce", dict(formula="sqrt(Electron_Px**2 + Electron_Py**2)", reduce="max"), None),
+    ("jagged_mask", dict(formula="sqrt(Electron_Px**2 + Electron_Py**2)"), "Electron_Pz>0"),
+    ("jagged_mask_reduce", dict(formula="sqrt(Electron_Px**2 + Electron_Py**2)", reduce="max"), "Electron_Pz>0"),
+])
+def test_calculation(name, define, mask, wrapped_tree):
+    result = fast_vars.full_evaluate(wrapped_tree, **build(name, define))
 
-    assert len(simple) == len(infile)
-    assert len(jagged) == len(infile)
-    assert len(jagged_reduce) == len(infile)
-    assert len(jagged_mask) == len(infile)
-    assert len(jagged_mask_reduce) == len(infile)
-    assert all(jagged_mask_reduce <= jagged_reduce)
+    assert ak.count_nonzero(result) > 0
+    assert len(result) == len(wrapped_tree)
+    if mask is None or "reduce" not in define:
+        return
+
+    define["mask"] = mask
+    result_masked = fast_vars.full_evaluate(wrapped_tree, **build(name, define))
+
+    assert len(result_masked) == len(wrapped_tree)
+    assert ak.all(result_masked <= result)

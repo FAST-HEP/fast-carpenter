@@ -4,6 +4,7 @@ from collections import abc
 from typing import Any, Callable, Dict, Optional
 
 import awkward as ak
+import numpy as np
 
 adapters: Dict[str, Callable] = {}
 
@@ -71,7 +72,7 @@ class TreeToDictAdaptor(abc.MutableMapping):
             msg = f"New variable {key} does not have the right length: {len(value)} not {context.num_entries}"
             raise ValueError(msg)
 
-        if not key in self:
+        if key not in self:
             self.__new_variable__(self.__resolve_key__(key), value)
         else:
             raise ValueError(f"Trying to overwrite existing variable: {key}")
@@ -147,15 +148,55 @@ class Uproot3Methods(object):
 
     @staticmethod
     def counts(array, **kwargs):
-        return array.counts(**kwargs)
+        return array.counts
+
+    @staticmethod
+    def pad(array, length, **kwargs):
+        return array.pad(length, **kwargs)
+
+    @staticmethod
+    def flatten(array, **kwargs):
+        return array.flatten(**kwargs)
+
+    @staticmethod
+    def sum(array, **kwargs):
+        return array.sum(**kwargs)
+
+    @staticmethod
+    def prod(array, **kwargs):
+        return array.prod(**kwargs)
+
+    @staticmethod
+    def any(array, **kwargs):
+        return array.any(**kwargs)
 
     @staticmethod
     def all(array, **kwargs):
         return array.all(**kwargs)
 
     @staticmethod
-    def pad(array, length, **kwargs):
-        return array.pad(length, **kwargs)
+    def count_nonzero(array, **kwargs):
+        return array.count_nonzero(**kwargs)
+
+    @staticmethod
+    def max(array, **kwargs):
+        return array.max(**kwargs)
+
+    @staticmethod
+    def min(array, **kwargs):
+        return array.min(**kwargs)
+
+    @staticmethod
+    def argmax(array, **kwargs):
+        return array.argmax(**kwargs)
+
+    @staticmethod
+    def argmin(array, **kwargs):
+        return array.argmin(**kwargs)
+
+    @staticmethod
+    def count_zero(array, **kwargs):
+        return np.count_zero(array, **kwargs)
 
 
 class Uproot4Methods(object):
@@ -212,6 +253,49 @@ class Uproot4Methods(object):
     def pad(array, length: int, **kwargs: Dict[str, Any]) -> ak.Array:
         axis = kwargs.pop("axis", -1)
         return ak.pad_none(array, length, axis=axis, **kwargs)
+
+    @staticmethod
+    def flatten(array, **kwargs):
+        return ak.flatten(array, **kwargs)
+
+    @staticmethod
+    def sum(array, **kwargs):
+        axis = kwargs.pop("axis", -1)
+        return ak.sum(array, axis=axis, **kwargs)
+
+    @staticmethod
+    def prod(array, **kwargs):
+        return ak.prod(array, **kwargs)
+
+    @staticmethod
+    def any(array, **kwargs):
+        axis = kwargs.pop("axis", -1)
+        return ak.any(array, axis=axis, **kwargs)
+
+    @staticmethod
+    def count_nonzero(array, **kwargs):
+        return ak.count_nonzero(array, **kwargs)
+
+    @staticmethod
+    def max(array, **kwargs):
+        axis = kwargs.pop("axis", 1)
+        return ak.max(array, axis=axis, **kwargs)
+
+    @staticmethod
+    def min(array, **kwargs):
+        return ak.min(array, **kwargs)
+
+    @staticmethod
+    def argmax(array, **kwargs):
+        return ak.argmax(array, **kwargs)
+
+    @staticmethod
+    def argmin(array, **kwargs):
+        return ak.argmin(array, **kwargs)
+
+    @staticmethod
+    def count_zero(array, **kwargs):
+        return ak.count_zero(array, **kwargs)
 
 
 ArrayMethods = Uproot4Methods

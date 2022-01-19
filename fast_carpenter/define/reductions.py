@@ -2,6 +2,7 @@ import numpy as np
 import six
 from ..expressions import deconstruct_jaggedness, reconstruct_jaggedness
 
+from ..tree_adapter import ArrayMethods
 
 __all__ = ["get_pandas_reduction"]
 
@@ -49,7 +50,7 @@ class JaggedMethod(object):
         self.method_name = method
 
     def __call__(self, array):
-        return getattr(array, self.method_name)()
+        return getattr(ArrayMethods, self.method_name)(array)
 
 
 class JaggedProperty(object):
@@ -57,7 +58,7 @@ class JaggedProperty(object):
         self.prop_name = prop_name
 
     def __call__(self, array):
-        return getattr(array, self.prop_name)
+        return getattr(ArrayMethods, self.prop_name)(array)
 
 
 _jagged_methods = ["sum", "prod", "any", "all", "count_nonzero",
