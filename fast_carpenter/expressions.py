@@ -1,6 +1,5 @@
 import numpy as np
 import re
-import numexpr
 import tokenize
 import awkward0
 import awkward as ak

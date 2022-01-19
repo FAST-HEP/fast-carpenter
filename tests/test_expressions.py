@@ -6,6 +6,7 @@ from fast_carpenter import tree_adapter
 
 ArrayMethods = tree_adapter.Uproot4Methods
 
+
 def test_get_branches(input_tree):
     valid = input_tree.keys()
 

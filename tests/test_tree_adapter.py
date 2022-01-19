@@ -1,8 +1,6 @@
 import pytest
 import fast_carpenter.tree_adapter as tree_adapter
-# from fast_carpenter.tree_adapter import TreeToDictAdaptorV0, TreeToDictAdaptorV1, Ranger
 import awkward as ak
-import numexpr as ne
 import numpy as np
 
 ###############################################################################
@@ -34,7 +32,14 @@ def uproot4_adapter(uproot4_tree):
 
 @pytest.fixture
 def uproot4_ranged_adapter(uproot4_tree, event_range):
-    return tree_adapter.create_ranged({"adapter": "uproot4", "tree": uproot4_tree, "start": event_range.start_entry, "stop": event_range.stop_entry})
+    return tree_adapter.create_ranged(
+        {
+            "adapter": "uproot4",
+            "tree": uproot4_tree,
+            "start": event_range.start_entry,
+            "stop": event_range.stop_entry
+        }
+    )
 
 
 def test_uproot4_num_entries(uproot4_tree, uproot4_adapter):
