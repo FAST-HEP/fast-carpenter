@@ -1,8 +1,8 @@
 import pytest
 import six
 import numpy as np
-import uproot3
 import fast_carpenter.selection.filters as filters
+from fast_carpenter.tree_adapter import ArrayMethods
 
 
 @pytest.fixture
@@ -22,10 +22,9 @@ def test_build_selection_1(config_1):
     assert isinstance(selection.selection, six.string_types)
 
 
-def test_selection_1(config_1, filename):
+def test_selection_1(config_1, full_wrapped_tree):
     selection = filters.build_selection("test_selection_1", config_1)
-    infile = uproot3.open(filename)["events"]
-    mask = selection(infile, is_mc=False)
+    mask = selection(full_wrapped_tree, is_mc=False)
     assert np.count_nonzero(mask) == 289
 
     columns = selection.columns
@@ -55,11 +54,10 @@ def config_2():
     return {"Any": ["NMuon > 1", "NElectron > 1", "NJet > 1"]}
 
 
-def test_selection_2_weights(config_2, filename):
+def test_selection_2_weights(config_2, full_wrapped_tree):
     selection = filters.build_selection("test_selection_1",
                                         config_2, weights=["EventWeight"])
-    infile = uproot3.open(filename)["events"]
-    mask = selection(infile, is_mc=True)
+    mask = selection(full_wrapped_tree, is_mc=True)
     assert np.count_nonzero(mask) == 1486
 
     columns = selection.columns
@@ -72,14 +70,13 @@ def test_selection_2_weights(config_2, filename):
     assert len(index) == 4
     assert index[0] == ("0", 0, "Any")
     assert values[0][columns[0].index("passed_incl")] == 1486
-    assert values[0][columns[0].index("passed_incl") + 1] == np.sum(infile.array("EventWeight")[mask])
+    assert values[0][columns[0].index("passed_incl") + 1] == ArrayMethods.sum(full_wrapped_tree["EventWeight"][mask])
 
 
-def test_selection_2_weights_data(config_2, filename):
+def test_selection_2_weights_data(config_2, full_wrapped_tree):
     selection = filters.build_selection("test_selection_1",
                                         config_2, weights=["EventWeight"])
-    infile = uproot3.open(filename)["events"]
-    mask = selection(infile, is_mc=False)
+    mask = selection(full_wrapped_tree, is_mc=False)
     assert np.count_nonzero(mask) == 1486
 
     columns = selection.columns
@@ -102,10 +99,9 @@ def config_3():
     return {"All": ["NMuon > 1", {"Any": ["NElectron > 1", "NJet > 1"]}]}
 
 
-def test_selection_3(config_3, filename):
+def test_selection_3(config_3, full_wrapped_tree):
     selection = filters.build_selection("test_selection_3", config_3)
-    infile = uproot3.open(filename)["events"]
-    mask = selection(infile, is_mc=True)
+    mask = selection(full_wrapped_tree, is_mc=True)
     assert np.count_nonzero(mask) == 8
 
     index = selection.index_values
@@ -123,12 +119,11 @@ def config_jagged_index():
     return dict(reduce=1, formula="Muon_Px > 0.3")
 
 
-def test_selection_jagged_index(config_jagged_index, filename):
+def test_selection_jagged_index(config_jagged_index, full_wrapped_tree):
     selection = filters.build_selection("test_selection_jagged", config_jagged_index)
-    infile = uproot3.open(filename)["events"]
-    mask = selection(infile, is_mc=False)
+    mask = selection(full_wrapped_tree, is_mc=False)
     # Compare to: events->Draw("", "Muon_Px[1] > 0.300")
-    assert len(mask) == len(infile)
+    assert len(mask) == len(full_wrapped_tree)
     assert np.count_nonzero(mask) == 144
 
 
@@ -137,10 +132,9 @@ def config_jagged_count_nonzero():
     return dict(reduce="any", formula="Muon_Px > 0.3")
 
 
-def test_selection_jagged_count_nonzero(config_jagged_count_nonzero, filename):
+def test_selection_jagged_count_nonzero(config_jagged_count_nonzero, full_wrapped_tree):
     selection = filters.build_selection("test_selection_jagged", config_jagged_count_nonzero)
-    infile = uproot3.open(filename)["events"]
-    mask = selection(infile, is_mc=False)
+    mask = selection(full_wrapped_tree, is_mc=False)
     # Compare to: events->Draw("", "Sum$(Muon_Px > 0.300) > 0")
     assert np.count_nonzero(mask) == 2225
 
