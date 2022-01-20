@@ -198,6 +198,18 @@ class Uproot3Methods(object):
     def count_zero(array, **kwargs):
         return np.count_zero(array, **kwargs)
 
+    @staticmethod
+    def dtype(array, **kwargs):
+        return array.dtype.kind
+
+    @staticmethod
+    def is_bool(array, **kwargs):
+        return Uproot3Methods.dtype(array) == "b"
+
+    @staticmethod
+    def arrays_as_np_lists(data, array_names, **kwargs):
+        return data.arrays(array_names, outputtype=lambda *args: np.array(args))
+
 
 class Uproot4Methods(object):
     """
@@ -296,6 +308,25 @@ class Uproot4Methods(object):
     @staticmethod
     def count_zero(array, **kwargs):
         return ak.count_zero(array, **kwargs)
+
+    @staticmethod
+    def dtype(array, **kwargs):
+        t = ak.type(array).type
+        if hasattr(t, "dtype"):
+            return t.dtype
+        return t
+
+    @staticmethod
+    def is_bool(array, **kwargs):
+        t = Uproot4Methods.dtype(array)
+        if "bool" in str(t):
+            return True
+        return Uproot4Methods.dtype(array) == "bool"
+
+    @staticmethod
+    def arrays_as_np_lists(data, array_names, **kwargs):
+        arrays = data.arrays(array_names, library="ak", outputtype=list)
+        return arrays
 
 
 ArrayMethods = Uproot4Methods
