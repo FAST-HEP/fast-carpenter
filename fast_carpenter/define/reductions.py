@@ -1,6 +1,5 @@
 import numpy as np
 import six
-from ..expressions import deconstruct_jaggedness, reconstruct_jaggedness
 
 from ..tree_adapter import ArrayMethods
 
@@ -24,25 +23,8 @@ class JaggedNth(object):
             self.dtype = int
 
     def __call__(self, array):
-        # The next two lines ought to be enough
-        # result = array.pad(abs(self.index) + int(self.index >= 0))
-        # result = result[..., self.index]
-
-        # Flatten out the first K-1 dimensions:
-        flat, counts = deconstruct_jaggedness(array, [])
-        result = reconstruct_jaggedness(flat, counts[:1])
-
-        # Now get the Nth item on the last dimension
-        result = result.pad(abs(self.index) + int(self.index >= 0))
-        result = result[..., self.index]
-
-        # Now replay the remaining dimensions on this
-        result = reconstruct_jaggedness(result, counts[1:])
-
-        if self.dtype is not None:
-            result = result.astype(self.dtype)
-        result = result.fillna(self.fill_missing)
-        return result
+        result = ArrayMethods.pad(array, abs(self.index) + int(self.index >= 0))
+        return result[..., self.index]
 
 
 class JaggedMethod(object):
