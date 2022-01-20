@@ -325,8 +325,7 @@ class Uproot4Methods(object):
 
     @staticmethod
     def arrays_as_np_lists(data, array_names, **kwargs):
-        arrays = data.arrays(array_names, library="ak", outputtype=list)
-        return arrays
+        return np.array(data.arrays(array_names, library="np", outputtype=list))
 
 
 ArrayMethods = Uproot4Methods

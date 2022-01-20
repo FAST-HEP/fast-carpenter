@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from ..expressions import evaluate
 from ..define.reductions import get_awkward_reduction
+from ..tree_adapter import ArrayMethods
 
 
 def safe_and(left, right):
@@ -31,17 +32,17 @@ class Counter():
     def get_unweighted_increment(data, mask):
         if mask is None:
             return len(data)
-        elif mask.dtype.kind == "b":
+        elif ArrayMethods.is_bool(mask):
             return np.count_nonzero(mask)
         else:
             return len(mask)
 
     @staticmethod
     def get_weighted_increment(weight_names, data, mask):
-        weights = data.arrays(weight_names, outputtype=lambda *args: np.array(args))
+        weights = ArrayMethods.arrays_as_np_lists(data, weight_names)
         if mask is not None:
             weights = weights[:, mask]
-        return weights.sum(axis=1)
+        return ArrayMethods.sum(weights, axis=1)
 
     def increment(self, data, is_mc, mask=None):
         unweighted_increment = self.get_unweighted_increment(data, mask)
@@ -55,7 +56,7 @@ class Counter():
             return
 
         weighted_increments = self.get_weighted_increment(self._weights, data, mask)
-        self._w_counts += weighted_increments
+        self._w_counts = ArrayMethods.sum([self._w_counts, weighted_increments], axis=0)
 
     @property
     def counts(self):
@@ -133,9 +134,11 @@ class ReduceSingleCut(BaseFilter):
     def __init__(self, stage_name, depth, cut_id, weights, selection):
         super(ReduceSingleCut, self).__init__(selection, depth, cut_id, weights)
         self._str = str(selection)
-        self.reduction = get_awkward_reduction(stage_name,
-                                               selection.get("reduce"),
-                                               fill_missing=False)
+        self.reduction = get_awkward_reduction(
+            stage_name,
+            selection.get("reduce"),
+            fill_missing=False,
+        )
         self.formula = selection.get("formula")
 
     def __call__(self, data, is_mc, **kwargs):
