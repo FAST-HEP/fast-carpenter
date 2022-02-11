@@ -1,12 +1,15 @@
 # input is an uproot tree (uproot3 --> adapter V0, uproot4 --> adapter V1)
 # output is a dict with the same structure as the tree
 from collections import abc
+import logging
 from typing import Any, Callable, Dict, Optional
 
 import awkward as ak
 import numpy as np
 
 adapters: Dict[str, Callable] = {}
+DEFAULT_TREE_TO_DICT_ADAPTOR = "uproot4"
+logger = logging.getLogger(__name__)
 
 
 def register(name: str, adaptor_creation_func: Callable) -> None:
@@ -89,20 +92,6 @@ class TreeToDictAdaptor(abc.MutableMapping):
         raise NotImplementedError()
 
 
-def create(arguments: Dict[str, Any]) -> TreeToDictAdaptor:
-    """
-    Create a TreeToDictAdaptor from a tree.
-    """
-    args_copy = arguments.copy()
-    adapter_type = args_copy.pop("adapter")
-
-    try:
-        creation_func = adapters[adapter_type]
-        return creation_func(**args_copy)
-    except KeyError:
-        raise ValueError(f"No adapter named {adapter_type}")
-
-
 class IndexingMixin(object):
     """
     Provides indexing support for the dict-like interface.
@@ -148,7 +137,7 @@ class Uproot3Methods(object):
 
     @staticmethod
     def counts(array, **kwargs):
-        return array.counts
+        return array.compact().counts
 
     @staticmethod
     def pad(array, length, **kwargs):
@@ -219,7 +208,9 @@ class Uproot4Methods(object):
     def __m_getitem__(self, key):
         if key in self.extra_variables:
             return self.extra_variables[key]
-        return self.tree[key].array()
+        if hasattr(self.tree[key], "array"):
+            return self.tree[key].array()
+        return self.tree[key]
 
     def __m_setitem__(self, key, value):
         self.tree.set_branch(key, value)
@@ -236,7 +227,11 @@ class Uproot4Methods(object):
 
     @property
     def num_entries(self) -> int:
-        return self.tree.num_entries
+        try:
+            return self.tree.num_entries
+        except AttributeError as e:
+            logger.error(f"Object of type {type(self.tree)} does not have a num_entries attribute.")
+            raise e
 
     def arrays(self, *args, **kwargs):
         if "outputtype" in kwargs:
@@ -272,7 +267,7 @@ class Uproot4Methods(object):
 
     @staticmethod
     def sum(array, **kwargs):
-        axis = kwargs.pop("axis", -1)
+        axis = kwargs.pop("axis", None)
         return ak.sum(array, axis=axis, **kwargs)
 
     @staticmethod
@@ -348,12 +343,14 @@ class Ranger(object):
     start: int
     stop: int
     block_size: int
+    mask: Any
 
     def __init__(self, tree: TreeToDictAdaptor, start: int, stop: int) -> None:
         self.tree = tree
         self.start = start
         self.stop = stop
-        self.block_size = stop - start
+        self.block_size = stop - start if stop > start > 0 else tree.num_entries
+        self.mask = None
 
     @property
     def num_entries(self) -> int:
@@ -400,14 +397,104 @@ class Ranger(object):
         return ak.numexpr.evaluate(expression, self, **kwargs)
 
 
+def combine_masks(masks):
+    import awkward as ak
+    if len(masks) == 0:
+        return ak.Array([])
+    elif len(masks) == 1:
+        return masks[0]
+    else:
+        return ak.concatenate(masks, axis=0)
+
+
+class Masked(object):
+    _mask: Any
+    _tree: Ranger
+
+    def __init__(self, tree: Ranger, mask: Any) -> None:
+        self._tree = tree
+        self._mask = mask
+
+    def __getitem__(self, key):
+        if self._mask is None:
+            return self._tree[key]
+        try:
+            if len(self._mask) > len(self._tree):
+                return self._tree[key][self._tree.start:self._tree.stop].mask[self._mask]
+        except:
+            raise TypeError()
+        return self._tree[key].mask[self._mask]
+
+    def __len__(self):
+        return len(self._tree)
+
+    @property
+    def num_entries(self) -> int:
+        return self._tree.num_entries
+
+    def count_nonzero(self):
+        if self._mask is None:
+            return len(self._tree)
+        return ak.count_nonzero(self._mask)
+
+    def apply_mask(self, mask):
+        if self._mask is None:
+            self._mask = mask
+        else:
+            self._mask = self._mask & mask
+
+    def array(self, key):
+        return self[key]
+
+    def arrays(self, *args, **kwargs):
+        arrays = self._tree.arrays(*args, **kwargs)
+        if self._mask is None:
+            return arrays
+        return [array[self._mask] for array in arrays]
+
+    def evaluate(self, expression, **kwargs):
+        import awkward as ak
+        return ak.numexpr.evaluate(expression, self, **kwargs)
+
+
+def create(arguments: Dict[str, Any]) -> TreeToDictAdaptor:
+    """
+    Create a TreeToDictAdaptor from a tree.
+    """
+    args_copy = arguments.copy()
+    adapter_type = args_copy.pop("adapter", DEFAULT_TREE_TO_DICT_ADAPTOR)
+
+    try:
+        creation_func = adapters[adapter_type]
+        return creation_func(**args_copy)
+    except KeyError:
+        raise ValueError(f"No adapter named {adapter_type}")
+
+
 def create_ranged(arguments: Dict[str, Any]) -> Ranger:
     """
     Create a tree adapter with ranged access.
     """
     args_copy = arguments.copy()
 
-    start = args_copy.pop("start")
-    stop = args_copy.pop("stop")
+    start = args_copy.pop("start", 0)
+    stop = args_copy.pop("stop", -1)
     tree = create(args_copy)
 
     return Ranger(tree, start, stop)
+
+
+def create_masked(arguments: Dict[str, Any]) -> Masked:
+    """
+    Create a tree adapter with masked access.
+    """
+    args_copy = arguments.copy()
+
+    mask = args_copy.pop("mask", None)
+    tree = create_ranged(args_copy)
+
+    return Masked(tree, mask)
+
+
+def create_masked_multitree(arguments: Dict[str, Any]) -> Masked:
+    raise NotImplementedError("Multitree not yet implemented")
