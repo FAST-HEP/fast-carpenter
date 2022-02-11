@@ -40,7 +40,7 @@ repositories = []
 
 setup_requirements = ['pytest-runner', ]
 
-test_requirements = ['pytest', 'flake8', 'pytest-cov']
+test_requirements = ['pytest', 'flake8', 'pytest-cov', 'pytest-lazy-fixture']
 
 setup(
     author="Ben Krikler",
