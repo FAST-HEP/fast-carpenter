@@ -76,10 +76,11 @@ def full_wrapped_uproot4_tree(uproot4_tree, full_event_range):
 
 
 @pytest.fixture
-def full_wrapped_masked_uproot4_tree(full_wrapped_uproot4_tree, full_event_range):
-    return create_masked(
+def full_wrapped_masked_uproot4_tree(uproot4_tree, full_event_range):
+    from fast_carpenter import tree_adapter
+    return tree_adapter.create_masked(
         {
-            "adapter": "uproot4", "tree": input_tree,
+            "adapter": "uproot4", "tree": uproot4_tree,
             "start": full_event_range.start_entry, "stop": full_event_range.stop_entry,
         })
 
