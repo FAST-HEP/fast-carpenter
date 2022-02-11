@@ -21,6 +21,10 @@ def uproot4_tree(test_input_file):
     return uproot4.open(test_input_file)["events"]
 
 
+@pytest.fixture
+def size_of_test_sample(uproot4_tree):
+    return uproot4_tree.num_entries
+
 FakeEventRange = namedtuple("FakeEventRange", "start_entry stop_entry entries_in_block")
 
 
@@ -30,8 +34,8 @@ def event_range():
 
 
 @pytest.fixture
-def full_event_range():
-    return FakeEventRange(0, 4580, 0)
+def full_event_range(size_of_test_sample):
+    return FakeEventRange(0, size_of_test_sample, 0)
 
 
 def wrap_uproot3_tree(input_tree, event_range):

@@ -7,9 +7,9 @@ from fast_carpenter import tree_adapter
 @pytest.mark.parametrize(
     "tree, start, stop, expected_num_entries",
     [
-        (lazy_fixture('input_tree'), 0, -1, 4580),
-        (lazy_fixture('input_tree'), 0, 4580, 4580),
-        (lazy_fixture('input_tree'), 100, 300, 200),
+        (lazy_fixture("input_tree"), 0, -1, lazy_fixture("size_of_test_sample")),
+        (lazy_fixture("input_tree"), 0, lazy_fixture("size_of_test_sample"), lazy_fixture("size_of_test_sample")),
+        (lazy_fixture("input_tree"), 100, 300, 200),
     ]
 )
 def test_ranged(tree, start, stop, expected_num_entries):
