@@ -3,6 +3,8 @@ import uproot3
 import uproot as uproot4
 from collections import namedtuple
 
+import fast_carpenter.selection.stage as stage
+
 
 @pytest.fixture
 def test_input_file():
@@ -69,10 +71,34 @@ def full_wrapped_uproot4_tree(uproot4_tree, full_event_range):
     return wrap_uproot4_tree(uproot4_tree, full_event_range)
 
 
-# setting the default to uproot4
-input_tree = uproot4_tree
-wrapped_tree = wrapped_uproot4_tree
-full_wrapped_tree = full_wrapped_uproot4_tree
+@pytest.fixture
+def full_wrapped_masked_uproot4_tree(full_wrapped_uproot4_tree, full_event_range):
+    return create_masked(
+        {
+            "adapter": "uproot4", "tree": input_tree,
+            "start": full_event_range.start_entry, "stop": full_event_range.stop_entry,
+        })
+
+
+@pytest.fixture
+def at_least_one_muon(tmpdir):
+    return stage.CutFlow("cut_at_least_one_muon", str(tmpdir), selection="NMuon > 1", weights="EventWeight")
+
+
+@pytest.fixture
+def at_least_one_muon_plus(tmpdir):
+    return stage.CutFlow(
+        "cutflow_2",
+        str(tmpdir),
+        selection={
+            "All": [
+                "NMuon > 1",
+                {"Any": ["NElectron > 1", "NJet > 1"]},
+                {"reduce": 1, "formula": "Muon_Px > 0.3"}
+            ]
+        },
+        weights="EventWeight"
+    )
 
 
 class Namespace():
@@ -84,3 +110,26 @@ class FakeBEEvent(object):
     def __init__(self, tree, eventtype):
         self.tree = tree
         self.config = Namespace(dataset=Namespace(eventtype=eventtype))
+
+    def __len__(self):
+        return len(self.tree)
+
+    def count_nonzero(self):
+        return self.tree.count_nonzero()
+
+
+@pytest.fixture
+def fake_data_events(full_wrapped_masked_uproot4_tree):
+    return FakeBEEvent(full_wrapped_masked_uproot4_tree, "data")
+
+
+@pytest.fixture
+def fake_sim_events(full_wrapped_masked_uproot4_tree):
+    return FakeBEEvent(full_wrapped_masked_uproot4_tree, "mc")
+
+
+# setting the default to uproot4
+input_tree = uproot4_tree
+wrapped_tree = wrapped_uproot4_tree
+full_wrapped_tree = full_wrapped_uproot4_tree
+masked_tree = full_wrapped_masked_uproot4_tree
