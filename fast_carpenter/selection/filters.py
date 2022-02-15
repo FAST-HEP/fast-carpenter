@@ -4,6 +4,7 @@ import pandas as pd
 from ..expressions import evaluate
 from ..define.reductions import get_awkward_reduction
 from ..tree_adapter import ArrayMethods
+from ..weights import extract_weights, get_unweighted_increment, get_weighted_increment
 
 
 def safe_and(left, right):
@@ -28,24 +29,11 @@ class Counter():
         self._w_counts = np.zeros(len(weights))
         self._counts = 0
 
-    @staticmethod
-    def get_unweighted_increment(data, mask):
-        if mask is None:
-            return len(data)
-        elif ArrayMethods.is_bool(mask):
-            return np.count_nonzero(mask)
-        else:
-            return len(mask)
-
-    @staticmethod
-    def get_weighted_increment(weight_names, data, mask):
-        weights = ArrayMethods.arrays_as_np_lists(data, weight_names)
-        if mask is not None:
-            weights = weights[:, mask]
-        return ArrayMethods.sum(weights, axis=1)
-
+    # TODO: increment should take weights, not data
     def increment(self, data, is_mc, mask=None):
-        unweighted_increment = self.get_unweighted_increment(data, mask)
+        weights = extract_weights(data, weight_names)
+
+        unweighted_increment = get_unweighted_increment(weights, mask)
         self._counts += unweighted_increment
 
         if not self._weights:
@@ -55,7 +43,7 @@ class Counter():
             self._w_counts += unweighted_increment
             return
 
-        weighted_increments = self.get_weighted_increment(self._weights, data, mask)
+        weighted_increments = get_weighted_increment(self._weights, data, mask)
         self._w_counts = ArrayMethods.sum([self._w_counts, weighted_increments], axis=0)
 
     @property
