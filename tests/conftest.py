@@ -4,6 +4,7 @@ import uproot as uproot4
 from collections import namedtuple
 
 import fast_carpenter.selection.stage as stage
+from fast_carpenter.testing import FakeBEEvent, FakeEventRange
 
 
 @pytest.fixture
@@ -24,8 +25,6 @@ def uproot4_tree(test_input_file):
 @pytest.fixture
 def size_of_test_sample(uproot4_tree):
     return uproot4_tree.num_entries
-
-FakeEventRange = namedtuple("FakeEventRange", "start_entry stop_entry entries_in_block")
 
 
 @pytest.fixture
@@ -104,23 +103,6 @@ def at_least_one_muon_plus(tmpdir):
         },
         weights="EventWeight"
     )
-
-
-class Namespace():
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
-
-
-class FakeBEEvent(object):
-    def __init__(self, tree, eventtype):
-        self.tree = tree
-        self.config = Namespace(dataset=Namespace(eventtype=eventtype))
-
-    def __len__(self):
-        return len(self.tree)
-
-    def count_nonzero(self):
-        return self.tree.count_nonzero()
 
 
 @pytest.fixture
