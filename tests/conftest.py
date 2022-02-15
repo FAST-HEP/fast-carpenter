@@ -1,7 +1,6 @@
 import pytest
 import uproot3
 import uproot as uproot4
-from collections import namedtuple
 
 import fast_carpenter.selection.stage as stage
 from fast_carpenter.testing import FakeBEEvent, FakeEventRange

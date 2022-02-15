@@ -3,6 +3,7 @@ import six
 import numpy as np
 import fast_carpenter.selection.filters as filters
 from fast_carpenter.tree_adapter import ArrayMethods
+from fast_carpenter.testing import FakeTree
 
 
 @pytest.fixture
@@ -70,7 +71,9 @@ def test_selection_2_weights(config_2, full_wrapped_tree):
     assert len(index) == 4
     assert index[0] == ("0", 0, "Any")
     assert values[0][columns[0].index("passed_incl")] == 1486
-    assert values[0][columns[0].index("passed_incl") + 1] == ArrayMethods.sum(full_wrapped_tree["EventWeight"][mask])
+
+    weight_sum = ArrayMethods.sum(full_wrapped_tree["EventWeight"][mask], axis=-1)
+    assert values[0][columns[0].index("passed_incl") + 1] == weight_sum
 
 
 def test_selection_2_weights_data(config_2, full_wrapped_tree):
@@ -142,17 +145,6 @@ def test_selection_jagged_count_nonzero(config_jagged_count_nonzero, full_wrappe
 def fake_evaluate(variables, expression):
     import numexpr
     return numexpr.evaluate(expression, variables)
-
-
-class FakeTree(dict):
-    def __init__(self):
-        super(FakeTree, self).__init__(NMuon=np.linspace(0, 5., 101),
-                                       NElectron=np.linspace(0, 10, 101),
-                                       NJet=np.linspace(2, -18, 101),
-                                       )
-
-    def __len__(self):
-        return 101
 
 
 def test_event_removal_1(config_1, monkeypatch):

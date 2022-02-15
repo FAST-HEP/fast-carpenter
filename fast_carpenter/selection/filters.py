@@ -1,4 +1,6 @@
 import six
+from typing import List, Tuple
+
 import numpy as np
 import pandas as pd
 from ..expressions import evaluate
@@ -24,6 +26,10 @@ def safe_or(left, right):
 
 
 class Counter():
+    _weights: List[str]
+    _w_counts: np.ndarray
+    _counts: int
+
     def __init__(self, weights):
         self._weights = weights
         self._w_counts = np.zeros(len(weights))
@@ -31,9 +37,12 @@ class Counter():
 
     # TODO: increment should take weights, not data
     def increment(self, data, is_mc, mask=None):
-        weights = extract_weights(data, weight_names)
+        weights = extract_weights(data, self._weights)
 
-        unweighted_increment = get_unweighted_increment(weights, mask)
+        try:
+            unweighted_increment = get_unweighted_increment(weights, mask)
+        except ValueError:
+            unweighted_increment = len(data)
         self._counts += unweighted_increment
 
         if not self._weights:
@@ -43,15 +52,15 @@ class Counter():
             self._w_counts += unweighted_increment
             return
 
-        weighted_increments = get_weighted_increment(self._weights, data, mask)
+        weighted_increments = get_weighted_increment(weights, mask)
         self._w_counts = ArrayMethods.sum([self._w_counts, weighted_increments], axis=0)
 
     @property
-    def counts(self):
+    def counts(self) -> Tuple[int, float]:
         return (self._counts,) + tuple(self._w_counts)
 
-    def add(self, rhs):
-        self._w_counts += rhs._w_counts
+    def add(self, rhs) -> None:
+        self._w_counts = (np.sum(self._w_counts + rhs._w_counts).tolist(),)
         self._counts += rhs._counts
 
 

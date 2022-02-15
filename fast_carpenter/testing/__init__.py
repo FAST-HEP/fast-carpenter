@@ -24,7 +24,7 @@ class FakeBEEvent(object):
 class FakeTree(dict):
     length: int = 101
 
-    def __init__(self, length):
+    def __init__(self, length=101):
         super(FakeTree, self).__init__(
             NMuon=np.linspace(0, 5., length),
             NElectron=np.linspace(0, 10, length),
@@ -34,3 +34,6 @@ class FakeTree(dict):
 
     def __len__(self):
         return self.length
+
+    def arrays(self, array_names, library="np", outputtype=list):
+        return [self[name] for name in array_names]
