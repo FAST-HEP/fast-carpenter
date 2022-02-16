@@ -205,6 +205,10 @@ class Uproot3Methods(object):
     def arrays_as_np_lists(data, array_names, **kwargs):
         return data.arrays(array_names, outputtype=lambda *args: np.array(args))
 
+    @staticmethod
+    def to_pandas(data, keys, flatten):
+        return data.pandas.df(keys, flatten=flatten)
+
 
 class Uproot4Methods(object):
     """
@@ -336,6 +340,13 @@ class Uproot4Methods(object):
             array_names,
             library="ak",
             outputtype=list,
+        )
+
+    @staticmethod
+    def to_pandas(data, keys, flatten):
+        return data.arrays(
+            keys,
+            library="pd",
         )
 
 

@@ -8,6 +8,8 @@ import pandas as pd
 from pandas.api.types import is_object_dtype
 from . import binning_config as cfg
 
+from fast_carpenter.tree_adapter import ArrayMethods
+
 
 class Collector():
     valid_ext = {'xlsx': 'excel', 'h5': 'hdf', 'msg': 'msgpack', 'dta': 'stata', 'pkl': 'pickle', 'p': 'pickle'}
@@ -202,14 +204,14 @@ class BinnedDataframe():
         return Collector(outfilename, self._dataset_col, binnings=binnings, file_format=self._file_format)
 
     def event(self, chunk):
-        all_inputs = [key for key in chunk.tree.keys() if key.decode() in self.potential_inputs]
+        all_inputs = [key for key in chunk.tree.keys() if key in self.potential_inputs]
         if chunk.config.dataset.eventtype == "mc" or self.weight_data:
             weights = list(self._weights.values())
             all_inputs += weights
         else:
             weights = None
 
-        data = chunk.tree.pandas.df(all_inputs, flatten=False)
+        data = ArrayMethods.to_pandas(chunk.tree, all_inputs, flatten=False)
         data = explode(data)
         if data is None or data.empty:
             return True
