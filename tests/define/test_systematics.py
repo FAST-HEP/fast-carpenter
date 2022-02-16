@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import fast_carpenter.define.systematics as fast_syst
-from ..conftest import FakeBEEvent, Namespace
+from fast_carpenter.testing import FakeBEEvent, Namespace
 
 
 @pytest.fixture
