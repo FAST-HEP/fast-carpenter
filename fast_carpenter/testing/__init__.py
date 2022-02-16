@@ -20,6 +20,9 @@ class FakeBEEvent(object):
     def count_nonzero(self):
         return self.tree.count_nonzero()
 
+    def arrays(self, array_names, library="np", outputtype=list):
+        return [self.tree[name] for name in array_names]
+
 
 class FakeTree(dict):
     length: int = 101
