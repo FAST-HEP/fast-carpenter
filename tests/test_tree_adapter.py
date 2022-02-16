@@ -1,7 +1,11 @@
 import pytest
-import fast_carpenter.tree_adapter as tree_adapter
 import awkward as ak
 import numpy as np
+
+from fast_carpenter.testing import FakeBEEvent
+import fast_carpenter.tree_adapter as tree_adapter
+from fast_carpenter.tree_adapter import ArrayMethods
+
 
 ###############################################################################
 # Uproot3 tests
@@ -78,3 +82,10 @@ def test_overwrite(uproot4_ranged_adapter):
     with pytest.raises(ValueError) as err:
         uproot4_ranged_adapter.new_variable("Muon_Px", muon_px / muon_px)
     assert "Muon_Px" in str(err)
+
+
+def test_to_pandas(full_wrapped_tree):
+    chunk = FakeBEEvent(full_wrapped_tree, "mc")
+    inputs = ['Electron_Px', 'Electron_Py', 'EventWeight']
+    df = ArrayMethods.to_pandas(chunk.tree, inputs, flatten=False)
+    assert list(df.keys()) == inputs

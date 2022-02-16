@@ -1,11 +1,13 @@
 # input is an uproot tree (uproot3 --> adapter V0, uproot4 --> adapter V1)
 # output is a dict with the same structure as the tree
 from collections import abc
+from itertools import chain
 import logging
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 import awkward as ak
 import numpy as np
+import pandas as pd
 
 adapters: Dict[str, Callable] = {}
 DEFAULT_TREE_TO_DICT_ADAPTOR = "uproot4"
@@ -67,6 +69,11 @@ class TreeToDictAdaptor(abc.MutableMapping):
 
     def __contains__(self, key):
         return self.__m_contains__(self.__resolve_key__(key))
+
+    def keys(self) -> List[str]:
+        all_keys = chain(self.tree.keys(), self.aliases.keys(), self.extra_variables.keys())
+        for key in all_keys:
+            yield key
 
     def new_variable(self, key, value, context: Optional[Any] = None) -> None:
         if context is None:
@@ -404,9 +411,12 @@ class Ranger(object):
 
     def arrays(self, *args, **kwargs):
         arrays = self.tree.arrays(*args, **kwargs)
+        if isinstance(arrays, pd.DataFrame):
+            return arrays[self.start:self.stop]
         return [array[self.start:self.stop] for array in arrays]
 
     def new_variable(self, name, value):
+        # TODO: test
         import awkward as ak
         if self.block_size < self.tree.num_entries:
             new_value = ak.concatenate(
@@ -417,11 +427,16 @@ class Ranger(object):
                 ],
                 axis=0
             )
+        else:
+            new_value = value
         self.tree.new_variable(name, new_value, context=self.tree)
 
     def evaluate(self, expression, **kwargs):
         import awkward as ak
         return ak.numexpr.evaluate(expression, self, **kwargs)
+
+    def keys(self):
+        return self.tree.keys()
 
 
 def combine_masks(masks):
@@ -485,6 +500,9 @@ class Masked(object):
     def evaluate(self, expression, **kwargs):
         import awkward as ak
         return ak.numexpr.evaluate(expression, self, **kwargs)
+
+    def keys(self):
+        return self.tree.keys()
 
 
 def create(arguments: Dict[str, Any]) -> TreeToDictAdaptor:
