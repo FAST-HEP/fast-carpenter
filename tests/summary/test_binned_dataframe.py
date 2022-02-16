@@ -59,8 +59,8 @@ def binned_df_2_weightData(tmpdir, config_2):
                                weight_data=True, **config_2)
 
 
-def test_BinnedDataframe_run_mc(binned_df_1, tmpdir, infile):
-    chunk = FakeBEEvent(infile, "mc")
+def test_BinnedDataframe_run_mc(binned_df_1, tmpdir, input_tree):
+    chunk = FakeBEEvent(input_tree, "mc")
     collector = binned_df_1.collector()
 
     binned_df_1.event(chunk)
@@ -88,8 +88,8 @@ def test_BinnedDataframe_run_mc(binned_df_1, tmpdir, infile):
     assert totals["EventWeight:sumw"] == pytest.approx(231.91339)
 
 
-def test_BinnedDataframe_run_data(binned_df_2, tmpdir, infile):
-    chunk = FakeBEEvent(infile, "data")
+def test_BinnedDataframe_run_data(binned_df_2, tmpdir, input_tree):
+    chunk = FakeBEEvent(input_tree, "data")
     binned_df_2.event(chunk)
 
     collector = binned_df_2.collector()
@@ -101,8 +101,8 @@ def test_BinnedDataframe_run_data(binned_df_2, tmpdir, infile):
     assert totals["n"] == 4616
 
 
-def test_BinnedDataframe_run_dataWeighted(binned_df_2_weightData, tmpdir, infile):
-    chunk = FakeBEEvent(infile, "data")
+def test_BinnedDataframe_run_dataWeighted(binned_df_2_weightData, tmpdir, input_tree):
+    chunk = FakeBEEvent(input_tree, "data")
     binned_df_2_weightData.event(chunk)
 
     collector = binned_df_2_weightData.collector()
@@ -115,8 +115,8 @@ def test_BinnedDataframe_run_dataWeighted(binned_df_2_weightData, tmpdir, infile
     assert totals["weighted:sumw"] == pytest.approx(231.91339)
 
 
-def test_BinnedDataframe_run_twice(binned_df_1, tmpdir, infile):
-    chunk = FakeBEEvent(infile, "mc")
+def test_BinnedDataframe_run_twice(binned_df_1, tmpdir, input_tree):
+    chunk = FakeBEEvent(input_tree, "mc")
     collector = binned_df_1.collector()
 
     binned_df_1.event(chunk)
@@ -136,9 +136,9 @@ def test_BinnedDataframe_run_twice(binned_df_1, tmpdir, infile):
 
 
 @pytest.fixture
-def run_twice_data_mc(config_1, infile, observed):
-    chunk_mc = FakeBEEvent(infile, "mc")
-    chunk_data = FakeBEEvent(infile, "data")
+def run_twice_data_mc(config_1, input_tree, observed):
+    chunk_mc = FakeBEEvent(input_tree, "mc")
+    chunk_data = FakeBEEvent(input_tree, "data")
     config_1["observed"] = observed
 
     binned_dfs = [make_binned_df_1(config_1) for _ in range(4)]
@@ -217,8 +217,8 @@ def test_BinnedDataframe_user_var_run(config_3, tmpdir, full_wrapped_tree):
     assert mean == pytest.approx(44.32584)
 
 
-def test_BinnedDataframe_numexpr_run_mc(binned_df_3, tmpdir, infile):
-    chunk = FakeBEEvent(infile, "mc")
+def test_BinnedDataframe_numexpr_run_mc(binned_df_3, tmpdir, input_tree):
+    chunk = FakeBEEvent(input_tree, "mc")
     collector = binned_df_3.collector()
 
     binned_df_3.event(chunk)
