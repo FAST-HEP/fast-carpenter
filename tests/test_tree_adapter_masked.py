@@ -1,12 +1,4 @@
-import pytest
-
 import awkward as ak
-
-
-import fast_carpenter.selection.stage as stage
-from fast_carpenter.tree_adapter import create_masked
-
-from .conftest import FakeBEEvent
 
 
 def check_data(data, n_data, n_nonzero, n_mask):

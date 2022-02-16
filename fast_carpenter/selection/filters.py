@@ -26,18 +26,18 @@ def safe_or(left, right):
 
 
 class Counter():
-    _weights: List[str]
+    _weight_names: List[str]
     _w_counts: np.ndarray
     _counts: int
 
-    def __init__(self, weights):
-        self._weights = weights
-        self._w_counts = np.zeros(len(weights))
+    def __init__(self, weight_names: List[str]) -> None:
+        self._weight_names = weight_names
+        self._w_counts = np.zeros(max(1, len(weight_names)))
         self._counts = 0
 
     # TODO: increment should take weights, not data
     def increment(self, data, is_mc, mask=None):
-        weights = extract_weights(data, self._weights)
+        weights = extract_weights(data, self._weight_names)
 
         try:
             unweighted_increment = get_unweighted_increment(weights, mask)
@@ -45,10 +45,7 @@ class Counter():
             unweighted_increment = len(data)
         self._counts += unweighted_increment
 
-        if not self._weights:
-            return
-
-        if not is_mc:
+        if not self._weight_names or not is_mc:
             self._w_counts += unweighted_increment
             return
 
