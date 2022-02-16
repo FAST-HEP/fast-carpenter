@@ -7,7 +7,7 @@ from .tree_adapter import ArrayMethods
 
 
 def extract_weights(data: Any, weight_names: List[str]) -> np.ndarray:
-    return ArrayMethods.arrays_as_np_lists(data, weight_names)
+    return ArrayMethods.arrays_as_np_array(data, weight_names)
 
 
 def get_unweighted_increment(weights: Any, mask: Any) -> int:

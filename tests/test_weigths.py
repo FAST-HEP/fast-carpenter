@@ -2,7 +2,7 @@ import pytest
 
 import awkward as ak
 
-from fast_carpenter.weights import get_unweighted_increment, get_weighted_increment
+from fast_carpenter.weights import get_unweighted_increment, get_weighted_increment, extract_weights
 
 
 @pytest.fixture
@@ -31,3 +31,20 @@ def test_unweighted_increment(event_weights):
 def test_weighted_increment(event_weights):
     inc = get_weighted_increment(event_weights, None)
     assert ak.all(inc == [6, 14])
+
+
+def test_extract_weights(full_wrapped_tree):
+    weights = extract_weights(full_wrapped_tree, ["EventWeight"])
+    assert len(weights) == 1
+    assert len(weights[0]) == len(full_wrapped_tree)
+
+
+def test_extract_weights(fake_data_events):
+    weights = extract_weights(fake_data_events, ["EventWeight"])
+    assert len(weights) == 1
+    assert len(weights[0]) == len(fake_data_events)
+
+
+def test_extract_weights_no_weights(fake_data_events):
+    weights = extract_weights(fake_data_events, [])
+    assert len(weights) == 0

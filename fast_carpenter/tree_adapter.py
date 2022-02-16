@@ -137,7 +137,13 @@ class Uproot3Methods(object):
 
     @staticmethod
     def counts(array, **kwargs):
-        return array.compact().counts
+        if hasattr(array, "compact"):
+            return array.compact().counts
+        else:
+            return array.counts
+
+    def array(self, key):
+        return self[key]
 
     @staticmethod
     def pad(array, length, **kwargs):
@@ -319,8 +325,18 @@ class Uproot4Methods(object):
         return Uproot4Methods.dtype(array) == "bool"
 
     @staticmethod
-    def arrays_as_np_lists(data, array_names, **kwargs):
-        return np.array(data.arrays(array_names, library="np", outputtype=list))
+    def arrays_as_np_array(data, array_names, **kwargs):
+        """
+        Takes input data and converts it to an array of numpy arrays.
+        e.g. arrays_as_np_lists(data, ["x", "y"])
+        results in
+        array(<array of x>, <array of y>)
+        """
+        return data.arrays(
+            array_names,
+            library="ak",
+            outputtype=list,
+        )
 
 
 ArrayMethods = Uproot4Methods
@@ -421,8 +437,8 @@ class Masked(object):
         try:
             if len(self._mask) > len(self._tree):
                 return self._tree[key][self._tree.start:self._tree.stop].mask[self._mask]
-        except:
-            raise TypeError()
+        except TypeError as e:
+            raise e
         return self._tree[key].mask[self._mask]
 
     def __len__(self):
@@ -443,6 +459,9 @@ class Masked(object):
         else:
             self._mask = self._mask & mask
 
+    def reset_mask(self):
+        self._mask = None
+
     def array(self, key):
         return self[key]
 
@@ -450,7 +469,7 @@ class Masked(object):
         arrays = self._tree.arrays(*args, **kwargs)
         if self._mask is None:
             return arrays
-        return [array[self._mask] for array in arrays]
+        return [ak.mask(array, self._mask) for array in arrays]
 
     def evaluate(self, expression, **kwargs):
         import awkward as ak
