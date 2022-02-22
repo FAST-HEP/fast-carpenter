@@ -87,5 +87,58 @@ def test_overwrite(uproot4_ranged_adapter):
 def test_to_pandas(full_wrapped_tree):
     chunk = FakeBEEvent(full_wrapped_tree, "mc")
     inputs = ['Electron_Px', 'Electron_Py', 'EventWeight']
-    df = ArrayMethods.to_pandas(chunk.tree, inputs, flatten=False)
+    df = ArrayMethods.to_pandas(chunk.tree, inputs)
     assert list(df.keys()) == inputs
+
+
+def test_arraydict_to_pandas_with_new_variable(uproot4_ranged_adapter):
+    muon_py, muon_pz = uproot4_ranged_adapter.arrays(["Muon_Py", "Muon_Pz"], how=tuple)
+    muon_momentum = np.hypot(muon_py, muon_pz)
+    uproot4_ranged_adapter.new_variable("Muon_momentum", muon_momentum)
+
+    inputs = ['Muon_Py', 'Muon_Pz', 'Muon_momentum']
+    arrays = {
+        'Muon_Py': muon_py,
+        'Muon_Pz': muon_pz,
+        'Muon_momentum': muon_momentum,
+    }
+    df = ArrayMethods.arraydict_to_pandas(arrays)
+
+    assert list(df.keys()) == inputs
+    assert len(df) == ak.count_nonzero(muon_py)
+
+
+def test_to_pandas_with_new_variable(uproot4_ranged_adapter):
+    muon_py, muon_pz = uproot4_ranged_adapter.arrays(["Muon_Py", "Muon_Pz"], how=tuple)
+    muon_momentum = np.hypot(muon_py, muon_pz)
+    uproot4_ranged_adapter.new_variable("Muon_momentum", muon_momentum)
+
+    inputs = ['Muon_Py', 'Muon_Pz', 'Muon_momentum']
+    df = ArrayMethods.to_pandas(uproot4_ranged_adapter, inputs)
+
+    assert list(df.keys()) == inputs
+    assert len(df) == ak.count_nonzero(muon_py)
+
+
+def test_arrays_to_tuple(uproot4_ranged_adapter):
+    muon_py, muon_pz = uproot4_ranged_adapter.arrays(["Muon_Py", "Muon_Pz"], how=tuple)
+    muon_momentum = np.hypot(muon_py, muon_pz)
+    uproot4_ranged_adapter.new_variable("Muon_momentum", muon_momentum)
+    _, _, muon_momentum_new = uproot4_ranged_adapter.arrays(["Muon_Py", "Muon_Pz", "Muon_momentum"], how=tuple)
+    assert ak.all(muon_momentum_new == muon_momentum)
+
+
+def test_arrays_to_dict(uproot4_ranged_adapter):
+    muon_py, muon_pz = uproot4_ranged_adapter.arrays(["Muon_Py", "Muon_Pz"], how=tuple)
+    muon_momentum = np.hypot(muon_py, muon_pz)
+    uproot4_ranged_adapter.new_variable("Muon_momentum", muon_momentum)
+    array_dict = uproot4_ranged_adapter.arrays(["Muon_Py", "Muon_Pz", "Muon_momentum"], how=dict)
+    assert ak.all(array_dict["Muon_momentum"] == muon_momentum)
+
+
+def test_arrays_as_np_lists(uproot4_ranged_adapter):
+    muon_py, muon_pz = uproot4_ranged_adapter.arrays(["Muon_Py", "Muon_Pz"], how=tuple)
+    muon_momentum = np.hypot(muon_py, muon_pz)
+    uproot4_ranged_adapter.new_variable("Muon_momentum", muon_momentum)
+    array_dict = uproot4_ranged_adapter.arrays_as_np_lists(["Muon_Py", "Muon_Pz", "Muon_momentum"], how=dict)
+    assert ak.all(array_dict["Muon_momentum"] == muon_momentum)

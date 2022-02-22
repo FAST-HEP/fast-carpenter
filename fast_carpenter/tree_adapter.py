@@ -250,12 +250,45 @@ class Uproot4Methods(object):
             logger.error(f"Object of type {type(self.tree)} does not have a num_entries attribute.")
             raise e
 
-    def arrays(self, *args, **kwargs):
+    @staticmethod
+    def arraydict_to_pandas(arraydict: Dict[str, Any]):
+        """
+        Converts a dictionary of arrays to a pandas DataFrame.
+        """
+        return ak.to_pandas(arraydict)
+
+    def arrays(self, expressions, *args, **kwargs):
         if "outputtype" in kwargs:
             # renamed uproot3 -> uproot4
             outputtype = kwargs.pop("outputtype")
             kwargs["how"] = outputtype
-        return self.tree.arrays(*args, **kwargs)
+
+        extra_arrays = None
+        _expressions = expressions.copy()
+        if self.extra_variables:
+            # check if any of the extra variables are included in the expressions
+            extra_vars = []
+            for name in self.extra_variables:
+                if name in expressions:
+                    extra_vars.append(name)
+                    _expressions.remove(name)
+            if extra_vars:
+                extra_arrays = {key: self.extra_variables[key] for key in extra_vars}
+
+        tree_arrays = self.tree.arrays(_expressions, library="ak", how=dict)
+        if extra_arrays is not None:
+            tree_arrays.update(extra_arrays)
+
+        library_str = kwargs["library"] if "library" in kwargs else "ak"
+        if library_str == "pd" or library_str == "pandas":
+            return self.arraydict_to_pandas(tree_arrays)
+
+        # TODO: implement rest
+        # if library_str == "np" or library_str == "numpy":
+        #     return tree_arrays
+
+        # TODO: should pass aliases here?
+        return self.tree.arrays(_expressions, *args, **kwargs)
 
     def array(self, key):
         return self[key]
@@ -350,7 +383,7 @@ class Uproot4Methods(object):
         )
 
     @staticmethod
-    def to_pandas(data, keys, flatten):
+    def to_pandas(data, keys):
         return data.arrays(
             keys,
             library="pd",
@@ -373,6 +406,9 @@ register("uproot4", TreeToDictAdaptorV1)
 
 
 class Ranger(object):
+    """
+        TODO: range is just a different way of indexing --> refactor
+    """
     tree: TreeToDictAdaptor
     start: int
     stop: int
@@ -412,7 +448,7 @@ class Ranger(object):
     def arrays(self, *args, **kwargs):
         arrays = self.tree.arrays(*args, **kwargs)
         if isinstance(arrays, pd.DataFrame):
-            return arrays[self.start:self.stop]
+            return arrays
         return [array[self.start:self.stop] for array in arrays]
 
     def new_variable(self, name, value):
@@ -437,6 +473,9 @@ class Ranger(object):
 
     def keys(self):
         return self.tree.keys()
+
+    def arrays_to_pandas(self, *args, **kwargs):
+        return self.tree.arrays_to_pandas(*args, **kwargs)
 
 
 def combine_masks(masks):
