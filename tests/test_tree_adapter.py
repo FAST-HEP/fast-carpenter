@@ -1,6 +1,7 @@
-import pytest
 import awkward as ak
 import numpy as np
+import pytest
+from pytest_lazyfixture import lazy_fixture
 
 from fast_carpenter.testing import FakeBEEvent
 import fast_carpenter.tree_adapter as tree_adapter
@@ -46,6 +47,17 @@ def uproot4_ranged_adapter(uproot4_tree, event_range):
     )
 
 
+@pytest.fixture
+def uproot4_masked_adapter(uproot4_tree, event_range):
+    return tree_adapter.create_masked(
+        {
+            "adapter": "uproot4", "tree": uproot4_tree,
+            "start": event_range.start_entry, "stop": event_range.stop_entry,
+            "mask": [(i % 2) == 0 for i in range(event_range.start_entry, event_range.stop_entry)]
+        }
+    )
+
+
 def test_uproot4_num_entries(uproot4_tree, uproot4_adapter):
     assert uproot4_adapter.num_entries == uproot4_tree.num_entries
 
@@ -65,7 +77,7 @@ def test_uproot4_range(uproot4_tree, uproot4_ranged_adapter, event_range):
 
 def test_uproot4_add_retrieve(uproot4_tree, uproot4_ranged_adapter):
     muon_px = uproot4_ranged_adapter["Muon_Px"]
-    assert len(muon_px) == 100
+    assert len(muon_px[~ak.is_none(muon_px)]) == len(uproot4_ranged_adapter)
 
     muon_py, muon_pz = uproot4_ranged_adapter.arrays(["Muon_Py", "Muon_Pz"], how=tuple)
     muon_momentum = np.hypot(muon_py, muon_pz)
@@ -108,37 +120,73 @@ def test_arraydict_to_pandas_with_new_variable(uproot4_ranged_adapter):
     assert len(df) == ak.count_nonzero(muon_py)
 
 
-def test_to_pandas_with_new_variable(uproot4_ranged_adapter):
-    muon_py, muon_pz = uproot4_ranged_adapter.arrays(["Muon_Py", "Muon_Pz"], how=tuple)
+@pytest.mark.parametrize(
+    "tree_under_test",
+    [
+        lazy_fixture("uproot4_adapter"),
+        lazy_fixture("uproot4_ranged_adapter"),
+        lazy_fixture("uproot4_masked_adapter"),
+    ]
+)
+def test_to_pandas_with_new_variable(tree_under_test):
+    muon_py, muon_pz = tree_under_test.arrays(["Muon_Py", "Muon_Pz"], how=tuple)
     muon_momentum = np.hypot(muon_py, muon_pz)
-    uproot4_ranged_adapter.new_variable("Muon_momentum", muon_momentum)
+    assert len(muon_momentum) == len(muon_py)
+    tree_under_test.new_variable("Muon_momentum", muon_momentum)
 
     inputs = ['Muon_Py', 'Muon_Pz', 'Muon_momentum']
-    df = ArrayMethods.to_pandas(uproot4_ranged_adapter, inputs)
+    df = ArrayMethods.to_pandas(tree_under_test, inputs)
 
     assert list(df.keys()) == inputs
     assert len(df) == ak.count_nonzero(muon_py)
 
 
-def test_arrays_to_tuple(uproot4_ranged_adapter):
-    muon_py, muon_pz = uproot4_ranged_adapter.arrays(["Muon_Py", "Muon_Pz"], how=tuple)
+@pytest.mark.parametrize(
+    "tree_under_test, how",
+    [
+        (lazy_fixture("uproot4_adapter"), tuple),
+        (lazy_fixture("uproot4_adapter"), list),
+        (lazy_fixture("uproot4_ranged_adapter"), tuple),
+        (lazy_fixture("uproot4_ranged_adapter"), list),
+        (lazy_fixture("uproot4_masked_adapter"), tuple),
+        (lazy_fixture("uproot4_masked_adapter"), list),
+    ]
+)
+def test_arrays_to_tuple_or_list(tree_under_test, how):
+    muon_py, muon_pz = tree_under_test.arrays(["Muon_Py", "Muon_Pz"], how=tuple)
     muon_momentum = np.hypot(muon_py, muon_pz)
-    uproot4_ranged_adapter.new_variable("Muon_momentum", muon_momentum)
-    _, _, muon_momentum_new = uproot4_ranged_adapter.arrays(["Muon_Py", "Muon_Pz", "Muon_momentum"], how=tuple)
+    tree_under_test.new_variable("Muon_momentum", muon_momentum)
+    _, _, muon_momentum_new = tree_under_test.arrays(["Muon_Py", "Muon_Pz", "Muon_momentum"], how=how)
     assert ak.all(muon_momentum_new == muon_momentum)
 
 
-def test_arrays_to_dict(uproot4_ranged_adapter):
-    muon_py, muon_pz = uproot4_ranged_adapter.arrays(["Muon_Py", "Muon_Pz"], how=tuple)
+@pytest.mark.parametrize(
+    "tree_under_test",
+    [
+        lazy_fixture("uproot4_adapter"),
+        lazy_fixture("uproot4_ranged_adapter"),
+        lazy_fixture("uproot4_masked_adapter"),
+    ]
+)
+def test_arrays_to_dict(tree_under_test):
+    muon_py, muon_pz = tree_under_test.arrays(["Muon_Py", "Muon_Pz"], how=tuple)
     muon_momentum = np.hypot(muon_py, muon_pz)
-    uproot4_ranged_adapter.new_variable("Muon_momentum", muon_momentum)
-    array_dict = uproot4_ranged_adapter.arrays(["Muon_Py", "Muon_Pz", "Muon_momentum"], how=dict)
+    tree_under_test.new_variable("Muon_momentum", muon_momentum)
+    array_dict = tree_under_test.arrays(["Muon_Py", "Muon_Pz", "Muon_momentum"], how=dict)
     assert ak.all(array_dict["Muon_momentum"] == muon_momentum)
 
 
-def test_arrays_as_np_lists(uproot4_ranged_adapter):
-    muon_py, muon_pz = uproot4_ranged_adapter.arrays(["Muon_Py", "Muon_Pz"], how=tuple)
+@pytest.mark.parametrize(
+    "tree_under_test",
+    [
+        lazy_fixture("uproot4_adapter"),
+        lazy_fixture("uproot4_ranged_adapter"),
+        lazy_fixture("uproot4_masked_adapter"),
+    ]
+)
+def test_arrays_as_np_lists(tree_under_test):
+    muon_py, muon_pz = tree_under_test.arrays(["Muon_Py", "Muon_Pz"], how=tuple)
     muon_momentum = np.hypot(muon_py, muon_pz)
-    uproot4_ranged_adapter.new_variable("Muon_momentum", muon_momentum)
-    array_dict = uproot4_ranged_adapter.arrays_as_np_lists(["Muon_Py", "Muon_Pz", "Muon_momentum"], how=dict)
-    assert ak.all(array_dict["Muon_momentum"] == muon_momentum)
+    tree_under_test.new_variable("Muon_momentum", muon_momentum)
+    np_array = ArrayMethods.arrays_as_np_array(tree_under_test, ["Muon_Py", "Muon_Pz", "Muon_momentum"], how=dict)
+    assert ak.all(np_array[-1] == muon_momentum)
