@@ -13,6 +13,14 @@ adapters: Dict[str, Callable] = {}
 DEFAULT_TREE_TO_DICT_ADAPTOR = "uproot4"
 logger = logging.getLogger(__name__)
 
+LIBRARIES = {
+    "awkward": ["ak", "ak.Array", "awkward"],
+    "numpy": ["np", "np.ndarray", "numpy"],
+    "pandas": ["pd", "pd.DataFrame", "pandas"],
+}
+
+SUPPORTED_OUTPUT_TYPES = [dict, tuple, list]
+
 
 def register(name: str, adaptor_creation_func: Callable) -> None:
     """
@@ -257,38 +265,58 @@ class Uproot4Methods(object):
         """
         return ak.to_pandas(arraydict)
 
+    def array_dict(self, keys: List[str]) -> Dict[str, Any]:
+        """
+        Returns a dictionary of arrays for the given keys.
+        """
+        extra_arrays = None
+        _keys = keys.copy()
+        if self.extra_variables:
+            # check if any of the extra variables are included in the expressions
+            extra_vars = []
+            for name in self.extra_variables:
+                if name in keys:
+                    extra_vars.append(name)
+                    _keys.remove(name)
+            if extra_vars:
+                extra_arrays = {key: self.extra_variables[key] for key in extra_vars}
+
+        tree_arrays = self.tree.arrays(_keys, library="ak", how=dict)
+        if extra_arrays is not None:
+            tree_arrays.update(extra_arrays)
+        return tree_arrays
+
+    def array_exporter(self, dict_of_arrays, **kwargs):
+        library = kwargs.get("library", "ak")
+        how = kwargs.get("how", dict)
+
+        # TODO: long-term we want exporters + factory methods for these
+        # e.g. {("ak", tuple): AKArrayTupleExporter, ("numpy", tuple): NumpyArrayTupleExporter}
+        # reason: we want to be able to use these exporters with different libraries or in different places in this codebase
+        # and allow to inject functionality for ranges and masks
+        if library in LIBRARIES["awkward"]:
+            if how == dict:
+                return dict_of_arrays
+            elif how == list:
+                return [value for value in dict_of_arrays.values()]
+            elif how == tuple:
+                return tuple(value for value in dict_of_arrays.values())
+
+        if library in LIBRARIES["pandas"]:
+            return self.arraydict_to_pandas(dict_of_arrays)
+
     def arrays(self, expressions, *args, **kwargs):
         if "outputtype" in kwargs:
             # renamed uproot3 -> uproot4
             outputtype = kwargs.pop("outputtype")
             kwargs["how"] = outputtype
 
-        extra_arrays = None
-        _expressions = expressions.copy()
-        if self.extra_variables:
-            # check if any of the extra variables are included in the expressions
-            extra_vars = []
-            for name in self.extra_variables:
-                if name in expressions:
-                    extra_vars.append(name)
-                    _expressions.remove(name)
-            if extra_vars:
-                extra_arrays = {key: self.extra_variables[key] for key in extra_vars}
-
-        tree_arrays = self.tree.arrays(_expressions, library="ak", how=dict)
-        if extra_arrays is not None:
-            tree_arrays.update(extra_arrays)
-
-        library_str = kwargs["library"] if "library" in kwargs else "ak"
-        if library_str == "pd" or library_str == "pandas":
-            return self.arraydict_to_pandas(tree_arrays)
-
-        # TODO: implement rest
-        # if library_str == "np" or library_str == "numpy":
-        #     return tree_arrays
-
-        # TODO: should pass aliases here?
-        return self.tree.arrays(_expressions, *args, **kwargs)
+        operations = kwargs.get("operations", [])
+        tree_arrays = self.array_dict(keys=expressions)
+        for operation in operations:
+            for key, value in tree_arrays.items():
+                tree_arrays[key] = operation(value)
+        return self.array_exporter(tree_arrays, **kwargs)
 
     def array(self, key):
         return self[key]
@@ -372,7 +400,7 @@ class Uproot4Methods(object):
     def arrays_as_np_array(data, array_names, **kwargs):
         """
         Takes input data and converts it to an array of numpy arrays.
-        e.g. arrays_as_np_lists(data, ["x", "y"])
+        e.g. arrays_as_np_array(data, ["x", "y"])
         results in
         array(<array of x>, <array of y>)
         """
@@ -380,6 +408,7 @@ class Uproot4Methods(object):
             array_names,
             library="ak",
             outputtype=list,
+            **kwargs,
         )
 
     @staticmethod
@@ -405,6 +434,20 @@ register("uproot3", TreeToDictAdaptorV0)
 register("uproot4", TreeToDictAdaptorV1)
 
 
+# class ApplyRange(Callable):
+#     def __init__(self, range):
+#         self.range = range
+
+#     def __call__(self, arrays):
+#         pass
+
+# class ApplyMask(Callable):
+#     def __init__(self, mask):
+#         self.mask = mask
+
+#     def __call__(self, arrays):
+#         pass
+
 class Ranger(object):
     """
         TODO: range is just a different way of indexing --> refactor
@@ -419,22 +462,32 @@ class Ranger(object):
         self.tree = tree
         self.start = start
         self.stop = stop
-        self.block_size = stop - start if stop > start > 0 else tree.num_entries
-        self.mask = None
+
+        tree_size = tree.num_entries
+        self.block_size = stop - start if stop > start > 0 else tree_size
+        self.mask = np.ones(tree_size, dtype=bool)
+        if self.block_size < tree_size:
+            self.mask = np.zeros(tree_size, dtype=bool)
+            self.mask[start:stop] = True
 
     @property
     def num_entries(self) -> int:
         """Returns the size of the range - overwrites tree.num_entries."""
         return self.block_size
 
+    @property
+    def unfiltered_num_entries(self) -> int:
+        return self.tree.num_entries
+
     def __getitem__(self, key):
-        return self.tree[key][self.start:self.stop]
+        return ak.mask(self.tree[key], self.mask)
 
     def __setitem__(self, key, value):
-        self.tree[key][self.start:self.stop] = value[self.start:self.stop]
+        # self.tree[key][self.start:self.stop] = value[self.start:self.stop]
+        self.tree[key] = value
 
     def __delitem__(self, key):
-        del self.tree[key][self.start:self.stop]
+        del self.tree[key]
 
     def __contains__(self, key):
         return key in self.tree
@@ -446,15 +499,15 @@ class Ranger(object):
         return self[key]
 
     def arrays(self, *args, **kwargs):
+        operations = kwargs.pop("operations", [])
+        operations.append(lambda x: ak.mask(x, self.mask))
+        kwargs["operations"] = operations
         arrays = self.tree.arrays(*args, **kwargs)
-        if isinstance(arrays, pd.DataFrame):
-            return arrays
-        return [array[self.start:self.stop] for array in arrays]
+        return arrays
 
     def new_variable(self, name, value):
-        # TODO: test
         import awkward as ak
-        if self.block_size < self.tree.num_entries:
+        if len(value) < self.tree.num_entries:
             new_value = ak.concatenate(
                 [
                     ak.Array([None] * self.start),
@@ -465,6 +518,7 @@ class Ranger(object):
             )
         else:
             new_value = value
+        assert len(new_value) == self.tree.num_entries
         self.tree.new_variable(name, new_value, context=self.tree)
 
     def evaluate(self, expression, **kwargs):
@@ -495,6 +549,17 @@ class Masked(object):
     def __init__(self, tree: Ranger, mask: Any) -> None:
         self._tree = tree
         self._mask = mask
+        if self._mask is None:
+            self._mask = ak.ones(tree.num_entries, dtype=bool)
+        if len(mask) < tree.unfiltered_num_entries:
+            self._mask = ak.concatenate(
+                [
+                    ak.Array([False] * tree.start),
+                    self._mask,
+                    ak.Array([False] * (tree.unfiltered_num_entries - tree.stop))
+                ],
+                axis=0
+            )
 
     def __getitem__(self, key):
         if self._mask is None:
@@ -531,10 +596,12 @@ class Masked(object):
         return self[key]
 
     def arrays(self, *args, **kwargs):
+        operations = kwargs.pop("operations", [])
+        operations.append(lambda x: ak.mask(x, self._mask))
+
+        kwargs["operations"] = operations
         arrays = self._tree.arrays(*args, **kwargs)
-        if self._mask is None:
-            return arrays
-        return [ak.mask(array, self._mask) for array in arrays]
+        return arrays
 
     def evaluate(self, expression, **kwargs):
         import awkward as ak
@@ -542,6 +609,9 @@ class Masked(object):
 
     def keys(self):
         return self.tree.keys()
+
+    def new_variable(self, name, value):
+        self._tree.new_variable(name, value)
 
 
 def create(arguments: Dict[str, Any]) -> TreeToDictAdaptor:
