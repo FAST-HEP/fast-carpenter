@@ -548,10 +548,9 @@ class Masked(object):
 
     def __init__(self, tree: Ranger, mask: Any) -> None:
         self._tree = tree
-        self._mask = mask
-        if self._mask is None:
-            self._mask = ak.ones(tree.num_entries, dtype=bool)
-        if len(mask) < tree.unfiltered_num_entries:
+        self._mask = np.ones(tree.num_entries, dtype=bool) if mask is None else mask
+
+        if mask is not None and len(mask) < tree.unfiltered_num_entries:
             self._mask = ak.concatenate(
                 [
                     ak.Array([False] * tree.start),
