@@ -50,7 +50,7 @@ class Counter():
             return
 
         weighted_increments = get_weighted_increment(weights, mask)
-        self._w_counts = ArrayMethods.sum([self._w_counts, weighted_increments], axis=0)
+        self._w_counts = ArrayMethods.sum([self._w_counts, weighted_increments], axis=0).to_numpy()
 
     @property
     def counts(self) -> Tuple[int, float]:
