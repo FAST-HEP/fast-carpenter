@@ -3,7 +3,7 @@
 from collections import abc
 from itertools import chain
 import logging
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Protocol
 
 import awkward as ak
 import numpy as np
@@ -34,6 +34,10 @@ def unregister(name: str) -> None:
     Unregister an adaptor.
     """
     adapters[name].pop()
+
+
+class TreeLike(Protocol):
+    pass
 
 
 class TreeToDictAdaptor(abc.MutableMapping):
@@ -417,6 +421,10 @@ class Uproot4Methods(object):
             keys,
             library="pd",
         )
+
+    @staticmethod
+    def filtered_len(data: TreeLike) -> int:
+        return len(data[~ak.is_none(data)])
 
 
 ArrayMethods = Uproot4Methods

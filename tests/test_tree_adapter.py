@@ -77,7 +77,7 @@ def test_uproot4_range(uproot4_tree, uproot4_ranged_adapter, event_range):
 
 def test_uproot4_add_retrieve(uproot4_tree, uproot4_ranged_adapter):
     muon_px = uproot4_ranged_adapter["Muon_Px"]
-    assert len(muon_px[~ak.is_none(muon_px)]) == len(uproot4_ranged_adapter)
+    assert ArrayMethods.filtered_len(muon_px) == len(uproot4_ranged_adapter)
 
     muon_py, muon_pz = uproot4_ranged_adapter.arrays(["Muon_Py", "Muon_Pz"], how=tuple)
     muon_momentum = np.hypot(muon_py, muon_pz)
