@@ -7,7 +7,6 @@ from typing import Any, Callable, Dict, List, Optional, Protocol
 
 import awkward as ak
 import numpy as np
-import pandas as pd
 
 adapters: Dict[str, Callable] = {}
 DEFAULT_TREE_TO_DICT_ADAPTOR = "uproot4"
@@ -296,8 +295,8 @@ class Uproot4Methods(object):
 
         # TODO: long-term we want exporters + factory methods for these
         # e.g. {("ak", tuple): AKArrayTupleExporter, ("numpy", tuple): NumpyArrayTupleExporter}
-        # reason: we want to be able to use these exporters with different libraries or in different places in this codebase
-        # and allow to inject functionality for ranges and masks
+        # reason: we want to be able to use these exporters with different libraries or
+        # in different places in this codebase and allow to inject functionality for ranges and masks
         if library in LIBRARIES["awkward"]:
             if how == dict:
                 return dict_of_arrays
@@ -331,7 +330,7 @@ class Uproot4Methods(object):
     @staticmethod
     def counts(array, **kwargs):
         axis = kwargs.pop("axis", 1)
-        return ak.count(array, axis=axis, **kwargs)
+        return ak.count(Uproot4Methods.only_valid_entries(array), axis=axis, **kwargs)
 
     @staticmethod
     def all(array, **kwargs):
@@ -421,6 +420,14 @@ class Uproot4Methods(object):
             keys,
             library="pd",
         )
+
+    @staticmethod
+    def valid_entry_mask(data: TreeLike) -> ak.Array:
+        return ~ak.is_none(data)
+
+    @staticmethod
+    def only_valid_entries(data: TreeLike) -> ak.Array:
+        return data[Uproot4Methods.valid_entry_mask(data)]
 
     @staticmethod
     def filtered_len(data: TreeLike) -> int:

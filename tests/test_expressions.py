@@ -22,7 +22,8 @@ def test_get_branches(input_tree):
 def test_evaluate(wrapped_tree):
     Muon_py, Muon_pz = wrapped_tree.arrays(["Muon_Py", "Muon_Pz"], outputtype=tuple)
     mu_pt = expressions.evaluate(wrapped_tree, "sqrt(Muon_Px**2 + Muon_Py**2)")
-    assert len(mu_pt) == 100
+    assert len(mu_pt) == 4580
+    assert ArrayMethods.filtered_len(mu_pt) == 100
     assert all(ArrayMethods.counts(mu_pt) == ArrayMethods.counts(Muon_py))
 
 
