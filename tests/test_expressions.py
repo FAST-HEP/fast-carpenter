@@ -69,22 +69,22 @@ def test_3D_jagged(wrapped_tree):
     assert isinstance(fake_3d.count(), JaggedArray)
     assert all(ArrayMethods.all(fake_3d.copy().count() == fake_3d.count()))
 
-    aliased = expressions.evaluate(wrapped_tree, "Fake3D")
+    aliased = ArrayMethods.only_valid_entries(expressions.evaluate(wrapped_tree, "Fake3D"))
     assert ArrayMethods.all(aliased == fake_3d, axis=None)
 
-    doubled = expressions.evaluate(wrapped_tree, "Fake3D * 2")
+    doubled = ArrayMethods.only_valid_entries(expressions.evaluate(wrapped_tree, "Fake3D * 2"))
     assert ArrayMethods.all(doubled == fake_3d * 2, axis=None)
     assert len(doubled[0, :, :]) == 0
     assert doubled[1, 0, :] == [2]
     assert doubled[2, 0, :] == [4]
     assert all(doubled[2, 1, :] == [4, 6])
 
-    doubled = expressions.evaluate(wrapped_tree, "Fake3D + Fake3D")
-    assert ArrayMethods.all(doubled == fake_3d * 2, axis=None)
-    assert len(doubled[0, :, :]) == 0
-    assert doubled[1, 0, :] == [2]
-    assert doubled[2, 0, :] == [4]
-    assert all(doubled[2, 1, :] == [4, 6])
+    doubled_via_sum = ArrayMethods.only_valid_entries(expressions.evaluate(wrapped_tree, "Fake3D + Fake3D"))
+    assert ArrayMethods.all(doubled_via_sum == fake_3d * 2, axis=None)
+    assert len(doubled_via_sum[0, :, :]) == 0
+    assert doubled_via_sum[1, 0, :] == [2]
+    assert doubled_via_sum[2, 0, :] == [4]
+    assert all(doubled_via_sum[2, 1, :] == [4, 6])
 
     fake_3d_2 = [[np.arange(i + 3) + j
                   for i in range(j % 2)]
