@@ -22,12 +22,12 @@ def test_calculation(name, define, mask, wrapped_tree):
     result = fast_vars.full_evaluate(wrapped_tree, **build(name, define))
 
     assert ak.count_nonzero(result) > 0
-    assert len(result) == len(wrapped_tree)
+    assert len(result) == wrapped_tree.unfiltered_num_entries
     if mask is None or "reduce" not in define:
         return
 
     define["mask"] = mask
     result_masked = fast_vars.full_evaluate(wrapped_tree, **build(name, define))
 
-    assert len(result_masked) == len(wrapped_tree)
+    assert len(result_masked) == wrapped_tree.unfiltered_num_entries
     assert ak.all(result_masked <= result)
