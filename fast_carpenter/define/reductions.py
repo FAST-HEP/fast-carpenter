@@ -24,10 +24,18 @@ class JaggedNth(object):
 
     def __call__(self, array):
         result = ArrayMethods.pad(array, abs(self.index) + int(self.index >= 0))
+        if self.fill_missing:
+            result = ArrayMethods.fill_none(result, self.fill_missing)
         return result[..., self.index]
 
 
 class JaggedMethod(object):
+    SUPPORTED_METHODS: List[str] = ["sum", "prod", "any", "all", "count_nonzero",
+                                    "max", "min", "argmin", "argmax"]
+    DEFAULTS = {
+        "sum": {"axis", 1},
+    }
+
     def __init__(self, method):
         self.method_name = method
 

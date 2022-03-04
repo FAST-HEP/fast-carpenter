@@ -35,6 +35,10 @@ def unregister(name: str) -> None:
     adapters[name].pop()
 
 
+class ArrayLike(Protocol):
+    pass
+
+
 class TreeLike(Protocol):
     pass
 
@@ -432,6 +436,11 @@ class Uproot4Methods(object):
     @staticmethod
     def filtered_len(data: TreeLike) -> int:
         return len(data[~ak.is_none(data)])
+
+    @staticmethod
+    def fill_none(data: ArrayLike, fill_value, **kwargs):
+        axis = kwargs.pop("axis", None)
+        return ak.fill_none(array=data, value=fill_value, axis=axis, **kwargs)
 
 
 ArrayMethods = Uproot4Methods
