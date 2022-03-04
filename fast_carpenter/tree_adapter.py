@@ -442,6 +442,10 @@ class Uproot4Methods(object):
         axis = kwargs.pop("axis", None)
         return ak.fill_none(array=data, value=fill_value, axis=axis, **kwargs)
 
+    @staticmethod
+    def values_as_type(data: ArrayLike, dtype, **kwargs):
+        return ak.values_astype(data, dtype, **kwargs)
+
 
 ArrayMethods = Uproot4Methods
 
