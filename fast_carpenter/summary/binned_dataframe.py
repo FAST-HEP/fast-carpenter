@@ -211,7 +211,7 @@ class BinnedDataframe():
         else:
             weights = None
 
-        data = ArrayMethods.to_pandas(chunk.tree, all_inputs, flatten=False)
+        data = ArrayMethods.to_pandas(chunk.tree, all_inputs)
         data = explode(data)
         if data is None or data.empty:
             return True
