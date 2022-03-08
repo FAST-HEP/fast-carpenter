@@ -26,7 +26,7 @@ def test_build_selection_1(config_1):
 def test_selection_1(config_1, full_wrapped_tree):
     selection = filters.build_selection("test_selection_1", config_1)
     mask = selection(full_wrapped_tree, is_mc=False)
-    assert np.count_nonzero(mask) == 289
+    assert np.count_nonzero(ArrayMethods.only_valid_entries(mask)) == 289
 
     columns = selection.columns
     values = selection.values
@@ -73,7 +73,7 @@ def test_selection_2_weights(config_2, full_wrapped_tree):
     assert values[0][columns[0].index("passed_incl")] == 1486
 
     weight_sum = ArrayMethods.sum(full_wrapped_tree["EventWeight"][mask], axis=-1)
-    assert values[0][columns[0].index("passed_incl") + 1] == weight_sum
+    assert values[0][columns[0].index("passed_incl") + 1] == pytest.approx(weight_sum, 1e-4)
 
 
 def test_selection_2_weights_data(config_2, full_wrapped_tree):
