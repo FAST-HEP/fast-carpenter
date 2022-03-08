@@ -1,3 +1,4 @@
+import awkward as ak
 import numpy as np
 import six
 from typing import List
@@ -24,8 +25,9 @@ class JaggedNth(object):
             self.dtype = np.int32
 
     def __call__(self, array):
-        result = ArrayMethods.pad(array, abs(self.index) + int(self.index >= 0))
-        result = ArrayMethods.fill_none(result, self.fill_missing)
+        padding = abs(self.index) + 1 if self.index >= 0 else abs(self.index)
+        result = ArrayMethods.pad(array, padding)
+        result = ArrayMethods.fill_none(result, self.fill_missing, axis=-1)
         if self.dtype is not None:
             result = ArrayMethods.values_as_type(result, self.dtype)
         return result[..., self.index]
