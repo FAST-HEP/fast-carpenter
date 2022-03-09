@@ -32,7 +32,7 @@ class Counter():
 
     def __init__(self, weight_names: List[str]) -> None:
         self._weight_names = weight_names
-        self._w_counts = np.zeros(max(1, len(weight_names)))
+        self._w_counts = np.zeros(len(weight_names))
         self._counts = 0
 
     # TODO: increment should take weights, not data
