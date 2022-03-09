@@ -1,7 +1,7 @@
-flake8==3.5.0
-twine==1.12.1
-
-pytest==4.5.0
-pytest-cov==2.7.1
-pytest-runner==4.4
-codecov==2.0.15
+flake8==4.0.1
+twine==3.8.0
+pytest-lazy-fixture==0.6.3
+pytest==6.2.5
+pytest-cov==3.0.0
+pytest-runner==6.0.0
+codecov==2.1.12
