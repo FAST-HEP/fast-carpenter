@@ -59,5 +59,6 @@ def test_increment_without_weights(full_wrapped_tree):
     counter.increment(full_wrapped_tree, is_mc=True)
     n_events = len(full_wrapped_tree)
 
-    assert counter._w_counts[0] == n_events
-    assert counter.counts == (n_events, n_events)
+    with pytest.raises(IndexError):
+        assert counter._w_counts[0] == n_events
+    assert counter.counts == (n_events, )
