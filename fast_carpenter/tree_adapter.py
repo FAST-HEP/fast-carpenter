@@ -624,7 +624,8 @@ class Masked(object):
 
     def arrays(self, *args, **kwargs):
         operations = kwargs.pop("operations", [])
-        operations.append(lambda x: ak.mask(x, self._mask))
+        if self._mask is not None:
+            operations.append(lambda x: ak.mask(x, self._mask))
 
         kwargs["operations"] = operations
         arrays = self._tree.arrays(*args, **kwargs)
