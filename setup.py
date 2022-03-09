@@ -33,6 +33,7 @@ requirements = [
     'pandas>=1.1',
     'numpy',
     'numexpr',
+    'typing-extensions>=4.1.1',
     'uproot>=4.1.8',
     'uproot3>=3.14.0',
 ]
