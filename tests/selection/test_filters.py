@@ -12,30 +12,40 @@ def filename():
 
 
 @pytest.fixture
-def config_1():
+def more_than_one_muon():
     return "NMuon > 1"
 
 
-def test_build_selection_1(config_1):
-    selection = filters.build_selection("test_build_selection_1", config_1)
+def test_build_selection_1(more_than_one_muon):
+    selection = filters.build_selection("test_build_selection_1", more_than_one_muon)
     assert isinstance(selection, filters.OuterCounterIncrementer)
     assert isinstance(selection._wrapped_selection, filters.SingleCut)
     assert isinstance(selection.selection, six.string_types)
 
+    assert selection.columns == [['passed_only_cut', 'passed_incl',
+                                  'totals_incl'], ['unweighted', 'unweighted', 'unweighted']]
+    assert selection.index_values == [('0', 0, more_than_one_muon)]
+    # no event weight --> no weighted events
+    assert selection.values == [(0, 0, 0)]
 
-def test_selection_1(config_1, full_wrapped_tree):
-    selection = filters.build_selection("test_selection_1", config_1)
+
+def test_selection_1(more_than_one_muon, full_wrapped_tree):
+    selection = filters.build_selection("test_selection_1", more_than_one_muon)
     mask = selection(full_wrapped_tree, is_mc=False)
     assert np.count_nonzero(ArrayMethods.only_valid_entries(mask)) == 289
 
-    columns = selection.columns
-    values = selection.values
     index = selection.index_values
-    assert len(values) == 1
     assert len(index) == 1
-    assert index[0][0] == "0"
-    assert index[0][1] == 0
-    assert index[0][2] == "NMuon > 1"
+    assert index == [("0", 0, more_than_one_muon)]
+
+    columns = selection.columns
+    assert columns == [['passed_only_cut', 'passed_incl', 'totals_incl'], ['unweighted', 'unweighted', 'unweighted']]
+
+    values = selection.values
+    assert len(values) == 1
+    # (passed_only_cut, passed_incl, totals_incl)
+    assert values[0] == (289, 289, 4580)
+    # test columns and value matching
     assert values[0][columns[0].index("passed_incl")] == 289
     assert values[0][columns[0].index("passed_only_cut")] == 289
     assert values[0][columns[0].index("totals_incl")] == 4580
@@ -147,10 +157,10 @@ def fake_evaluate(variables, expression):
     return numexpr.evaluate(expression, variables)
 
 
-def test_event_removal_1(config_1, monkeypatch):
+def test_event_removal_1(more_than_one_muon, monkeypatch):
     variables = FakeTree()
     monkeypatch.setattr(filters, 'evaluate', fake_evaluate)
-    selection = filters.build_selection("test_event_removal", config_1)
+    selection = filters.build_selection("test_event_removal", more_than_one_muon)
     nmuon = variables["NMuon"]
 
     mask = selection(variables, is_mc=False)
