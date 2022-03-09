@@ -1,12 +1,12 @@
 import pytest
-import uproot
+import uproot3
 from collections import namedtuple
 
 
 @pytest.fixture
 def infile():
     filename = "tests/data/CMS_HEP_tutorial_ww.root"
-    return uproot.open(filename)["events"]
+    return uproot3.open(filename)["events"]
 
 
 FakeEventRange = namedtuple("FakeEventRange", "start_entry stop_entry entries_in_block")

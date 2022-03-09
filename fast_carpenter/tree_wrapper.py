@@ -5,14 +5,14 @@ way uproot works.  However, it allows me to achieve the functionality of adding
 a branch to uproot trees with no changes to actual code in uproot and with
 minimal coding on my side...
 """
-import uproot
-from uproot import asjagged, asdtype, asgenobj
+import uproot3
+from uproot3 import asjagged, asdtype, asgenobj
 import copy
-import awkward
+import awkward0
 
 
 def recursive_type_wrap(array):
-    if isinstance(array, awkward.JaggedArray):
+    if isinstance(array, awkward0.JaggedArray):
         return asjagged(recursive_type_wrap(array.content))
     return asdtype(array.dtype.fields)
 
@@ -20,15 +20,15 @@ def recursive_type_wrap(array):
 class wrapped_asgenobj(asgenobj):
     def finalize(self, *args, **kwargs):
         result = super(wrapped_asgenobj, self).finalize(*args, **kwargs)
-        result = awkward.JaggedArray.fromiter(result)
+        result = awkward0.JaggedArray.fromiter(result)
         return result
 
 
-uproot.interp.auto.asgenobj = wrapped_asgenobj
+uproot3.interp.auto.asgenobj = wrapped_asgenobj
 
 
 def wrapped_interpret(branch, *args, **kwargs):
-    from uproot.interp.auto import interpret
+    from uproot3.interp.auto import interpret
     result = interpret(branch, *args, **kwargs)
     if result:
         return result
@@ -39,11 +39,11 @@ def wrapped_interpret(branch, *args, **kwargs):
     return None
 
 
-uproot.tree.interpret = wrapped_interpret
+uproot3.tree.interpret = wrapped_interpret
 
 
 class WrappedTree(object):
-    __replace_itervalues = uproot.version.version < "3.13.0"
+    __replace_itervalues = uproot3.version.version < "3.13.0"
 
     def __init__(self, tree, event_ranger):
         self.tree = copy.copy(tree)
@@ -142,7 +142,7 @@ class WrappedTree(object):
 
         outputtype = WrappedTree.FakeBranch
 
-        name = uproot.rootio._bytesid(name)
+        name = uproot3.rootio._bytesid(name)
         self.extras[name] = outputtype(name, value, self.event_ranger)
 
     def __getattr__(self, attr):

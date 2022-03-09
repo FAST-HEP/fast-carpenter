@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from awkward import JaggedArray
+from awkward0 import JaggedArray
 import fast_carpenter.define.reductions as reductions
 
 

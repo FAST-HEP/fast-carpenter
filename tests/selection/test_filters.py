@@ -1,7 +1,7 @@
 import pytest
 import six
 import numpy as np
-import uproot
+import uproot3
 import fast_carpenter.selection.filters as filters
 
 
@@ -24,7 +24,7 @@ def test_build_selection_1(config_1):
 
 def test_selection_1(config_1, filename):
     selection = filters.build_selection("test_selection_1", config_1)
-    infile = uproot.open(filename)["events"]
+    infile = uproot3.open(filename)["events"]
     mask = selection(infile, is_mc=False)
     assert np.count_nonzero(mask) == 289
 
@@ -58,7 +58,7 @@ def config_2():
 def test_selection_2_weights(config_2, filename):
     selection = filters.build_selection("test_selection_1",
                                         config_2, weights=["EventWeight"])
-    infile = uproot.open(filename)["events"]
+    infile = uproot3.open(filename)["events"]
     mask = selection(infile, is_mc=True)
     assert np.count_nonzero(mask) == 1486
 
@@ -78,7 +78,7 @@ def test_selection_2_weights(config_2, filename):
 def test_selection_2_weights_data(config_2, filename):
     selection = filters.build_selection("test_selection_1",
                                         config_2, weights=["EventWeight"])
-    infile = uproot.open(filename)["events"]
+    infile = uproot3.open(filename)["events"]
     mask = selection(infile, is_mc=False)
     assert np.count_nonzero(mask) == 1486
 
@@ -104,7 +104,7 @@ def config_3():
 
 def test_selection_3(config_3, filename):
     selection = filters.build_selection("test_selection_3", config_3)
-    infile = uproot.open(filename)["events"]
+    infile = uproot3.open(filename)["events"]
     mask = selection(infile, is_mc=True)
     assert np.count_nonzero(mask) == 8
 
@@ -125,7 +125,7 @@ def config_jagged_index():
 
 def test_selection_jagged_index(config_jagged_index, filename):
     selection = filters.build_selection("test_selection_jagged", config_jagged_index)
-    infile = uproot.open(filename)["events"]
+    infile = uproot3.open(filename)["events"]
     mask = selection(infile, is_mc=False)
     # Compare to: events->Draw("", "Muon_Px[1] > 0.300")
     assert len(mask) == len(infile)
@@ -139,7 +139,7 @@ def config_jagged_count_nonzero():
 
 def test_selection_jagged_count_nonzero(config_jagged_count_nonzero, filename):
     selection = filters.build_selection("test_selection_jagged", config_jagged_count_nonzero)
-    infile = uproot.open(filename)["events"]
+    infile = uproot3.open(filename)["events"]
     mask = selection(infile, is_mc=False)
     # Compare to: events->Draw("", "Sum$(Muon_Px > 0.300) > 0")
     assert np.count_nonzero(mask) == 2225

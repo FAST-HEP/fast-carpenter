@@ -3,7 +3,7 @@
 import six
 from collections import namedtuple
 import numpy as np
-from awkward import JaggedArray
+from awkward0 import JaggedArray
 from ..expressions import get_branches, evaluate
 from .reductions import get_pandas_reduction, get_awkward_reduction
 

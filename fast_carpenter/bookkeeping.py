@@ -26,10 +26,10 @@ _dependencies = ["pandas",
                  "pip",
                  'atpbar',
                  'mantichora',
-                 'awkward',
+                 'awkward0',
                  'numba',
                  'numexpr',
-                 'uproot',
+                 'uproot3',
                  ]
 
 

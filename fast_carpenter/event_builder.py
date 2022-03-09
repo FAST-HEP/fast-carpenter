@@ -1,4 +1,4 @@
-import uproot
+import uproot3
 from atuproot.BEvents import BEvents
 from .masked_tree import MaskedUprootTree
 
@@ -69,11 +69,13 @@ class EventBuilder(object):
         # which prevent memmaps from begin created. Use a fallback - the
         # localsource option
         try:
-            rootfile = uproot.open(self.config.inputPaths[0])
+            rootfile = uproot3.open(self.config.inputPaths[0])
             tree = rootfile[self.config.treeName]
         except MemoryError:
-            rootfile = uproot.open(self.config.inputPaths[0],
-                                   localsource=uproot.FileSource.defaults)
+            rootfile = uproot3.open(
+                self.config.inputPaths[0],
+                localsource=uproot3.FileSource.defaults
+            )
             tree = rootfile[self.config.treeName]
 
         events = BEventsWrapped(tree,
