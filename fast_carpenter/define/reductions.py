@@ -1,4 +1,3 @@
-import awkward as ak
 import numpy as np
 import six
 from typing import List

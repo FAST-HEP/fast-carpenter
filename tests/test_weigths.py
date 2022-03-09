@@ -33,12 +33,6 @@ def test_weighted_increment(event_weights):
     assert ak.all(inc == [6, 14])
 
 
-def test_extract_weights(full_wrapped_tree):
-    weights = extract_weights(full_wrapped_tree, ["EventWeight"])
-    assert len(weights) == 1
-    assert len(weights[0]) == len(full_wrapped_tree)
-
-
 def test_extract_weights(fake_data_events):
     weights = extract_weights(fake_data_events, ["EventWeight"])
     assert len(weights) == 1

@@ -3,6 +3,7 @@ import pytest
 import awkward as ak
 import numpy as np
 
+
 @pytest.mark.xfail(reason="sums are expected to differ")
 def test_compare_np_to_ak(uproot4_tree):
     """ see https://github.com/scikit-hep/awkward-1.0/issues/1241 """

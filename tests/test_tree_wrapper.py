@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-import awkward as ak
 
 from fast_carpenter import tree_adapter
 

@@ -1,6 +1,7 @@
 import awkward as ak
 import numpy as np
 
+
 def test_broadcast_arrays(uproot4_tree):
     output = ak.broadcast_arrays(5, [1, 2, 3, 4, 5])
     assert ak.num(output[0], axis=0) == 5
