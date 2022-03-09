@@ -84,12 +84,12 @@ def full_wrapped_masked_uproot4_tree(uproot4_tree, full_event_range):
 
 
 @pytest.fixture
-def at_least_one_muon(tmpdir):
+def at_least_two_muons(tmpdir):
     return stage.CutFlow("cut_at_least_one_muon", str(tmpdir), selection="NMuon > 1", weights="EventWeight")
 
 
 @pytest.fixture
-def at_least_one_muon_plus(tmpdir):
+def at_least_two_muons_plus(tmpdir):
     return stage.CutFlow(
         "cutflow_2",
         str(tmpdir),
