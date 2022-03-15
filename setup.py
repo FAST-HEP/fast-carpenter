@@ -25,6 +25,7 @@ requirements = [
     'fast-flow>0.5.0',
     'fast-curator',
     'awkward',
+    'coffea==0.7.9',
     'pandas>=1.1',
     'numpy>= 1.18.5',
     'numexpr',
