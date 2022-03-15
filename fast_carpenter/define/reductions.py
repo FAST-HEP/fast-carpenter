@@ -36,6 +36,7 @@ class JaggedMethod(object):
     SUPPORTED: List[str] = ["sum", "prod", "any", "all", "count_nonzero",
                             "max", "min", "argmin", "argmax"]
     DEFAULTS = {
+        "count_nonzero": {"axis": 1},
         "sum": {"axis": 1},
     }
 
