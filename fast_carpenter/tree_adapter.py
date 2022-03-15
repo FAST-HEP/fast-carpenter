@@ -293,7 +293,8 @@ class Uproot4Methods(object):
             tree_arrays.update(extra_arrays)
         return tree_arrays
 
-    def array_exporter(self, dict_of_arrays, **kwargs):
+    @staticmethod
+    def array_exporter(dict_of_arrays, **kwargs):
         library = kwargs.get("library", "ak")
         how = kwargs.get("how", dict)
 
@@ -310,7 +311,7 @@ class Uproot4Methods(object):
                 return tuple(value for value in dict_of_arrays.values())
 
         if library in LIBRARIES["pandas"]:
-            return self.arraydict_to_pandas(dict_of_arrays)
+            return Uproot4Methods.arraydict_to_pandas(dict_of_arrays)
 
     def arrays(self, expressions, *args, **kwargs):
         if "outputtype" in kwargs:
@@ -636,7 +637,7 @@ class Masked(object):
         return ak.numexpr.evaluate(expression, self, **kwargs)
 
     def keys(self):
-        return self.tree.keys()
+        return self._tree.keys()
 
     def new_variable(self, name, value):
         self._tree.new_variable(name, value)
