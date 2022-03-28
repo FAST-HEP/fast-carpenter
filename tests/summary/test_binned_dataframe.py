@@ -306,8 +306,6 @@ def test_densify_dataframe_intervals():
     index = pd.MultiIndex.from_tuples(index, names=["foo", "bar"])
     df = pd.DataFrame({'A': np.arange(5, 0, -1), 'B': list("abcde")}, index=index)
     out_df = bdf.densify_dataframe(df, {"bar": pd.IntervalIndex.from_breaks(range(1, 5))})
-    print(df)
-    print(out_df)
 
     assert len(out_df) == 9
     assert out_df.loc[("one", pd.Interval(2, 3))].isna().all()
