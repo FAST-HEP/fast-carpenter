@@ -1,6 +1,7 @@
 # input is an uproot tree (uproot3 --> adapter V0, uproot4 --> adapter V1)
 # output is a dict with the same structure as the tree
 from collections import abc
+from dataclasses import field
 from itertools import chain
 import logging
 from typing import Any, Callable, Dict, List, Optional, Protocol
@@ -35,6 +36,10 @@ def unregister(name: str) -> None:
     adapters[name].pop()
 
 
+class FileLike(Protocol):
+    pass
+
+
 class ArrayLike(Protocol):
     pass
 
@@ -43,19 +48,65 @@ class TreeLike(Protocol):
     pass
 
 
+class IndexProtocol(Protocol):
+    def resolve_index(self, index):
+        pass
+
+
+class IndexWithAliases(IndexProtocol):
+    aliases: Dict[str, str]
+
+    def __init__(self, aliases):
+        self.aliases = aliases
+
+    def resolve_index(self, index):
+        if not self.aliases:
+            return index
+        if index in self.aliases:
+            return self.aliases[index]
+        return self.index
+
+
+class TokenMapIndex(IndexProtocol):
+    token_map: Dict[str, str] = {
+        ".": "__DOT__",
+    }
+
+    def __init__(self, token_map):
+        self.token_map = token_map
+
+    def resolve_index(self, index):
+        new_index = index
+        for token in self.token_map:
+            if token in index:
+                new_index = new_index.replace(token, self.token_map[token])
+        return new_index
+
+
 class TreeToDictAdaptor(abc.MutableMapping):
     """
     Provides a dict-like interface to a tree-like data object (e.g. ROOT TTree, uproot.tree, etc).
     """
 
-    tree: Any
-    aliases: Dict[str, Any]
-    extra_variables: Dict[str, Any]
+    tree: TreeLike
+    extra_variables: Dict[str, ArrayLike]
+    indices: List[IndexProtocol] = field(default_factory=list)
 
-    def __init__(self, tree: Any, aliases: Dict[str, Any] = None) -> None:
+    def __init__(self, tree: Any, aliases: Dict[str, str] = None) -> None:
         self.tree = tree
-        self.aliases = aliases if aliases else {}
         self.extra_variables = {}
+        self.indices = [
+            IndexWithAliases(aliases),
+            TokenMapIndex(token_map={".": "__DOT__", }),
+        ]
+
+    def __resolve_key__(self, key: str) -> str:
+        """
+        Resolve aliases and token map.
+        """
+        for index in self.indices:
+            key = index.resolve_index(key)
+        return key
 
     def __getitem__(self, key: str) -> Any:
         """
@@ -112,28 +163,6 @@ class TreeToDictAdaptor(abc.MutableMapping):
     def num_entries(self) -> int:
         """ Returns the number of entries in the tree. """
         raise NotImplementedError()
-
-
-class IndexingMixin(object):
-    """
-    Provides indexing support for the dict-like interface.
-    """
-    aliases: Dict[str, str]
-    special_token_mapping: Dict[str, str] = {
-        ".": "__DOT__",
-    }
-
-    def __resolve_key__(self, key):
-        if key in self.aliases:
-            return self.aliases[key]
-        return key
-
-    def __resolve_special_tokens__(self, key):
-        new_key = key
-        for token in self.special_token_mapping:
-            if token in key:
-                new_key = new_key.replace(token, self.special_token_mapping[token])
-        return new_key
 
 
 class Uproot3Methods(object):
@@ -254,7 +283,7 @@ class Uproot4Methods(object):
         return key in self.tree.keys() or key in self.extra_variables.keys()
 
     def __new_variable__(self, key, value) -> None:
-        key = self.__resolve_special_tokens__(key)
+        key = self.__resolve_key__(key)
         self.extra_variables[key] = value
 
     @property
@@ -451,11 +480,11 @@ class Uproot4Methods(object):
 ArrayMethods = Uproot4Methods
 
 
-class TreeToDictAdaptorV0(IndexingMixin, Uproot3Methods, TreeToDictAdaptor):
+class TreeToDictAdaptorV0(Uproot3Methods, TreeToDictAdaptor):
     pass
 
 
-class TreeToDictAdaptorV1(IndexingMixin, Uproot4Methods, TreeToDictAdaptor):
+class TreeToDictAdaptorV1(Uproot4Methods, TreeToDictAdaptor):
     pass
 
 
