@@ -83,6 +83,19 @@ class TokenMapIndex(IndexProtocol):
         return new_index
 
 
+class MultiTreeIndex(IndexProtocol):
+    prefix: str = ""
+
+    def __init__(self, prefix: Optional[str] = None):
+        self.prefix = prefix
+
+    def resolve_index(self, index):
+        index = index.replace(".", "/")
+        if self.prefix:
+            return f"{self.prefix}/{index}"
+        return index
+
+
 class TreeToDictAdaptor(abc.MutableMapping):
     """
     Provides a dict-like interface to a tree-like data object (e.g. ROOT TTree, uproot.tree, etc).
