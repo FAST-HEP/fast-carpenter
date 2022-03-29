@@ -10,6 +10,9 @@ from fast_carpenter.testing import FakeBEEvent, FakeEventRange
 def test_input_file():
     return "tests/data/CMS_HEP_tutorial_ww.root"
 
+@pytest.fixture
+def multi_tree_input_file():
+    return "tests/data/2kmu.root"
 
 @pytest.fixture
 def uproot3_tree(test_input_file):

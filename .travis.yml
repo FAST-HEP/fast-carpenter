@@ -9,6 +9,7 @@ python:
 install:
   - pip install -r .requirements_dev.txt
   - pip install .
+  - python tests/data/download_remote_data.py
 
 script: pytest -v --doctest-modules --cov-report=xml --cov=fast_carpenter tests/
 

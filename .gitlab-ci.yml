@@ -6,6 +6,7 @@ variables:
 before_script:
     - pip install -r .requirements_dev.txt
     - pip install .
+    - python tests/data/download_remote_data.py
 #   - curl -O https://bootstrap.pypa.io/get-pip.py
 #   - python get-pip.py
 #   - pip install -r requirements_dev.txt
