@@ -49,12 +49,12 @@ class TreeLike(Protocol):
 
 
 class IndexProtocol(Protocol):
-    def resolve_index(self, index):
+    def resolve_index(self, index: str) -> str:
         pass
 
 
 class IndexWithAliases(IndexProtocol):
-    aliases: Dict[str, str]
+    aliases: Dict[str, str] = field(default_factory=dict)
 
     def __init__(self, aliases):
         self.aliases = aliases
@@ -135,6 +135,17 @@ class TreeToDictAdaptor(abc.MutableMapping):
 
     def __contains__(self, key):
         return self.__m_contains__(self.__resolve_key__(key))
+
+    @property
+    def aliases(self) -> Dict[str, str]:
+        """
+        Returns a dict of aliases.
+        """
+        result = {}
+        for index in self.indices:
+            if hasattr(index, "aliases"):
+                result.update(index.aliases)
+        return result
 
     def keys(self) -> List[str]:
         all_keys = chain(self.tree.keys(), self.aliases.keys(), self.extra_variables.keys())
