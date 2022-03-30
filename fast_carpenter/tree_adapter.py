@@ -58,6 +58,8 @@ class IndexWithAliases(IndexProtocol):
 
     def __init__(self, aliases):
         self.aliases = aliases
+        if self.aliases is None:
+            self.aliases = {}
 
     def resolve_index(self, index):
         if not self.aliases:
