@@ -7,6 +7,8 @@ from collections import namedtuple
 from coffea import processor as cop
 import logging
 
+from ._base import ProcessingBackend
+
 
 EventRanger = namedtuple("EventRanger", "start_entry stop_entry entries_in_block")
 SingleChunk = namedtuple("SingleChunk", "tree config")
@@ -223,3 +225,12 @@ def execute(sequence, datasets, args, plugins):
                              chunksize=args.blocksize, maxchunks=maxchunks)
 
     return out["stages"], out["results"]
+
+
+class CoffeaBackend(ProcessingBackend):
+
+    def configure(self, **kwargs: Dict[str, Any]) -> None:
+        raise NotImplementedError("Coffea backend not yet implemented")
+
+    def execute(self, sequence: Dict[str, Any], datasets: Dict[str, Any], args, plugins) -> Tuple[Any, Any]:
+        raise NotImplementedError("Coffea backend not yet implemented")
