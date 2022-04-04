@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from functools import partial
 import parsl
 
 from parsl.app.app import python_app
@@ -44,9 +43,11 @@ def prepare(sequence):
     futures = [python_app(s.event) for s in sequence]
     return futures
 
+
 @dataclass
 class Chunk():
     tree: TreeLike
+
 
 class ParslBackend(ProcessingBackend):
 

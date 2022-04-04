@@ -15,6 +15,7 @@ def get_coffea():
     from . import coffea
     return coffea
 
+
 def get_parsl(processing_mode):
     from ._parsl import ParslBackend
     backend = ParslBackend()

@@ -2,11 +2,13 @@
 Functions to run a job using Coffea
 """
 import copy
-from fast_carpenter.tree_adapter import create_masked, TreeLike
 from collections import namedtuple
-from coffea import processor as cop
 import logging
+from typing import Any, Dict, Tuple
 
+from coffea import processor as cop
+
+from fast_carpenter.tree_adapter import create_masked, TreeLike
 from ._base import ProcessingBackend
 
 
