@@ -32,4 +32,4 @@ deploy:
   on:
     tags: true
     repo: FAST-HEP/fast-carpenter
-    condition: "$TRAVIS_PYTHON_VERSION == 3.7 && $TRAVIS_TAG =~ ^v[0-9]+[.][0-9]+[.][0-9]+(-rc[0-9]+|[.]dev[0-9]+)?$"
+    condition: "$TRAVIS_PYTHON_VERSION == 3.10 && $TRAVIS_TAG =~ ^v[0-9]+[.][0-9]+[.][0-9]+(-rc[0-9]+|[.]dev[0-9]+)?$"
