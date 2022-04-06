@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import fast_carpenter.define.systematics as fast_syst
-from ..conftest import FakeBEEvent, Namespace
+from fast_carpenter.testing import FakeBEEvent, Namespace
 
 
 @pytest.fixture
@@ -16,11 +16,16 @@ def systematic_variations_1(weights_1):
 
 
 class FakeTree(Namespace):
-    def array(self, attr, **kwargs):
-        return getattr(self, attr)
+
+    def __getitem__(self, key):
+        return getattr(self, key)
 
     def new_variable(self, name, variable):
         setattr(self, name, variable)
+
+    def evaluate(self, expression, **kwargs):
+        import numexpr
+        return numexpr.evaluate(expression, self, **kwargs)
 
 
 @pytest.fixture

@@ -1,8 +1,9 @@
 import pytest
 import six
 import numpy as np
-import uproot3
 import fast_carpenter.selection.filters as filters
+from fast_carpenter.tree_adapter import ArrayMethods
+from fast_carpenter.testing import FakeTree
 
 
 @pytest.fixture
@@ -11,31 +12,40 @@ def filename():
 
 
 @pytest.fixture
-def config_1():
+def more_than_one_muon():
     return "NMuon > 1"
 
 
-def test_build_selection_1(config_1):
-    selection = filters.build_selection("test_build_selection_1", config_1)
+def test_build_selection_1(more_than_one_muon):
+    selection = filters.build_selection("test_build_selection_1", more_than_one_muon)
     assert isinstance(selection, filters.OuterCounterIncrementer)
     assert isinstance(selection._wrapped_selection, filters.SingleCut)
     assert isinstance(selection.selection, six.string_types)
 
+    assert selection.columns == [['passed_only_cut', 'passed_incl',
+                                  'totals_incl'], ['unweighted', 'unweighted', 'unweighted']]
+    assert selection.index_values == [('0', 0, more_than_one_muon)]
+    # no event weight --> no weighted events
+    assert selection.values == [(0, 0, 0)]
 
-def test_selection_1(config_1, filename):
-    selection = filters.build_selection("test_selection_1", config_1)
-    infile = uproot3.open(filename)["events"]
-    mask = selection(infile, is_mc=False)
-    assert np.count_nonzero(mask) == 289
+
+def test_selection_1(more_than_one_muon, full_wrapped_tree):
+    selection = filters.build_selection("test_selection_1", more_than_one_muon)
+    mask = selection(full_wrapped_tree, is_mc=False)
+    assert np.count_nonzero(ArrayMethods.only_valid_entries(mask)) == 289
+
+    index = selection.index_values
+    assert len(index) == 1
+    assert index == [("0", 0, more_than_one_muon)]
 
     columns = selection.columns
+    assert columns == [['passed_only_cut', 'passed_incl', 'totals_incl'], ['unweighted', 'unweighted', 'unweighted']]
+
     values = selection.values
-    index = selection.index_values
     assert len(values) == 1
-    assert len(index) == 1
-    assert index[0][0] == "0"
-    assert index[0][1] == 0
-    assert index[0][2] == "NMuon > 1"
+    # (passed_only_cut, passed_incl, totals_incl)
+    assert values[0] == (289, 289, 4580)
+    # test columns and value matching
     assert values[0][columns[0].index("passed_incl")] == 289
     assert values[0][columns[0].index("passed_only_cut")] == 289
     assert values[0][columns[0].index("totals_incl")] == 4580
@@ -55,11 +65,10 @@ def config_2():
     return {"Any": ["NMuon > 1", "NElectron > 1", "NJet > 1"]}
 
 
-def test_selection_2_weights(config_2, filename):
+def test_selection_2_weights(config_2, full_wrapped_tree):
     selection = filters.build_selection("test_selection_1",
                                         config_2, weights=["EventWeight"])
-    infile = uproot3.open(filename)["events"]
-    mask = selection(infile, is_mc=True)
+    mask = selection(full_wrapped_tree, is_mc=True)
     assert np.count_nonzero(mask) == 1486
 
     columns = selection.columns
@@ -72,14 +81,15 @@ def test_selection_2_weights(config_2, filename):
     assert len(index) == 4
     assert index[0] == ("0", 0, "Any")
     assert values[0][columns[0].index("passed_incl")] == 1486
-    assert values[0][columns[0].index("passed_incl") + 1] == np.sum(infile.array("EventWeight")[mask])
+
+    weight_sum = ArrayMethods.sum(full_wrapped_tree["EventWeight"][mask], axis=-1)
+    assert values[0][columns[0].index("passed_incl") + 1] == pytest.approx(weight_sum, 1e-4)
 
 
-def test_selection_2_weights_data(config_2, filename):
+def test_selection_2_weights_data(config_2, full_wrapped_tree):
     selection = filters.build_selection("test_selection_1",
                                         config_2, weights=["EventWeight"])
-    infile = uproot3.open(filename)["events"]
-    mask = selection(infile, is_mc=False)
+    mask = selection(full_wrapped_tree, is_mc=False)
     assert np.count_nonzero(mask) == 1486
 
     columns = selection.columns
@@ -102,10 +112,9 @@ def config_3():
     return {"All": ["NMuon > 1", {"Any": ["NElectron > 1", "NJet > 1"]}]}
 
 
-def test_selection_3(config_3, filename):
+def test_selection_3(config_3, full_wrapped_tree):
     selection = filters.build_selection("test_selection_3", config_3)
-    infile = uproot3.open(filename)["events"]
-    mask = selection(infile, is_mc=True)
+    mask = selection(full_wrapped_tree, is_mc=True)
     assert np.count_nonzero(mask) == 8
 
     index = selection.index_values
@@ -123,12 +132,11 @@ def config_jagged_index():
     return dict(reduce=1, formula="Muon_Px > 0.3")
 
 
-def test_selection_jagged_index(config_jagged_index, filename):
+def test_selection_jagged_index(config_jagged_index, full_wrapped_tree):
     selection = filters.build_selection("test_selection_jagged", config_jagged_index)
-    infile = uproot3.open(filename)["events"]
-    mask = selection(infile, is_mc=False)
+    mask = selection(full_wrapped_tree, is_mc=False)
     # Compare to: events->Draw("", "Muon_Px[1] > 0.300")
-    assert len(mask) == len(infile)
+    assert len(mask) == len(full_wrapped_tree)
     assert np.count_nonzero(mask) == 144
 
 
@@ -137,10 +145,9 @@ def config_jagged_count_nonzero():
     return dict(reduce="any", formula="Muon_Px > 0.3")
 
 
-def test_selection_jagged_count_nonzero(config_jagged_count_nonzero, filename):
+def test_selection_jagged_count_nonzero(config_jagged_count_nonzero, full_wrapped_tree):
     selection = filters.build_selection("test_selection_jagged", config_jagged_count_nonzero)
-    infile = uproot3.open(filename)["events"]
-    mask = selection(infile, is_mc=False)
+    mask = selection(full_wrapped_tree, is_mc=False)
     # Compare to: events->Draw("", "Sum$(Muon_Px > 0.300) > 0")
     assert np.count_nonzero(mask) == 2225
 
@@ -150,21 +157,10 @@ def fake_evaluate(variables, expression):
     return numexpr.evaluate(expression, variables)
 
 
-class FakeTree(dict):
-    def __init__(self):
-        super(FakeTree, self).__init__(NMuon=np.linspace(0, 5., 101),
-                                       NElectron=np.linspace(0, 10, 101),
-                                       NJet=np.linspace(2, -18, 101),
-                                       )
-
-    def __len__(self):
-        return 101
-
-
-def test_event_removal_1(config_1, monkeypatch):
+def test_event_removal_1(more_than_one_muon, monkeypatch):
     variables = FakeTree()
     monkeypatch.setattr(filters, 'evaluate', fake_evaluate)
-    selection = filters.build_selection("test_event_removal", config_1)
+    selection = filters.build_selection("test_event_removal", more_than_one_muon)
     nmuon = variables["NMuon"]
 
     mask = selection(variables, is_mc=False)
