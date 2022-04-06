@@ -86,15 +86,23 @@ class TokenMapIndex(IndexProtocol):
 
 
 class MultiTreeIndex(IndexProtocol):
-    prefix: str = ""
+    _prefixes: List[str] = field(default_factory=list)
 
-    def __init__(self, prefix: Optional[str] = None):
-        self.prefix = prefix
+    def __init__(self, prefixes: Optional[List[str]] = None):
+        self._prefixes = prefixes
 
     def resolve_index(self, index):
         index = index.replace(".", "/")
-        if self.prefix:
-            return f"{self.prefix}/{index}"
+        if self._prefixes:
+            for prefix in self._prefixes:
+                if index.startswith(prefix):
+                    index = index.replace(prefix, "", 1)
+                    if index.startswith("/"):
+                        index = index[1:]
+                    if index:
+                        return f"{prefix}/{index}"
+                    return prefix
+                return f"{prefix}/{index}"
         return index
 
 
