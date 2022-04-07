@@ -4,7 +4,7 @@ from collections import abc
 from dataclasses import field
 from itertools import chain
 import logging
-from typing import Any, Callable, Dict, List, Optional, Protocol
+from typing import Any, Callable, Dict, List, Optional, Protocol, Tuple
 
 import awkward as ak
 import numpy as np
@@ -197,6 +197,101 @@ class TreeToDictAdaptor(abc.MutableMapping):
     def num_entries(self) -> int:
         """ Returns the number of entries in the tree. """
         raise NotImplementedError()
+
+
+class FileToDictAdaptor(abc.MutableMapping):
+    """
+    Provides a dict-like interface to a file-like object (e.g. ROOT TFile, uproot.file, etc).
+    """
+
+    _file_handle: FileLike
+    _trees: List[str]
+    _extra_variables: Dict[str, ArrayLike]
+    _indices: List[IndexProtocol] = field(default_factory=list)
+
+    def __init__(
+        self, file_handle: FileLike, trees: List[str], aliases: Dict[str, str] = None
+    ) -> None:
+        self._file_handle = file_handle
+        self._trees = trees
+        self._extra_variables = {}
+        self._indices = [
+            IndexWithAliases(aliases),
+            MultiTreeIndex(prefixes=trees),
+            TokenMapIndex(
+                token_map={
+                    ".": "__DOT__",
+                }
+            ),
+        ]
+
+        is_valid, msg = self.__is_valid__()
+        if not is_valid:
+            raise ValueError(msg)
+
+    def __is_valid__(self) -> Tuple[bool, str]:
+        # all trees must exist
+        exist = all(self._file_handle.__contains__(tree) for tree in self._trees)
+        if not exist:
+            return (
+                False,
+                f"Trees {self._trees} do not exist in file {self._file_handle}",
+            )
+        # all trees should be the same length
+        lengths = [
+            self._file_handle.__getitem__(tree).num_entries for tree in self._trees
+        ]
+        all_equal_lengths = all(length == lengths[0] for length in lengths)
+        if not all_equal_lengths:
+            return (
+                False,
+                f"Trees {self._trees} do not have the same number of entries: {lengths}",
+            )
+
+        return True, "everything is valid"
+
+    def __resolve_key__(self, key: str) -> str:
+        """
+        Resolve aliases and token map.
+        """
+        for index in self._indices:
+            key = index.resolve_index(key)
+        return key
+
+    def __contains__(self, key: str) -> bool:
+        if len(self._trees) == 1:
+            if key in self._file_handle[self._trees[0]]:
+                return True
+        resolved_key = self.__resolve_key__(key)
+        try:
+            value = self._file_handle[resolved_key]
+            if value is not None:
+                return True
+        except Exception:
+            pass
+        return self.__resolve_key__(key) in self._file_handle.keys()
+
+    def __delitem__(self, v: str) -> None:
+        pass
+
+    def __getitem__(self, k: str) -> Any:
+        return None
+        # return self.__m_getitem__(self.__resolve_key__(k))
+
+    def __iter__(self) -> Any:
+        return None
+
+    def __len__(self) -> int:
+        return 0
+
+    def __setitem__(self, k: str, v: Any) -> None:
+        pass
+
+    @property
+    def num_entries(self) -> int:
+        """Returns the number of entries in the file."""
+        lenghts = [self._file_handle[tree].num_entries for tree in self._trees]
+        return max(lenghts)
 
 
 class Uproot3Methods(object):
