@@ -602,6 +602,9 @@ class Masked(object):
     def __len__(self):
         return len(self._tree)
 
+    def __contains__(self, key):
+        return key in self._tree
+
     @property
     def num_entries(self) -> int:
         return self._tree.num_entries
@@ -619,6 +622,9 @@ class Masked(object):
 
     def reset_mask(self):
         self._mask = None
+
+    def reset_cache(self):
+        pass
 
     def array(self, key):
         return self[key]

@@ -29,5 +29,5 @@ class Uproot4DataImport(DataImportBase):
         try:
             rootfile = uproot.open(input_file)
         except MemoryError:
-            rootfile = uproot.open(input_file, localsource=uproot.FileSource.defaults)
+            rootfile = uproot.open(input_file, file_handler=uproot.source.chunk.Source)
         return rootfile
