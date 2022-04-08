@@ -7,6 +7,7 @@ DIR = Path(__file__).parent.resolve()
 
 nox.options.sessions = ["lint", "tests"]
 
+
 @nox.session
 def tests(session: nox.Session) -> None:
     """
