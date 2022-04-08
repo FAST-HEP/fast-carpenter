@@ -8,7 +8,8 @@ import fast_flow.v1 as fast_flow
 from fast_flow.help import argparse_help_stages
 import fast_curator
 import logging
-from .backends import get_backend
+from .backends import get_backend, KNOW_BACKENDS_NAMES
+from .data_import import get_data_import_plugin
 from .utils import mkdir_p
 from .bookkeeping import write_booking
 from .version import __version__
@@ -16,6 +17,7 @@ logging.getLogger(__name__).setLevel(logging.INFO)
 
 
 def create_parser():
+    # TODO: replace with typer
     from argparse import ArgumentParser
 
     parser = ArgumentParser(description=__doc__)
@@ -26,7 +28,7 @@ def create_parser():
     parser.add_argument("--outdir", default="output", type=str,
                         help="Where to save the results")
     parser.add_argument("--mode", default="multiprocessing", type=str,
-                        help="Which mode to run in (multiprocessing, htcondor, sge)")
+                        help=f"Which mode to run in ({KNOW_BACKENDS_NAMES})")
     parser.add_argument("--ncores", default=1, type=int,
                         help="Number of cores to run on")
     parser.add_argument("--nblocks-per-dataset", default=-1, type=int,
@@ -53,6 +55,10 @@ def create_parser():
                         help="Enable creation of book-keeping tarball")
     parser.add_argument("--no-bookkeeping", action='store_false', dest="bookkeeping",
                         help="Disable creation of book-keeping tarball")
+    parser.add_argument("--data-import-plugin", default="uproot4", type=str,
+                        help="Which data import plugin to use (uproot3, uproot4, etc")
+    parser.add_argument("--data-import-plugin-cfg", default=None, type=str,
+                        help="Configuration file for the data import plugin")
 
     return parser
 
@@ -64,12 +70,13 @@ def main(args=None):
                                                      backend="fast_carpenter", return_cfg=True)
     datasets = fast_curator.read.from_yaml(args.dataset_cfg)
     backend = get_backend(args.mode)
+    data_import_plugin = get_data_import_plugin(args.data_import_plugin, args.data_import_plugin_cfg)
 
     mkdir_p(args.outdir)
     if args.bookkeeping:
         book_keeping_file = os.path.join(args.outdir, "book-keeping.tar.gz")
         write_booking(book_keeping_file, seq_cfg, datasets, cmd_line_args=args)
-    results, _ = backend.execute(sequence, datasets, args)
+    results, _ = backend.execute(sequence, datasets, args, plugins={'data_import': data_import_plugin})
 
     print("Summary of results")
     print(results)

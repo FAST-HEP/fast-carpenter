@@ -30,17 +30,20 @@ requirements = [
     'fast-flow>0.5.0',
     'fast-curator',
     'awkward',
+    'coffea==0.7.9',
     'pandas>=1.1',
-    'numpy',
+    'numpy==1.21.0; python_version < "3.9"',
+    'numpy>= 1.18.5; python_version > "3.8"',
     'numexpr',
+    'typing-extensions>=4.1.1',
     'uproot>=4.1.8',
-    'uproot3',
+    'uproot3>=3.14.0',
 ]
 repositories = []
 
 setup_requirements = ['pytest-runner', ]
 
-test_requirements = ['pytest', 'flake8', 'pytest-cov']
+test_requirements = ['pytest', 'flake8', 'pytest-cov', 'pytest-lazy-fixture']
 
 setup(
     author="Ben Krikler",

@@ -1,13 +1,13 @@
 import numpy as np
 import re
-import numexpr
 import tokenize
 import awkward0
+import awkward as ak
 import logging
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
+
+from io import StringIO
+
+from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +22,8 @@ constants = {"nan": np.nan,
              }
 
 
-def get_branches(cut, valid):
-    valid = [v.decode("utf-8") for v in valid]
-
+def get_branches(cut: str, valid: List[str]) -> List[str]:
+    """ Get branches relevant to the cut. """
     branches = []
     string = StringIO(cut).readline
     tokens = tokenize.generate_tokens(string)
@@ -43,15 +42,21 @@ def get_branches(cut, valid):
 
 
 def deconstruct_jaggedness(array, counts):
-    if not isinstance(array, awkward0.array.base.AwkwardArrayWithContent):
+    if not isinstance(array, (awkward0.array.base.AwkwardArrayWithContent, ak.highlevel.Array)):
         return array, counts
 
-    array = array.compact()
-    counts.insert(0, array.counts)
+    if isinstance(array, ak.highlevel.Array):
+        counts.insert(0, array.layout.compact_offsets64)
+        array = ak.flatten(array)
+        return deconstruct_jaggedness(array.layout.content, counts)
+    else:
+        array = array.compact()
+        counts.insert(0, array.counts)
     return deconstruct_jaggedness(array.content, counts)
 
 
 def reconstruct_jaggedness(array, counts):
+    # array = ak.unflatten(array, lengths, axis=1)
     for count in counts:
         array = awkward0.JaggedArray.fromcounts(count, array)
     return array
@@ -61,6 +66,7 @@ class TreeToDictAdaptor():
     """
     Make an uproot tree look like a dict for numexpr
     """
+
     def __init__(self, tree, alias_dict, needed_variables):
         self.tree = tree
         self.aliases = alias_dict
@@ -138,15 +144,5 @@ def preprocess_expression(expression):
 
 
 def evaluate(tree, expression):
-    cleaned_expression, alias_dict = preprocess_expression(expression)
-    context = numexpr.necompiler.getContext({}, frame_depth=1)
-    variables = numexpr.necompiler.getExprNames(cleaned_expression, context)[0]
-    try:
-        adaptor = TreeToDictAdaptor(tree, alias_dict, variables)
-    except ValueError:
-        msg = "Cannot broadcast all variables in expression: %s" % expression
-        logger.error(msg)
-        raise ValueError(msg)
-    result = numexpr.evaluate(cleaned_expression, local_dict=adaptor)
-    result = adaptor.apply_jaggedness(result)
-    return result
+    cleaned_expression, _ = preprocess_expression(expression)
+    return tree.evaluate(cleaned_expression, global_dict=constants)

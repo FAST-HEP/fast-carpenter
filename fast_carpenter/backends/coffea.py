@@ -2,7 +2,7 @@
 Functions to run a job using Coffea
 """
 import copy
-from fast_carpenter.masked_tree import MaskedUprootTree
+from fast_carpenter.tree_adapter import create_masked, TreeLike
 from collections import namedtuple
 from coffea import processor as cop
 import logging
@@ -12,6 +12,48 @@ EventRanger = namedtuple("EventRanger", "start_entry stop_entry entries_in_block
 SingleChunk = namedtuple("SingleChunk", "tree config")
 ChunkConfig = namedtuple("ChunkConfig", "dataset")
 ConfigProxy = namedtuple("ConfigProxy", "name eventtype")
+
+
+class CoffeaConnector(TreeLike):
+
+    def __init__(self, data):
+        self._data = data
+
+    def __getattr__(self, name):
+        if hasattr(self._data, name):
+            return getattr(self._data, name)
+        return getattr(self, name)
+
+    def __getitem__(self, key):
+        return self._data[key]
+
+    @property
+    def num_entries(self):
+        return len(self._data)
+
+    @property
+    def dataset(self):
+        return self._data.metadata["dataset"]
+
+    @property
+    def start(self):
+        return self._data.metadata['entrystart']
+
+    @property
+    def stop(self):
+        return self._data.metadata['entrystop']
+
+    def arrays(self, keys, **kwargs):
+        import awkward as ak
+        library = kwargs.get("library", "ak")
+        how = kwargs.get("how", dict)
+        if library == "ak" and how == dict:
+            return {key: ak.Array(self._data[key]) for key in keys}
+
+        raise NotImplementedError(f"Cannot return arrays for {library=} and {how=}")
+
+    def keys(self):
+        return self._data.fields
 
 
 class stages_accumulator(cop.AccumulatorABC):
@@ -50,11 +92,17 @@ class FASTProcessor(cop.ProcessorABC):
 
     def process(self, df):
         output = self.accumulator.identity()
+        connector = CoffeaConnector(df)
 
-        start = df._branchargs['entrystart']
-        stop = df._branchargs['entrystop']
-        tree = MaskedUprootTree(df._tree, EventRanger(start, stop, stop - start))
-        dsname = df['dataset']
+        # tree = MaskedUprootTree(df._tree, EventRanger(start, stop, stop - start))
+        tree = create_masked(
+            dict(
+                tree=connector,
+                start=connector.start,
+                stop=connector.stop
+            ))
+
+        dsname = connector.dataset
         cfg_proxy = ConfigProxy(dsname, 'data' if dsname == 'data' else 'mc')
         chunk = SingleChunk(tree, ChunkConfig(cfg_proxy))
 
@@ -135,14 +183,12 @@ def create_executor(args):
     if exe_type == "local":
         executor = cop.futures_executor
         exe_args.setdefault('workers', args.ncores)
-        exe_args.setdefault('flatten', False)
     elif exe_type == "parsl":
         executor = cop.parsl_executor
         exe_args.setdefault('n_threads', args.ncores)
         exe_args.setdefault('monitoring', False)
         if 'config' not in exe_args:
             exe_args['config'] = configure_parsl(**exe_args)
-        exe_args.setdefault('flatten', False)
     elif exe_type == "dask":
         executor = cop.dask_executor
         exe_args.setdefault('processes', False)
@@ -158,7 +204,7 @@ def create_executor(args):
     return executor, exe_args
 
 
-def execute(sequence, datasets, args):
+def execute(sequence, datasets, args, plugins):
     fp = FASTProcessor(sequence)
 
     executor, exe_args = create_executor(args)
