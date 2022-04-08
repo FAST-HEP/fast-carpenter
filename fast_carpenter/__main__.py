@@ -55,7 +55,7 @@ def create_parser():
                         help="Enable creation of book-keeping tarball")
     parser.add_argument("--no-bookkeeping", action='store_false', dest="bookkeeping",
                         help="Disable creation of book-keeping tarball")
-    parser.add_argument("--data-import-plugin", default="uproot3", type=str,
+    parser.add_argument("--data-import-plugin", default="uproot4", type=str,
                         help="Which data import plugin to use (uproot3, uproot4, etc")
     parser.add_argument("--data-import-plugin-cfg", default=None, type=str,
                         help="Configuration file for the data import plugin")
