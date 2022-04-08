@@ -1,0 +1,82 @@
+[build-system]
+requires = ["flit_core >=3.3"]
+build-backend = "flit_core.buildapi"
+
+
+[project]
+name = "fast-carpenter"
+authors = [
+  { name = "Ben Krikler", email= "fast-hep@cern.ch" },
+  { name = "Luke Kreczko", email = "kreczko@cern.ch" },
+]
+maintainers = [
+  { name = "Luke Kreczko", email = "kreczko@cern.ch" },
+]
+license = { file = "LICENSE" }
+
+description = "F.A.S.T. package for summarizing ROOT TTrees"
+readme = "README.rst"
+
+requires-python = ">=3.6"
+
+classifiers = [
+  'Development Status :: 4 - Beta',
+  'Intended Audience :: Developers',
+  'License :: OSI Approved :: Apache Software License',
+  'Natural Language :: English',
+  'Programming Language :: Python :: 3',
+  'Programming Language :: Python :: 3.6',
+  'Programming Language :: Python :: 3.7',
+  'Programming Language :: Python :: 3.8',
+  'Programming Language :: Python :: 3.9',
+]
+
+
+dynamic = ["version"]
+dependencies = [
+  "awkward",
+  "coffea==0.7.9",
+  "fast-flow>0.5.0",
+  "fast-curator",
+  "numpy==1.21.0; python_version < \"3.9\"",
+  "numpy>= 1.18.5; python_version > \"3.8\"",
+  "numexpr",
+  "pandas>=1.1",
+  "typing-extensions>=4.1.1",
+  "uproot>=4.1.8",
+  "uproot3>=3.14.0",
+]
+
+[project.optional-dependencies]
+test = [
+  "flake8",
+  "pytest >=6",
+  "pytest-lazy-fixture",
+  "pytest-cov",
+]
+dev = [
+  "pytest >=6",
+]
+docs = [
+  "Sphinx~=3.0",
+  "myst_parser>=0.13",
+  "sphinx-book-theme>=0.1.0",
+  "sphinx_copybutton",
+]
+
+[project.urls]
+homepage = "https://github.com/FAST-HEP/fast-carpenter"
+
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+filterwarnings = ["error"]
+testpaths = ["tests"]
+
+
+[tool.pycln]
+all = true
+
+
+[project.scripts]
+fast_carpenter = "fast_carpenter.__main__:main"
