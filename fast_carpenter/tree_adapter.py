@@ -731,45 +731,45 @@ def combine_masks(masks):
 
 class Masked(object):
     _mask: Any
-    _tree: Ranger
+    _data: Ranger
 
-    def __init__(self, tree: Ranger, mask: Any) -> None:
-        self._tree = tree
-        self._mask = np.ones(tree.num_entries, dtype=bool) if mask is None else mask
+    def __init__(self, data: Ranger, mask: Any) -> None:
+        self._data = data
+        self._mask = np.ones(data.num_entries, dtype=bool) if mask is None else mask
 
-        if mask is not None and len(mask) < tree.unfiltered_num_entries:
+        if mask is not None and len(mask) < data.unfiltered_num_entries:
             self._mask = ak.concatenate(
                 [
-                    ak.Array([False] * tree.start),
+                    ak.Array([False] * data.start),
                     self._mask,
-                    ak.Array([False] * (tree.unfiltered_num_entries - tree.stop))
+                    ak.Array([False] * (data.unfiltered_num_entries - data.stop))
                 ],
                 axis=0
             )
 
     def __getitem__(self, key):
         if self._mask is None:
-            return self._tree[key]
+            return self._data[key]
         try:
-            if len(self._mask) > len(self._tree):
-                return self._tree[key][self._tree.start:self._tree.stop].mask[self._mask]
+            if len(self._mask) > len(self._data):
+                return self._data[key][self._data.start:self._data.stop].mask[self._mask]
         except TypeError as e:
             raise e
-        return self._tree[key].mask[self._mask]
+        return self._data[key].mask[self._mask]
 
     def __len__(self):
-        return len(self._tree)
+        return len(self._data)
 
     def __contains__(self, key):
-        return key in self._tree
+        return key in self._data
 
     @property
     def num_entries(self) -> int:
-        return self._tree.num_entries
+        return self._data.num_entries
 
     def count_nonzero(self):
         if self._mask is None:
-            return len(self._tree)
+            return len(self._data)
         return ak.count_nonzero(self._mask)
 
     def apply_mask(self, mask):
@@ -793,7 +793,7 @@ class Masked(object):
             operations.append(lambda x: ak.mask(x, self._mask))
 
         kwargs["operations"] = operations
-        arrays = self._tree.arrays(*args, **kwargs)
+        arrays = self._data.arrays(*args, **kwargs)
         return arrays
 
     def evaluate(self, expression, **kwargs):
@@ -801,10 +801,10 @@ class Masked(object):
         return ak.numexpr.evaluate(expression, self, **kwargs)
 
     def keys(self):
-        return self._tree.keys()
+        return self._data.keys()
 
     def new_variable(self, name, value):
-        self._tree.new_variable(name, value)
+        self._data.new_variable(name, value)
 
 
 def create(arguments: Dict[str, Any]) -> TreeToDictAdaptor:
@@ -836,15 +836,11 @@ def create_ranged(arguments: Dict[str, Any]) -> Ranger:
 
 def create_masked(arguments: Dict[str, Any]) -> Masked:
     """
-    Create a tree adapter with masked access.
+    Create a data adapter with masked access.
     """
     args_copy = arguments.copy()
 
     mask = args_copy.pop("mask", None)
-    tree = create_ranged(args_copy)
+    data = create_ranged(args_copy)
 
-    return Masked(tree, mask)
-
-
-def create_masked_multitree(arguments: Dict[str, Any]) -> Masked:
-    raise NotImplementedError("Multitree not yet implemented")
+    return Masked(data, mask)
