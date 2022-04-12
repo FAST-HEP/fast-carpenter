@@ -22,6 +22,7 @@ def get_parsl(processing_mode):
     backend.configure(processing_mode=processing_mode)
     return backend
 
+
 KNOWN_BACKENDS = {
     "multiprocessing": get_alphatwirl,
     "htcondor": get_alphatwirl,
