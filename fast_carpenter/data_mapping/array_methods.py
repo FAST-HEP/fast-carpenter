@@ -129,3 +129,21 @@ class ArrayMethodsProtocol(Protocol):
     @staticmethod
     def values_as_type(data: Any, dtype, **kwargs):
         raise NotImplementedError()
+
+    @staticmethod
+    def array_from_tree(tree, key):
+        raise NotImplementedError()
+
+
+class Uproot4Methods(ArrayMethodsProtocol):
+    """
+    Provides uproot4-specific methods for the dict-like interface.
+    """
+
+    @staticmethod
+    def array_from_tree(self, tree, key):
+        return tree.__getitem__(key).array()
+
+    @staticmethod
+    def num_entries(tree):
+        return tree.num_entries

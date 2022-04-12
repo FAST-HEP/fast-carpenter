@@ -24,18 +24,19 @@ class IndexWithAliases(IndexProtocol):
 
 
 class TokenMapIndex(IndexProtocol):
-    token_map: Dict[str, str] = {
+    _token_map: Dict[str, str] = {
         ".": "__DOT__",
     }
 
-    def __init__(self, token_map):
-        self.token_map = token_map
+    def __init__(self, token_map: Optional[Dict[str, str]] = None):
+        if token_map is not None:
+            self._token_map = token_map
 
     def resolve_index(self, index):
         new_index = index
-        for token in self.token_map:
+        for token in self._token_map:
             if token in index:
-                new_index = new_index.replace(token, self.token_map[token])
+                new_index = new_index.replace(token, self._token_map[token])
         return new_index
 
 

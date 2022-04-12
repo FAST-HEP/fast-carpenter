@@ -1,8 +1,16 @@
 from typing import Callable, Dict
 
-from .connectors import DataConnectorProtocol
-from .indexing import IndexProtocol
-from .connectors import ArrayLike, TreeLike, FileLike, DataMapping
+from .array_methods import Uproot4Methods
+from .connectors import (
+    ArrayLike,
+    DataConnectorProtocol,
+    DataMapping,
+    FileConnector,
+    FileLike,
+    TreeConnector,
+    TreeLike,
+)
+from .indexing import IndexProtocol, IndexWithAliases, MultiTreeIndex, TokenMapIndex
 
 DATA_CONNECTORS: Dict[str, DataConnectorProtocol] = {}
 
@@ -33,4 +41,10 @@ __all__ = [
     "ArrayLike",
     "TreeLike",
     "FileLike",
+    "Uproot4Methods",
+    "TreeConnector",
+    "IndexWithAliases",
+    "TokenMapIndex",
+    "MultiTreeIndex",
+    "FileConnector",
 ]
