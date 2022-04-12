@@ -1,7 +1,8 @@
 import pytest
 from pytest_lazyfixture import lazy_fixture
 import uproot
-from fast_carpenter.tree_adapter import MultiTreeIndex
+# from fast_carpenter.tree_adapter import MultiTreeIndex
+from fast_carpenter.data_mapping import MultiTreeIndex
 
 
 @pytest.mark.parametrize(
