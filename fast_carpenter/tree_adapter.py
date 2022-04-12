@@ -4,10 +4,13 @@ from collections import abc
 from dataclasses import field
 from itertools import chain
 import logging
-from typing import Any, Callable, Dict, List, Optional, Protocol, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import awkward as ak
 import numpy as np
+
+from fast_carpenter.data_mapping import ArrayLike, TreeLike, FileLike, IndexProtocol, DataMapping
+from fast_carpenter.data_mapping.indexing import IndexWithAliases, TokenMapIndex, MultiTreeIndex
 
 adapters: Dict[str, Callable] = {}
 DEFAULT_TREE_TO_DICT_ADAPTOR = "uproot4"
@@ -34,76 +37,6 @@ def unregister(name: str) -> None:
     Unregister an adaptor.
     """
     adapters[name].pop()
-
-
-class FileLike(Protocol):
-    pass
-
-
-class ArrayLike(Protocol):
-    pass
-
-
-class TreeLike(Protocol):
-    pass
-
-
-class IndexProtocol(Protocol):
-    def resolve_index(self, index: str) -> str:
-        pass
-
-
-class IndexWithAliases(IndexProtocol):
-    aliases: Dict[str, str] = field(default_factory=dict)
-
-    def __init__(self, aliases):
-        self.aliases = aliases
-        if self.aliases is None:
-            self.aliases = {}
-
-    def resolve_index(self, index):
-        if not self.aliases:
-            return index
-        if index in self.aliases:
-            return self.aliases[index]
-        return self.index
-
-
-class TokenMapIndex(IndexProtocol):
-    token_map: Dict[str, str] = {
-        ".": "__DOT__",
-    }
-
-    def __init__(self, token_map):
-        self.token_map = token_map
-
-    def resolve_index(self, index):
-        new_index = index
-        for token in self.token_map:
-            if token in index:
-                new_index = new_index.replace(token, self.token_map[token])
-        return new_index
-
-
-class MultiTreeIndex(IndexProtocol):
-    _prefixes: List[str] = field(default_factory=list)
-
-    def __init__(self, prefixes: Optional[List[str]] = None):
-        self._prefixes = prefixes
-
-    def resolve_index(self, index):
-        index = index.replace(".", "/")
-        if self._prefixes:
-            for prefix in self._prefixes:
-                if index.startswith(prefix):
-                    index = index.replace(prefix, "", 1)
-                    if index.startswith("/"):
-                        index = index[1:]
-                    if index:
-                        return f"{prefix}/{index}"
-                    return prefix
-                return f"{prefix}/{index}"
-        return index
 
 
 class TreeToDictAdaptor(abc.MutableMapping):
@@ -635,88 +568,89 @@ register("uproot4", TreeToDictAdaptorV1)
 #     def __call__(self, arrays):
 #         pass
 
+
 class Ranger(object):
     """
         TODO: range is just a different way of indexing --> refactor
     """
-    tree: TreeToDictAdaptor
-    start: int
-    stop: int
-    block_size: int
-    mask: Any
+    _data: DataMapping
+    _start: int
+    _stop: int
+    _block_size: int
+    _mask: Any
 
-    def __init__(self, tree: TreeToDictAdaptor, start: int, stop: int) -> None:
-        self.tree = tree
-        self.start = start
-        self.stop = stop
+    def __init__(self, data: DataMapping, start: int, stop: int) -> None:
+        self._data = data
+        self._start = start
+        self._stop = stop
 
-        tree_size = tree.num_entries
-        self.block_size = stop - start if stop > start > 0 else tree_size
-        self.mask = np.ones(tree_size, dtype=bool)
-        if self.block_size < tree_size:
-            self.mask = np.zeros(tree_size, dtype=bool)
-            self.mask[start:stop] = True
+        num_entries = data.num_entries
+        self._block_size = stop - start if stop > start > 0 else num_entries
+        self._mask = np.ones(num_entries, dtype=bool)
+        if self._block_size < num_entries:
+            self._mask = np.zeros(num_entries, dtype=bool)
+            self._mask[start:stop] = True
 
     @property
     def num_entries(self) -> int:
         """Returns the size of the range - overwrites tree.num_entries."""
-        return self.block_size
+        return self._block_size
 
     @property
     def unfiltered_num_entries(self) -> int:
-        return self.tree.num_entries
+        return self._data.num_entries
 
     def __getitem__(self, key):
-        return ak.mask(self.tree[key], self.mask)
+        return ak.mask(self._data[key], self._mask)
 
     def __setitem__(self, key, value):
         # self.tree[key][self.start:self.stop] = value[self.start:self.stop]
-        self.tree[key] = value
+        self._data[key] = value
 
     def __delitem__(self, key):
-        del self.tree[key]
+        del self._data[key]
 
     def __contains__(self, key):
-        return key in self.tree
+        return key in self._data
 
     def __len__(self):
-        return self.block_size
+        return self._block_size
 
     def array(self, key):
         return self[key]
 
     def arrays(self, *args, **kwargs):
         operations = kwargs.pop("operations", [])
-        operations.append(lambda x: ak.mask(x, self.mask))
+        operations.append(lambda x: ak.mask(x, self._mask))
         kwargs["operations"] = operations
-        arrays = self.tree.arrays(*args, **kwargs)
+        arrays = self._data.arrays(*args, **kwargs)
         return arrays
 
     def new_variable(self, name, value):
         import awkward as ak
-        if len(value) < self.tree.num_entries:
+        if len(value) < self._data.num_entries:
             new_value = ak.concatenate(
                 [
-                    ak.Array([None] * self.start),
+                    ak.Array([None] * self._start),
                     value,
-                    ak.Array([None] * (self.tree.num_entries - self.stop))
+                    ak.Array([None] * (self._data.num_entries - self._stop))
                 ],
                 axis=0
             )
         else:
             new_value = value
-        assert len(new_value) == self.tree.num_entries
-        self.tree.new_variable(name, new_value, context=self.tree)
+        assert len(new_value) == self._data.num_entries
+        self._data.new_variable(name, new_value, context=self._data)
 
     def evaluate(self, expression, **kwargs):
         import awkward as ak
         return ak.numexpr.evaluate(expression, self, **kwargs)
 
     def keys(self):
-        return self.tree.keys()
+        return self._data.keys()
 
     def arrays_to_pandas(self, *args, **kwargs):
-        return self.tree.arrays_to_pandas(*args, **kwargs)
+        return self._data.arrays_to_pandas(*args, **kwargs)
 
 
 def combine_masks(masks):
@@ -740,9 +674,9 @@ class Masked(object):
         if mask is not None and len(mask) < data.unfiltered_num_entries:
             self._mask = ak.concatenate(
                 [
-                    ak.Array([False] * data.start),
+                    ak.Array([False] * data._start),
                     self._mask,
-                    ak.Array([False] * (data.unfiltered_num_entries - data.stop))
+                    ak.Array([False] * (data.unfiltered_num_entries - data._stop))
                 ],
                 axis=0
             )
@@ -752,7 +686,7 @@ class Masked(object):
             return self._data[key]
         try:
             if len(self._mask) > len(self._data):
-                return self._data[key][self._data.start:self._data.stop].mask[self._mask]
+                return self._data[key][self._data._start:self._data._stop].mask[self._mask]
         except TypeError as e:
             raise e
         return self._data[key].mask[self._mask]
@@ -813,7 +747,6 @@ def create(arguments: Dict[str, Any]) -> TreeToDictAdaptor:
     """
     args_copy = arguments.copy()
     adapter_type = args_copy.pop("adapter", DEFAULT_TREE_TO_DICT_ADAPTOR)
-
     try:
         creation_func = adapters[adapter_type]
         return creation_func(**args_copy)
