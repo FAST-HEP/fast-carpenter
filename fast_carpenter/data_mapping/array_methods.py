@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Protocol
 
 import awkward as ak
 import awkward0 as ak0
+import pandas as pd
 
 
 class ArrayMethodsProtocol(Protocol):
@@ -11,7 +12,7 @@ class ArrayMethodsProtocol(Protocol):
         raise NotImplementedError()
 
     @staticmethod
-    def arraydict_to_pandas(arraydict: Dict[str, Any]):
+    def arraydict_to_pandas(arraydict: Dict[str, Any]) -> pd.DataFrame:
         """
         Converts a dictionary of arrays to a pandas DataFrame.
         """
@@ -164,6 +165,10 @@ class Uproot3Methods(ArrayMethodsProtocol):
         return tree.array(key)
 
     @staticmethod
+    def arraydict_to_pandas(arraydict: Dict[str, Any]) -> pd.DataFrame:
+        return ak.to_pandas(arraydict)
+
+    @staticmethod
     def awkward_from_iter(data: Iterable) -> Any:
         return ak0.fromiter(data)
 
@@ -195,6 +200,10 @@ class Uproot4Methods(ArrayMethodsProtocol):
     @staticmethod
     def array_from_tree(tree: Any, key: str) -> Any:
         return tree.__getitem__(key).array()
+
+    @staticmethod
+    def arraydict_to_pandas(arraydict: Dict[str, Any]) -> pd.DataFrame:
+        return ak.to_pandas(arraydict)
 
     @staticmethod
     def awkward_from_iter(data: Iterable) -> Any:

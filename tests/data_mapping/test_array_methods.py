@@ -32,3 +32,16 @@ def test_evaluate(methods, jagged_list):
     array2 = array
     result = methods.evaluate(dict(a=array, b=array2), "a + b")
     assert methods.all(result == array + array2, axis=None)
+
+
+@pytest.mark.parametrize(
+    "methods",
+    [
+        Uproot3Methods,
+        Uproot4Methods,
+    ],
+)
+def test_to_pandas(methods, jagged_list):
+    array = methods.awkward_from_iter(jagged_list)
+    result = methods.arraydict_to_pandas(dict(a=array, b=array))
+    assert (result.keys() == ["a", "b"]).all()
