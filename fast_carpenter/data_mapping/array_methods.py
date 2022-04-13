@@ -1,13 +1,24 @@
+from collections.abc import Iterable
 from typing import Any, Dict, List, Protocol
+
+import awkward as ak
+import awkward0 as ak0
 
 
 class ArrayMethodsProtocol(Protocol):
+    @staticmethod
+    def all(data: Any, **kwargs) -> bool:
+        raise NotImplementedError()
 
     @staticmethod
     def arraydict_to_pandas(arraydict: Dict[str, Any]):
         """
         Converts a dictionary of arrays to a pandas DataFrame.
         """
+        raise NotImplementedError()
+
+    @staticmethod
+    def awkward_from_iter(data: Iterable) -> Any:
         raise NotImplementedError()
 
     @staticmethod
@@ -43,10 +54,6 @@ class ArrayMethodsProtocol(Protocol):
 
     @staticmethod
     def counts(data: Any, **kwargs) -> Any:
-        raise NotImplementedError()
-
-    @staticmethod
-    def all(data: Any, **kwargs) -> bool:
         raise NotImplementedError()
 
     @staticmethod
@@ -146,8 +153,19 @@ class Uproot3Methods(ArrayMethodsProtocol):
     """
 
     @staticmethod
-    def array_from_tree(self, tree: Any, key: str) -> Any:
+    def all(data: Any, **kwargs) -> bool:
+        axis = kwargs.pop("axis", 1)
+        if axis is None:
+            return all(data.all(**kwargs))
+        return data.all(**kwargs)
+
+    @staticmethod
+    def array_from_tree(tree: Any, key: str) -> Any:
         return tree.array(key)
+
+    @staticmethod
+    def awkward_from_iter(data: Iterable) -> Any:
+        return ak0.fromiter(data)
 
     @staticmethod
     def contains(data: Any, key: str) -> bool:
@@ -164,8 +182,17 @@ class Uproot4Methods(ArrayMethodsProtocol):
     """
 
     @staticmethod
-    def array_from_tree(self, tree: Any, key: str) -> Any:
+    def all(data: Any, **kwargs) -> bool:
+        axis = kwargs.pop("axis", 1)
+        return ak.all(data, axis=axis, **kwargs)
+
+    @staticmethod
+    def array_from_tree(tree: Any, key: str) -> Any:
         return tree.__getitem__(key).array()
+
+    @staticmethod
+    def awkward_from_iter(data: Iterable) -> Any:
+        return ak.from_iter(data)
 
     @staticmethod
     def contains(data: Any, key: str) -> bool:
