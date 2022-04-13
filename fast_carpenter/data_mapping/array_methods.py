@@ -2,9 +2,6 @@ from typing import Any, Dict, List, Protocol
 
 
 class ArrayMethodsProtocol(Protocol):
-    @staticmethod
-    def num_entries(array) -> int:
-        raise NotImplementedError()
 
     @staticmethod
     def arraydict_to_pandas(arraydict: Dict[str, Any]):
@@ -14,30 +11,38 @@ class ArrayMethodsProtocol(Protocol):
         raise NotImplementedError()
 
     @staticmethod
-    def array_dict(data: Any, keys: List[str]) -> Dict[str, Any]:
+    def extract_array_dict(data: Any, keys: List[str]) -> Dict[str, Any]:
         """
         Returns a dictionary of arrays for the given keys.
         """
         raise NotImplementedError()
 
     @staticmethod
-    def array_exporter(dict_of_arrays: Any, **kwargs):
+    def array_exporter(dict_of_arrays: Any, **kwargs) -> Any:
         raise NotImplementedError()
 
     @staticmethod
-    def arrays(data: Any, expressions: str, *args, **kwargs):
+    def array_from_tree(tree: Any, key: str) -> Any:
         raise NotImplementedError()
 
     @staticmethod
-    def array(data: Any, key: str):
+    def arrays(data: Any, expressions: str, *args, **kwargs) -> Any:
         raise NotImplementedError()
 
     @staticmethod
-    def evaluate(data, expression, **kwargs):
+    def array(data: Any, key: str) -> Any:
         raise NotImplementedError()
 
     @staticmethod
-    def counts(data: Any, **kwargs):
+    def contains(data: Any, key: str) -> bool:
+        raise NotImplementedError()
+
+    @staticmethod
+    def evaluate(data: Any, expression: str, **kwargs) -> Any:
+        raise NotImplementedError()
+
+    @staticmethod
+    def counts(data: Any, **kwargs) -> Any:
         raise NotImplementedError()
 
     @staticmethod
@@ -45,27 +50,31 @@ class ArrayMethodsProtocol(Protocol):
         raise NotImplementedError()
 
     @staticmethod
-    def pad(data, length: int, **kwargs: Dict[str, Any]) -> Any:
+    def pad(data: Any, length: int, **kwargs: Dict[str, Any]) -> Any:
         raise NotImplementedError()
 
     @staticmethod
-    def flatten(data, **kwargs):
+    def flatten(data: Any, **kwargs):
         raise NotImplementedError()
 
     @staticmethod
-    def sum(data, **kwargs):
+    def num_entries(array: Any) -> int:
         raise NotImplementedError()
 
     @staticmethod
-    def prod(array, **kwargs):
+    def sum(data: Any, **kwargs):
         raise NotImplementedError()
 
     @staticmethod
-    def any(array, **kwargs):
+    def prod(array: Any, **kwargs) -> Any:
         raise NotImplementedError()
 
     @staticmethod
-    def count_nonzero(array, **kwargs):
+    def any(array: Any, **kwargs) -> bool:
+        raise NotImplementedError()
+
+    @staticmethod
+    def count_nonzero(array: Any, **kwargs) -> Any:
         raise NotImplementedError()
 
     @staticmethod
@@ -130,9 +139,23 @@ class ArrayMethodsProtocol(Protocol):
     def values_as_type(data: Any, dtype, **kwargs):
         raise NotImplementedError()
 
+
+class Uproot3Methods(ArrayMethodsProtocol):
+    """
+    Provides uproot4-specific methods for the dict-like interface.
+    """
+
     @staticmethod
-    def array_from_tree(tree, key):
-        raise NotImplementedError()
+    def array_from_tree(self, tree: Any, key: str) -> Any:
+        return tree.array(key)
+
+    @staticmethod
+    def contains(data: Any, key: str) -> bool:
+        return key in data
+
+    @staticmethod
+    def num_entries(tree: Any) -> int:
+        return tree.numentries
 
 
 class Uproot4Methods(ArrayMethodsProtocol):
@@ -141,9 +164,13 @@ class Uproot4Methods(ArrayMethodsProtocol):
     """
 
     @staticmethod
-    def array_from_tree(self, tree, key):
+    def array_from_tree(self, tree: Any, key: str) -> Any:
         return tree.__getitem__(key).array()
 
     @staticmethod
-    def num_entries(tree):
+    def contains(data: Any, key: str) -> bool:
+        return key in data.keys()
+
+    @staticmethod
+    def num_entries(tree: Any) -> int:
         return tree.num_entries

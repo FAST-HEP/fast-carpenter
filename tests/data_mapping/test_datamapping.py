@@ -1,4 +1,6 @@
+import numpy as np
 import pytest
+from pytest_lazyfixture import lazy_fixture
 import uproot as uproot4
 
 from fast_carpenter.data_mapping import DataMapping  # IndexWithAliases,
@@ -49,13 +51,36 @@ def data_mapping_with_multi_tree(multi_tree_input_file):
     )
 
 
-def test_tree_num_entries(data_mapping_with_tree):
-    assert data_mapping_with_tree.num_entries == 4580
+@pytest.mark.parametrize(
+    "data_mapping, expected_num_entries",
+    [
+        (lazy_fixture("data_mapping_with_tree"), 4580),
+        (lazy_fixture("data_mapping_with_file"), 4580),
+        (lazy_fixture("data_mapping_with_multi_tree"), 1853),
+    ],
+)
+def test_num_entries(data_mapping, expected_num_entries):
+    assert data_mapping.num_entries == expected_num_entries
 
 
-def test_file_num_entries(data_mapping_with_file):
-    assert data_mapping_with_file.num_entries == 4580
+@pytest.mark.parametrize(
+    "data_mapping, new_variable_name",
+    [
+        (lazy_fixture("data_mapping_with_tree"), "Muon_momentum"),
+        (lazy_fixture("data_mapping_with_file"), "Muon_momentum"),
+        (lazy_fixture("data_mapping_with_multi_tree"), "something"),
+    ],
 
+)
+def test_new_variable(data_mapping, new_variable_name):
+    value = np.ones(data_mapping.num_entries)
+    data_mapping.add_variable(new_variable_name, value)
+    assert new_variable_name in data_mapping
+    assert (data_mapping[new_variable_name] == value).all()
 
-def test_multi_tree_num_entries(data_mapping_with_multi_tree):
-    assert data_mapping_with_multi_tree.num_entries == 1853
+def test_overwrite_existing_variable(data_mapping_with_tree):
+    var_name = "Muon_Px"
+    assert var_name in data_mapping_with_tree
+    with pytest.raises(ValueError) as err:
+        data_mapping_with_tree.add_variable(var_name, np.ones(data_mapping_with_tree.num_entries))
+    assert var_name in str(err)
