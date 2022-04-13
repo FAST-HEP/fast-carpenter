@@ -38,44 +38,6 @@ class DataConnectorProtocol(Protocol):
         pass
 
 
-class DataMapping(abc.MutableMapping):
-    _connector: DataConnectorProtocol
-    _methods: ArrayMethodsProtocol
-    _extra_variables: Dict[str, ArrayLike]
-    _indices: List[IndexProtocol] = field(default_factory=list)
-
-    def __init__(
-        self,
-        connector: DataConnectorProtocol,
-        methods: ArrayMethodsProtocol,
-        indices=None,
-    ):
-        self._connector = connector
-        self._methods = methods
-        self._extra_variables = {}
-        if indices is not None:
-            self._indices = indices
-
-    def __getitem__(self, key):
-        return None
-
-    def __setitem__(self, key, value):
-        pass
-
-    def __delitem__(self, key):
-        pass
-
-    def __iter__(self):
-        pass
-
-    def __len__(self):
-        return len(self._connector)
-
-    @property
-    def num_entries(self):
-        return self._connector.num_entries
-
-
 class TreeConnector(DataConnectorProtocol):
     _tree: TreeLike
     _methods: ArrayMethodsProtocol

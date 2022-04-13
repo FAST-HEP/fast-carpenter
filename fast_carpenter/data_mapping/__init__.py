@@ -1,10 +1,12 @@
-from typing import Callable, Dict
+from collections import abc
+from dataclasses import field
+from functools import partial
+from typing import Any, Callable, Dict, List, Protocol
 
-from .array_methods import Uproot4Methods
+from .array_methods import ArrayMethodsProtocol, Uproot4Methods
 from .connectors import (
     ArrayLike,
     DataConnectorProtocol,
-    DataMapping,
     FileConnector,
     FileLike,
     TreeConnector,
@@ -48,3 +50,122 @@ __all__ = [
     "MultiTreeIndex",
     "FileConnector",
 ]
+
+
+def __register__(collection: Dict[str, Any], collection_name: str, name: str, obj: Any) -> None:
+    if name in collection:
+        raise ValueError(f"{collection_name} {name} already registered.")
+    collection[name] = obj
+
+
+def __unregister__(collection: Dict[str, Any], collection_name: str, name: str, obj: Any) -> None:
+    if name not in collection:
+        raise ValueError(f"{collection_name} {name} not registered.")
+    collection[name].pop()
+
+
+register_data_connector = partial(__register__, DATA_CONNECTORS, "Data collector")
+unregister_data_connector = partial(__unregister__, DATA_CONNECTORS, "Data collector")
+
+register_array_methods = partial(__register__, ARRAY_METHODS, "Array methods")
+unregister_array_methods = partial(__unregister__, ARRAY_METHODS, "Array methods")
+
+register_data_connector("tree", TreeConnector)
+register_data_connector("file", FileConnector)
+register_array_methods("uproot4", Uproot4Methods)
+
+
+class DataWrapperProtocol(Protocol):
+    pass
+
+
+class DoNothingDataWrapper(DataWrapperProtocol):
+    def __init__(self, **kwargs):
+        pass
+
+    def __call__(self, data):
+        return data
+
+
+class RangedDataWrapper(DataWrapperProtocol):
+    def __init__(self, **kwargs):
+        self._start = kwargs.get("start", 0)
+        self._stop = kwargs.get("stop", None)
+
+    def __call__(self, data):
+        return data
+
+
+class MaskedDataWrapper(DataWrapperProtocol):
+    def __init__(self, **kwargs):
+        self._mask = kwargs.get("mask", None)
+
+    def __call__(self, data):
+        return data
+
+
+class DataMapping(abc.MutableMapping):
+    _connector: DataConnectorProtocol
+    _methods: ArrayMethodsProtocol
+    _data_wrappers: List[DataWrapperProtocol]
+    _extra_variables: Dict[str, ArrayLike]
+    _indices: List[IndexProtocol] = field(default_factory=list)
+
+    def __init__(
+        self,
+        connector: DataConnectorProtocol,
+        methods: ArrayMethodsProtocol,
+        data_wrappers: List[DataWrapperProtocol] = None,
+        indices=None,
+    ):
+        self._connector = connector
+        self._methods = methods
+        if data_wrappers is None:
+            self._data_wrappers = [DoNothingDataWrapper()]
+        else:
+            self._data_wrappers = data_wrappers
+
+        self._extra_variables = {}
+        if indices is not None:
+            self._indices = indices
+
+    def __contains__(self, name):
+        in_extra = name in self._extra_variables
+        in_connector = name in self._connector
+        print(f"{in_connector=}, {in_extra=}")
+        return in_extra or in_connector
+
+    def __getitem__(self, key):
+        if key in self._extra_variables:
+            return self._extra_variables[key]
+        return None
+
+    def __setitem__(self, key, value):
+        pass
+
+    def __delitem__(self, key):
+        pass
+
+    def __iter__(self):
+        pass
+
+    def __len__(self):
+        return len(self._connector)
+
+    def add_variable(self, name, value):
+        if name not in self:
+            self._extra_variables[name] = value
+        else:
+            raise ValueError(f"Trying to overwrite existing variable: {name}")
+
+    @property
+    def num_entries(self):
+        return self._connector.num_entries
+
+
+def create_ranged_mapping():
+    pass
+
+
+def create_masked_mapping():
+    pass
