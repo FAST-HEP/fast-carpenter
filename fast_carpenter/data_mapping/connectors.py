@@ -1,7 +1,7 @@
-from typing import Dict, List, Protocol
+from itertools import chain
+from typing import Any, List, Protocol
 
 from .array_methods import ArrayMethodsProtocol
-from .indexing import IndexProtocol
 
 
 class FileLike(Protocol):
@@ -25,17 +25,17 @@ class DataConnectorProtocol(Protocol):
     def __contains__(self, key: str) -> bool:
         pass
 
-    def get(self, key):
+    def get(self, key: str) -> Any:
         pass
 
     @property
-    def num_entries(self):
+    def num_entries(self) -> int:
         pass
 
-    def arrays(self, keys, **kwargs):
+    def arrays(self, keys: List[str], **kwargs) -> Any:
         pass
 
-    def keys(self):
+    def keys(self) -> List[str]:
         pass
 
 
@@ -50,17 +50,17 @@ class TreeConnector(DataConnectorProtocol):
     def __contains__(self, key: str) -> bool:
         return self._methods.contains(self._tree, key)
 
-    def get(self, key):
+    def get(self, key: str) -> Any:
         return self._methods.array_from_tree(self._tree, key)
 
     @property
-    def num_entries(self):
+    def num_entries(self) -> int:
         return self._methods.num_entries(self._tree)
 
-    def arrays(self, keys, **kwargs):
+    def arrays(self, keys: List[str], **kwargs) -> Any:
         pass
 
-    def keys(self):
+    def keys(self) -> List[str]:
         return list(self._tree.keys())
 
 
@@ -86,22 +86,22 @@ class FileConnector(DataConnectorProtocol):
             pass
         return key in self._file_handle.keys()
 
-    def get(self, key):
+    def get(self, key: str) -> Any:
         return self._methods.array_from_file(self._file, key)
 
     @property
-    def num_entries(self):
-        """Returns the number of entries in the file."""
+    def num_entries(self) -> int:
+        """Returns the number of entries of the largest tree in the file."""
         lengths = [
             self._methods.num_entries(self._file_handle[treename])
             for treename in self._treenames
         ]
         return max(lengths)
 
-    def arrays(self, keys, **kwargs):
+    def arrays(self, keys: List[str], **kwargs) -> Any:
         pass
 
-    def keys(self):
-        all_keys = chain(self.tree.keys(), self.aliases.keys(), self.extra_variables.keys())
-        for key in all_keys:
-            yield key
+    def keys(self) -> List[str]:
+        tree_keys = [self._file_handle[treename].keys() for treename in self._treenames]
+        all_keys = chain(self._file_handle.keys(), *tree_keys)
+        yield from all_keys
