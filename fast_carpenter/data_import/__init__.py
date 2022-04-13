@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 from ._base import DataImportBase
 from ._uproot4 import Uproot4DataImport
 from ._uproot3 import Uproot3DataImport
@@ -16,7 +17,7 @@ def register_data_import_plugin(plugin_name: str, plugin_class: DataImportBase) 
     _DATA_IMPORT_PLUGINS[plugin_name] = plugin_class
 
 
-def _process_plugin_config(plugin_name: str, plugin_config: Path) -> None:
+def _process_plugin_config(plugin_name: str, plugin_config: Optional[Path] = None) -> None:
     """
         Process the plugin configuration file.
         Reads the "register" and "plugin_name" sections to register and configure the plugin.
@@ -31,7 +32,7 @@ def _process_plugin_config(plugin_name: str, plugin_config: Path) -> None:
     raise NotImplementedError("Plugin config file processing not implemented yet")
 
 
-def get_data_import_plugin(plugin_name: str, plugin_config: Path) -> DataImportBase:
+def get_data_import_plugin(plugin_name: str, plugin_config: Optional[Path] = None) -> DataImportBase:
     """
     Get a data import plugin by name.
     """
