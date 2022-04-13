@@ -1,9 +1,9 @@
 from collections import abc
 from dataclasses import field
 from functools import partial
-from typing import Any, Callable, Dict, List, Protocol
+from typing import Any, Dict, List, Protocol
 
-from .array_methods import ArrayMethodsProtocol, Uproot4Methods
+from .array_methods import ArrayMethodsProtocol, Uproot3Methods, Uproot4Methods
 from .connectors import (
     ArrayLike,
     DataConnectorProtocol,
@@ -27,6 +27,7 @@ __all__ = [
     "ArrayLike",
     "TreeLike",
     "FileLike",
+    "Uproot3Methods",
     "Uproot4Methods",
     "TreeConnector",
     "IndexWithAliases",
@@ -36,13 +37,17 @@ __all__ = [
 ]
 
 
-def __register__(collection: Dict[str, Any], collection_name: str, name: str, obj: Any) -> None:
+def __register__(
+    collection: Dict[str, Any], collection_name: str, name: str, obj: Any
+) -> None:
     if name in collection:
         raise ValueError(f"{collection_name} {name} already registered.")
     collection[name] = obj
 
 
-def __unregister__(collection: Dict[str, Any], collection_name: str, name: str, obj: Any) -> None:
+def __unregister__(
+    collection: Dict[str, Any], collection_name: str, name: str, obj: Any
+) -> None:
     if name not in collection:
         raise ValueError(f"{collection_name} {name} not registered.")
     collection[name].pop()
@@ -56,6 +61,7 @@ unregister_array_methods = partial(__unregister__, ARRAY_METHODS, "Array methods
 
 register_data_connector("tree", TreeConnector)
 register_data_connector("file", FileConnector)
+register_array_methods("uproot3", Uproot3Methods)
 register_array_methods("uproot4", Uproot4Methods)
 
 
@@ -146,21 +152,29 @@ class DataMapping(abc.MutableMapping):
         return self._connector.num_entries
 
 
-def __create_mapping_with_tree_connector__(input_file: FileLike, treenames: str, methods: str):
+def __create_mapping_with_tree_connector__(
+    input_file: FileLike, treenames: str, methods: str
+):
     if len(treenames) > 1:
         raise NotImplementedError(
-            "Multiple trees not supported by the TreeConnector. Please use a different connector.")
+            "Multiple trees not supported by the TreeConnector. Please use a different connector."
+        )
     return DataMapping(
         connector=DATA_CONNECTORS["tree"](
-            tree=input_file[treenames[0]], methods=ARRAY_METHODS[methods]),
+            tree=input_file[treenames[0]], methods=ARRAY_METHODS[methods]
+        ),
         methods=ARRAY_METHODS[methods],
         indices=[IndexWithAliases({}), TokenMapIndex()],
     )
 
 
-def __create_mapping_with_file_connector__(input_file: FileLike, treenames: str, methods: str):
+def __create_mapping_with_file_connector__(
+    input_file: FileLike, treenames: str, methods: str
+):
     return DataMapping(
-        connector=DATA_CONNECTORS["file"](file_handle=input_file, methods=ARRAY_METHODS[methods]),
+        connector=DATA_CONNECTORS["file"](
+            file_handle=input_file, methods=ARRAY_METHODS[methods], treenames=treenames
+        ),
         methods=ARRAY_METHODS[methods],
         indices=[IndexWithAliases({}), TokenMapIndex(), MultiTreeIndex(treenames)],
     )
