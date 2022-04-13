@@ -172,6 +172,12 @@ class Uproot3Methods(ArrayMethodsProtocol):
         return key in data
 
     @staticmethod
+    def evaluate(data: Any, expression: str, **kwargs) -> Any:
+        ak1_array = ak.Array(data)
+        ak1_result = Uproot4Methods.evaluate(ak1_array, expression, **kwargs)
+        return ak0.fromiter(ak1_result)
+
+    @staticmethod
     def num_entries(tree: Any) -> int:
         return tree.numentries
 
@@ -193,6 +199,10 @@ class Uproot4Methods(ArrayMethodsProtocol):
     @staticmethod
     def awkward_from_iter(data: Iterable) -> Any:
         return ak.from_iter(data)
+
+    @staticmethod
+    def evaluate(data: Any, expression: str, **kwargs) -> Any:
+        return ak.numexpr.evaluate(expression, data, **kwargs)
 
     @staticmethod
     def contains(data: Any, key: str) -> bool:
