@@ -127,7 +127,7 @@ class DataMapping(abc.MutableMapping):
     def __getitem__(self, key):
         if key in self._extra_variables:
             return self._extra_variables[key]
-        return None
+        return self._connector.get(key)
 
     def __setitem__(self, key, value):
         pass
