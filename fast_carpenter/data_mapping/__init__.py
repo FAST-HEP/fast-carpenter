@@ -4,15 +4,10 @@ from functools import partial
 from typing import Any, Dict, List, Protocol
 
 from .array_methods import ArrayMethodsProtocol, Uproot3Methods, Uproot4Methods
-from .connectors import (
-    ArrayLike,
-    DataConnectorProtocol,
-    FileConnector,
-    FileLike,
-    TreeConnector,
-    TreeLike,
-)
-from .indexing import IndexProtocol, IndexWithAliases, MultiTreeIndex, TokenMapIndex
+from .connectors import (ArrayLike, DataConnectorProtocol, FileConnector,
+                         FileLike, TreeConnector, TreeLike)
+from .indexing import (IndexProtocol, IndexWithAliases, MultiTreeIndex,
+                       TokenMapIndex)
 
 DATA_CONNECTORS: Dict[str, DataConnectorProtocol] = {}
 ARRAY_METHODS: Dict[str, ArrayMethodsProtocol] = {}
@@ -53,8 +48,8 @@ def __unregister__(
     collection[name].pop()
 
 
-register_data_connector = partial(__register__, DATA_CONNECTORS, "Data collector")
-unregister_data_connector = partial(__unregister__, DATA_CONNECTORS, "Data collector")
+register_data_connector = partial(__register__, DATA_CONNECTORS, "Data connectors")
+unregister_data_connector = partial(__unregister__, DATA_CONNECTORS, "Data connectors")
 
 register_array_methods = partial(__register__, ARRAY_METHODS, "Array methods")
 unregister_array_methods = partial(__unregister__, ARRAY_METHODS, "Array methods")
