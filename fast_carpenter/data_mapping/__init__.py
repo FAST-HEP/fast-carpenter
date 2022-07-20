@@ -53,8 +53,8 @@ def __unregister__(
     collection[name].pop()
 
 
-register_data_connector = partial(__register__, DATA_CONNECTORS, "Data collector")
-unregister_data_connector = partial(__unregister__, DATA_CONNECTORS, "Data collector")
+register_data_connector = partial(__register__, DATA_CONNECTORS, "Data connectors")
+unregister_data_connector = partial(__unregister__, DATA_CONNECTORS, "Data connectors")
 
 register_array_methods = partial(__register__, ARRAY_METHODS, "Array methods")
 unregister_array_methods = partial(__unregister__, ARRAY_METHODS, "Array methods")
