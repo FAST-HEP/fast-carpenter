@@ -1,16 +1,26 @@
 # input is an uproot tree (uproot3 --> adapter V0, uproot4 --> adapter V1)
 # output is a dict with the same structure as the tree
+import logging
 from collections import abc
 from dataclasses import field
 from itertools import chain
-import logging
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import awkward as ak
 import numpy as np
 
-from fast_carpenter.data_mapping import ArrayLike, TreeLike, FileLike, IndexProtocol, DataMapping
-from fast_carpenter.data_mapping.indexing import IndexWithAliases, TokenMapIndex, MultiTreeIndex
+from fast_carpenter.data_mapping import (
+    ArrayLike,
+    DataMapping,
+    FileLike,
+    IndexProtocol,
+    TreeLike,
+)
+from fast_carpenter.data_mapping.indexing import (
+    IndexWithAliases,
+    MultiTreeIndex,
+    TokenMapIndex,
+)
 
 adapters: Dict[str, Callable] = {}
 DEFAULT_TREE_TO_DICT_ADAPTOR = "uproot4"
@@ -53,7 +63,11 @@ class TreeToDictAdaptor(abc.MutableMapping):
         self.extra_variables = {}
         self.indices = [
             IndexWithAliases(aliases),
-            TokenMapIndex(token_map={".": "__DOT__", }),
+            TokenMapIndex(
+                token_map={
+                    ".": "__DOT__",
+                }
+            ),
         ]
 
     def __resolve_key__(self, key: str) -> str:
@@ -82,11 +96,11 @@ class TreeToDictAdaptor(abc.MutableMapping):
         return iter(self.tree)
 
     def __len__(self) -> int:
-        """ Returns the number of branches in the tree. """
+        """Returns the number of branches in the tree."""
         return len(self.tree)
 
     def __delitem__(self, key) -> None:
-        """ Deletes a branch from the tree. """
+        """Deletes a branch from the tree."""
         self.__m_delitem__(self.__resolve_key__(key))
 
     def __contains__(self, key):
@@ -104,9 +118,10 @@ class TreeToDictAdaptor(abc.MutableMapping):
         return result
 
     def keys(self) -> List[str]:
-        all_keys = chain(self.tree.keys(), self.aliases.keys(), self.extra_variables.keys())
-        for key in all_keys:
-            yield key
+        all_keys = chain(
+            self.tree.keys(), self.aliases.keys(), self.extra_variables.keys()
+        )
+        yield from all_keys
 
     def new_variable(self, key, value, context: Optional[Any] = None) -> None:
         if context is None:
@@ -128,7 +143,7 @@ class TreeToDictAdaptor(abc.MutableMapping):
 
     @property
     def num_entries(self) -> int:
-        """ Returns the number of entries in the tree. """
+        """Returns the number of entries in the tree."""
         raise NotImplementedError()
 
 
@@ -223,11 +238,11 @@ class FileToDictAdaptor(abc.MutableMapping):
     @property
     def num_entries(self) -> int:
         """Returns the number of entries in the file."""
-        lenghts = [self._file_handle[tree].num_entries for tree in self._trees]
-        return max(lenghts)
+        lengths = [self._file_handle[tree].num_entries for tree in self._trees]
+        return max(lengths)
 
 
-class Uproot3Methods(object):
+class Uproot3Methods:
     """
     Provides uproot3-specific methods for the dict-like interface.
     """
@@ -323,7 +338,7 @@ class Uproot3Methods(object):
         return data.pandas.df(keys, flatten=flatten)
 
 
-class Uproot4Methods(object):
+class Uproot4Methods:
     """
     Provides uproot4-specific methods for the dict-like interface.
     """
@@ -353,7 +368,9 @@ class Uproot4Methods(object):
         try:
             return self.tree.num_entries
         except AttributeError as e:
-            logger.error(f"Object of type {type(self.tree)} does not have a num_entries attribute.")
+            logger.error(
+                f"Object of type {type(self.tree)} does not have a num_entries attribute."
+            )
             raise e
 
     @staticmethod
@@ -390,7 +407,7 @@ class Uproot4Methods(object):
         how = kwargs.get("how", dict)
 
         # TODO: long-term we want exporters + factory methods for these
-        # e.g. {("ak", tuple): AKArrayTupleExporter, ("numpy", tuple): NumpyArrayTupleExporter}
+        # e.g. {("ak", tuple): --> ak array exporter, ("numpy", tuple): --> numpy array exporter}
         # reason: we want to be able to use these exporters with different libraries or
         # in different places in this codebase and allow to inject functionality for ranges and masks
         if library in LIBRARIES["awkward"]:
@@ -569,10 +586,11 @@ register("uproot4", TreeToDictAdaptorV1)
 #         pass
 
 
-class Ranger(object):
+class Ranger:
     """
-        TODO: range is just a different way of indexing --> refactor
+    TODO: range is just a different way of indexing --> refactor
     """
+
     _data: DataMapping
     _start: int
     _stop: int
@@ -628,14 +646,15 @@ class Ranger(object):
 
     def new_variable(self, name, value):
         import awkward as ak
+
         if len(value) < self._data.num_entries:
             new_value = ak.concatenate(
                 [
                     ak.Array([None] * self._start),
                     value,
-                    ak.Array([None] * (self._data.num_entries - self._stop))
+                    ak.Array([None] * (self._data.num_entries - self._stop)),
                 ],
-                axis=0
+                axis=0,
             )
         else:
             new_value = value
@@ -644,6 +663,7 @@ class Ranger(object):
 
     def evaluate(self, expression, **kwargs):
         import awkward as ak
+
         return ak.numexpr.evaluate(expression, self, **kwargs)
 
     def keys(self):
@@ -655,6 +675,7 @@ class Ranger(object):
 
 def combine_masks(masks):
     import awkward as ak
+
     if len(masks) == 0:
         return ak.Array([])
     elif len(masks) == 1:
@@ -663,7 +684,7 @@ def combine_masks(masks):
         return ak.concatenate(masks, axis=0)
 
 
-class Masked(object):
+class Masked:
     _mask: Any
     _data: Ranger
 
@@ -676,17 +697,23 @@ class Masked(object):
                 [
                     ak.Array([False] * data._start),
                     self._mask,
-                    ak.Array([False] * (data.unfiltered_num_entries - data._stop))
+                    ak.Array([False] * (data.unfiltered_num_entries - data._stop)),
                 ],
-                axis=0
+                axis=0,
             )
+
+    @property
+    def tree(self):
+        return self._data
 
     def __getitem__(self, key):
         if self._mask is None:
             return self._data[key]
         try:
             if len(self._mask) > len(self._data):
-                return self._data[key][self._data._start:self._data._stop].mask[self._mask]
+                return self._data[key][self._data._start : self._data._stop].mask[
+                    self._mask
+                ]
         except TypeError as e:
             raise e
         return self._data[key].mask[self._mask]
@@ -732,6 +759,7 @@ class Masked(object):
 
     def evaluate(self, expression, **kwargs):
         import awkward as ak
+
         return ak.numexpr.evaluate(expression, self, **kwargs)
 
     def keys(self):
