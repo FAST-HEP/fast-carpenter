@@ -8,5 +8,12 @@ class ProcessingBackend(Protocol):
     def configure(self, **kwargs: Dict[str, Any]) -> None:
         pass
 
-    def execute(self, sequence: Dict[str, Any], datasets: Dict[str, Any], args, plugins) -> Tuple[Any, Any]:
+    def execute(
+        self, sequence: Dict[str, Any], datasets: Dict[str, Any], args, plugins
+    ) -> Tuple[Any, Any]:
+        pass
+
+
+class ResultsCollector(Protocol):
+    def collect(self, *args, **kwargs):
         pass
