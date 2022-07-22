@@ -9,11 +9,18 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import awkward as ak
 import numpy as np
 
-from fast_carpenter.data_mapping import (ArrayLike, DataMapping, FileLike,
-                                         IndexProtocol, TreeLike)
-from fast_carpenter.data_mapping.indexing import (IndexWithAliases,
-                                                  MultiTreeIndex,
-                                                  TokenMapIndex)
+from fast_carpenter.data_mapping import (
+    ArrayLike,
+    DataMapping,
+    FileLike,
+    IndexProtocol,
+    TreeLike,
+)
+from fast_carpenter.data_mapping.indexing import (
+    IndexWithAliases,
+    MultiTreeIndex,
+    TokenMapIndex,
+)
 
 adapters: Dict[str, Callable] = {}
 DEFAULT_TREE_TO_DICT_ADAPTOR = "uproot4"
@@ -400,7 +407,7 @@ class Uproot4Methods:
         how = kwargs.get("how", dict)
 
         # TODO: long-term we want exporters + factory methods for these
-        # e.g. {("ak", tuple): AkArrayTupleExporter, ("numpy", tuple): NumpyArrayTupleExporter}
+        # e.g. {("ak", tuple): --> ak array exporter, ("numpy", tuple): --> numpy array exporter}
         # reason: we want to be able to use these exporters with different libraries or
         # in different places in this codebase and allow to inject functionality for ranges and masks
         if library in LIBRARIES["awkward"]:

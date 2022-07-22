@@ -12,25 +12,29 @@ from fast_carpenter.tree_adapter import TreeLike, create_masked
 
 from ._base import ProcessingBackend
 
-_default_cfg = Config(
-    executors=[
-        HighThroughputExecutor(
-            label="carpenter_parsl_default",
-            cores_per_worker=1,
-            provider=LocalProvider(
-                channel=LocalChannel(),
-                init_blocks=1,
-                max_blocks=1,
-            ),
-            max_workers=1,
-            # address="127.0.0.0"
-        )
-    ],
-    strategy=None,
-)
+
+def default_cfg():
+    return Config(
+        executors=[
+            HighThroughputExecutor(
+                label="carpenter_parsl_default",
+                cores_per_worker=1,
+                provider=LocalProvider(
+                    channel=LocalChannel(),
+                    init_blocks=1,
+                    max_blocks=1,
+                ),
+                max_workers=1,
+                # address="127.0.0.0"
+            )
+        ],
+        strategy=None,
+    )
 
 
 def _parsl_initialize(config=None):
+    if config is None:
+        config = default_cfg()
     parsl.clear()
     parsl.load(config)
 
@@ -105,6 +109,54 @@ def postprocess(sequence):
     return results
 
 
+class Workflow:
+    def __init__(self, sequence):
+        self.sequence = sequence
+        self.task_graph = self.create_task_graph()
+
+    def create_task_graph(self):
+        """Transforms fast-carpenter task list to Dask-like task graph.
+        e.g.
+        {
+            'BasicVars': <fast_carpenter.define.variables.Define object at 0x7fca26d5c640>,
+            'DiMuons': <cms_hep_tutorial.DiObjectMass object at 0x7fca26a881c0>,
+            'NumberMuons': <fast_carpenter.summary.binned_dataframe.BinnedDataframe object at 0x7fca26d5c6d0>,
+            'EventSelection': <fast_carpenter.selection.stage.CutFlow object at 0x7fca0bfd32b0>,
+            'DiMuonMass': <fast_carpenter.summary.binned_dataframe.BinnedDataframe object at 0x7fca0b770dc0>
+        }
+        -->
+        {
+            'BasicVars': (<fast_carpenter.define.variables.Define object at 0x7fca26d5c640>),
+            'DiMuons': (<cms_hep_tutorial.DiObjectMass object at 0x7fca26a881c0>, 'BasicVars'),
+            'NumberMuons': (<fast_carpenter.summary.binned_dataframe.BinnedDataframe object at 0x7fca26d5c6d0>, 'DiMuons'),
+            'EventSelection': (<fast_carpenter.selection.stage.CutFlow object at 0x7fca0bfd32b0>, 'NumberMuons'),
+            'DiMuonMass': (<fast_carpenter.summary.binned_dataframe.BinnedDataframe object at 0x7fca0b770dc0>, 'EventSelection')
+        }
+        """
+        task_graph = {}
+        previous = None
+
+        def task_wrapper(task):
+            return python_app(task.event)
+
+        for task_name, task in self.sequence.items():
+            if previous is not None:
+                task_graph[task_name] = (task_wrapper(task), previous)
+            else:
+                task_graph[task_name] = (task_wrapper(task), "chunk")
+            previous = task_name
+        return task_graph
+
+
+class ParslConnector:
+    _data: TreeLike
+    _config: Config
+
+    def __init__(self, data, config=None):
+        self._data = data
+        self._config = config or default_cfg()
+
+
 @dataclass
 class ConfigProxy:
     name: str
@@ -133,8 +185,17 @@ class ParslBackend(ProcessingBackend):
     def execute(self, sequence, datasets, args, plugins):
         # sequence is a list of steps, we need a dict of steps
         sequence = {s.name: s for s in sequence}
+        workflow = Workflow(sequence)
+        for task, payload in workflow.task_graph.items():
+            print(task, payload)
+        # import dask
+        # from dask.delayed import Delayed
+        # # print(workflow.task_graph)
+        # delayed_dsk = Delayed("w", workflow.task_graph)
+        # dask.visualize(delayed_dsk, filename='carpenter.png', verbose=True)
+        return (0, 0)
         # for now simple config:
-        _parsl_initialize(_default_cfg)
+        _parsl_initialize()
 
         # for each dataset execute the sequence
         files = datasets[0].files
