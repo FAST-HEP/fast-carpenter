@@ -1,9 +1,9 @@
 from typing import Any, Dict, List
 
-from ._base import DataImportBase
+from ._base import DataImportPlugin
 
 
-class Uproot3DataImport(DataImportBase):
+class Uproot3DataImport(DataImportPlugin):
     """
     This class is a wrapper around the uproot3 library.
     """
@@ -19,6 +19,7 @@ class Uproot3DataImport(DataImportBase):
         This method is called by the importer to open the file.
         """
         import uproot3
+
         if len(paths) != 1:
             # TODO - support multiple paths
             raise AttributeError("Multiple paths not yet supported")

@@ -1,8 +1,8 @@
 from ..data_mapping import create_mapping
-from ._base import DataImportBase
+from ._base import DataImportPlugin
 
 
-class MultiTreeImport(DataImportBase):
+class MultiTreeImport(DataImportPlugin):
     def __init__(self, config):
         super().__init__(config)
         self._process_config()

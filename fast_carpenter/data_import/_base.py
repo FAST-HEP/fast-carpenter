@@ -2,10 +2,11 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List
 
 
-class DataImportBase(ABC):
+class DataImportPlugin(ABC):
     """
     This Abstract Base Class is the base class for all data import classes.
     """
+
     config: Dict[str, Any]
 
     def __init__(self, config: Dict[str, Any]) -> None:

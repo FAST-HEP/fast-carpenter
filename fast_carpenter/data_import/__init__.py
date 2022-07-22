@@ -3,7 +3,7 @@ from typing import Optional
 
 import fast_curator
 
-from ._base import DataImportBase
+from ._base import DataImportPlugin
 from ._multitree import MultiTreeImport
 from ._uproot3 import Uproot3DataImport
 from ._uproot4 import Uproot4DataImport
@@ -15,7 +15,9 @@ _DATA_IMPORT_PLUGINS = {
 }
 
 
-def register_data_import_plugin(plugin_name: str, plugin_class: DataImportBase) -> None:
+def register_data_import_plugin(
+    plugin_name: str, plugin_class: DataImportPlugin
+) -> None:
     """
     Register a new plugin_name for data import.
     """
@@ -44,7 +46,7 @@ def _process_plugin_config(
 
 def get_data_import_plugin(
     plugin_name: str, plugin_config: Optional[Path] = None
-) -> DataImportBase:
+) -> DataImportPlugin:
     """
     Get a data import plugin by name.
     """
