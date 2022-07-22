@@ -1,5 +1,6 @@
 import concurrent.futures
 from dataclasses import dataclass
+from typing import Any, Dict, List
 
 import parsl
 from parsl.app.app import python_app
@@ -8,7 +9,8 @@ from parsl.config import Config
 from parsl.executors import HighThroughputExecutor
 from parsl.providers import LocalProvider
 
-from fast_carpenter.tree_adapter import TreeLike, create_masked
+from fast_carpenter.data_import._base import DataImportPlugin
+from fast_carpenter.tree_adapter import TreeLike
 
 from ._base import ProcessingBackend
 
@@ -25,7 +27,7 @@ def default_cfg():
                     max_blocks=1,
                 ),
                 max_workers=1,
-                # address="127.0.0.0"
+                address="127.0.0.0",
             )
         ],
         strategy=None,
@@ -109,12 +111,31 @@ def postprocess(sequence):
     return results
 
 
+@dataclass
+class InputData:
+    datasets: List[Any]
+
+    @property
+    def files_by_dataset(self) -> Dict[str, List[str]]:
+        return {d.name: d.files for d in self.datasets}
+
+    @property
+    def files(self) -> List[str]:
+        return [f for d in self.datasets for f in d.files]
+
+    @staticmethod
+    def dataset_type(dataset: Any) -> str:
+        return "data" if dataset.name == "data" else "mc"
+
+
 class Workflow:
     def __init__(self, sequence):
         self.sequence = sequence
-        self.task_graph = self.create_task_graph()
+        self.task_graph = self.__create_task_graph()
+        self.__task_graph = self.task_graph.copy()
+        self.final_task = None
 
-    def create_task_graph(self):
+    def __create_task_graph(self):
         """Transforms fast-carpenter task list to Dask-like task graph.
         e.g.
         {
@@ -143,9 +164,65 @@ class Workflow:
             if previous is not None:
                 task_graph[task_name] = (task_wrapper(task), previous)
             else:
-                task_graph[task_name] = (task_wrapper(task), "chunk")
+                task_graph[task_name] = (task_wrapper(task), "data_import")
             previous = task_name
+        task_graph["collect_results"] = (postprocess, previous)
         return task_graph
+
+    def add_data_stage(
+        self, data_import_plugin: DataImportPlugin, input_data: InputData
+    ) -> None:
+        """Adds data stage to the workflow. One node is generated for each file in each dataset"""
+        task_graph = {}
+        for dataset in input_data.datasets:
+            dataset_suffix = dataset.name
+            for i, file_name in enumerate(dataset.files):
+                file_suffix = f"file-{i}"
+                task_suffix = f"{dataset_suffix}-{file_suffix}"
+                task_graph[f"data_import-{task_suffix}"] = (
+                    python_app(data_import_plugin.open),
+                    file_name,
+                )
+                for task, (payload, previous) in self.__task_graph.items():
+                    if previous == "data_import":
+                        previous = f"data_import-{task_suffix}"
+                    else:
+                        previous = f"{previous}-{task_suffix}"
+                    task_graph[f"{task}-{task_suffix}"] = (
+                        payload,
+                        previous,
+                    )
+        self.task_graph = task_graph
+
+        return self
+
+    def add_collector(self) -> None:
+        def final_collector(inputs: List[Any]) -> List[Any]:
+            # TODO: merge results from all datasets
+            return inputs
+
+        final_task = python_app(final_collector)
+        collection_tasks = [
+            task
+            for task in self.task_graph.keys()
+            if task.startswith("collect_results")
+        ]
+        self.task_graph["__reduce__"] = (final_task, collection_tasks)
+        self.final_task = final_task
+        return self
+
+    def to_image(self, output_file: str) -> None:
+        import dask
+        from dask.delayed import Delayed
+
+        delayed_dsk = Delayed("w", self.task_graph)
+        dask.visualize(delayed_dsk, filename=output_file, verbose=True)
+
+    def __repr__(self) -> str:
+        output = ""
+        for task, description in self.task_graph.items():
+            output += f"{description[1]} -> {task} \n"
+        return output
 
 
 class ParslConnector:
@@ -155,22 +232,6 @@ class ParslConnector:
     def __init__(self, data, config=None):
         self._data = data
         self._config = config or default_cfg()
-
-
-@dataclass
-class ConfigProxy:
-    name: str
-    eventtype: str
-
-    @property
-    def dataset(self):
-        return self
-
-
-@dataclass
-class Chunk:
-    tree: TreeLike
-    config: ConfigProxy
 
 
 class ParslBackend(ProcessingBackend):
@@ -186,50 +247,18 @@ class ParslBackend(ProcessingBackend):
         # sequence is a list of steps, we need a dict of steps
         sequence = {s.name: s for s in sequence}
         workflow = Workflow(sequence)
-        for task, payload in workflow.task_graph.items():
-            print(task, payload)
-        # import dask
-        # from dask.delayed import Delayed
-        # # print(workflow.task_graph)
-        # delayed_dsk = Delayed("w", workflow.task_graph)
-        # dask.visualize(delayed_dsk, filename='carpenter.png', verbose=True)
-        return (0, 0)
-        # for now simple config:
+        workflow.to_image("carpenter.png")
+
         _parsl_initialize()
 
-        # for each dataset execute the sequence
-        files = datasets[0].files
-        tree_name = datasets[0].tree  # [0]
-        results = prepare(sequence)
-        # results = build_compute_graph(sequence)
+        input_data = InputData(datasets)
+        data_import_plugin = plugins.get("data_import")
+        workflow = workflow.add_data_stage(data_import_plugin, input_data)
+        workflow.to_image("carpenter-with-data-import.png")
+        workflow.add_collector()
+        workflow.to_image("carpenter-with-data-import-and-collector.png")
+        workflow.final_task().result()
+        # TODO: convert workflow to Parsl
 
-        import uproot
-
-        config = ConfigProxy(
-            name=datasets[0].name,
-            eventtype="data" if datasets[0].name == "data" else "mc",
-        )
-        outputs = {}
-        with uproot.open(files[0]) as f:
-            tree = f[tree_name]
-            masked = create_masked({"tree": tree})
-
-            chunk = Chunk(masked, config)
-            for _, (step_name, future) in enumerate(zip(sequence, results.values())):
-                try:
-                    result = future(chunk).result()
-                    print(result)
-                except Exception as e:
-                    print(e)
-                else:
-                    step = sequence[step_name]
-                    if not hasattr(step, "collector"):
-                        continue
-                    collector = step.collector()
-                    output = collector.collect([(step_name, (step,))])
-                    outputs[step_name] = output
-            # outputs = [result(chunk).result() for result in results.values()]
-        # outputs = postprocess(sequence).result()
         _parsl_stop()
-
-        return outputs, "stages"
+        return (0, 0)
