@@ -129,6 +129,12 @@ class InputData:
 
 
 class Workflow:
+    # TODO: to be moved to fast-flow
+    # workflow = fast_flow.from_carpenter_config(carpenter_config)
+    # workflow = fast_flow.from_gitlab_ci_config(".gitlab-ci.yml")
+    data_import_prefix = "data_import"
+    collector_prefix = "collect_results"
+
     def __init__(self, sequence):
         self.sequence = sequence
         self.task_graph = self.__create_task_graph()
@@ -158,7 +164,7 @@ class Workflow:
         previous = None
 
         def task_wrapper(task):
-            return python_app(task.event)
+            return task.event
 
         for task_name, task in self.sequence.items():
             if previous is not None:
@@ -166,7 +172,7 @@ class Workflow:
             else:
                 task_graph[task_name] = (task_wrapper(task), "data_import")
             previous = task_name
-        task_graph["collect_results"] = (postprocess, previous)
+        task_graph[self.collector_prefix] = (postprocess, previous)
         return task_graph
 
     def add_data_stage(
@@ -179,13 +185,13 @@ class Workflow:
             for i, file_name in enumerate(dataset.files):
                 file_suffix = f"file-{i}"
                 task_suffix = f"{dataset_suffix}-{file_suffix}"
-                task_graph[f"data_import-{task_suffix}"] = (
-                    python_app(data_import_plugin.open),
-                    file_name,
+                task_graph[f"{self.data_import_prefix}-{task_suffix}"] = (
+                    data_import_plugin.open,
+                    [file_name],
                 )
                 for task, (payload, previous) in self.__task_graph.items():
-                    if previous == "data_import":
-                        previous = f"data_import-{task_suffix}"
+                    if previous == self.data_import_prefix:
+                        previous = f"{self.data_import_prefix}-{task_suffix}"
                     else:
                         previous = f"{previous}-{task_suffix}"
                     task_graph[f"{task}-{task_suffix}"] = (
@@ -199,13 +205,14 @@ class Workflow:
     def add_collector(self) -> None:
         def final_collector(inputs: List[Any]) -> List[Any]:
             # TODO: merge results from all datasets
+            # TODO: if there are more than X results, merge in multiple steps
             return inputs
 
-        final_task = python_app(final_collector)
+        final_task = final_collector
         collection_tasks = [
             task
             for task in self.task_graph.keys()
-            if task.startswith("collect_results")
+            if task.startswith(self.collector_prefix)
         ]
         self.task_graph["__reduce__"] = (final_task, collection_tasks)
         self.final_task = final_task
@@ -218,11 +225,30 @@ class Workflow:
         delayed_dsk = Delayed("w", self.task_graph)
         dask.visualize(delayed_dsk, filename=output_file, verbose=True)
 
+    def to_gitlab_ci_yaml(self, output_file: str) -> None:
+        pass
+
+    def to_parsl(self) -> None:
+        # 1. turn all data-import tasks into python apps
+        # 2. turn all other tasks into parsl tasks
+        # add final task and construct parsl graph
+        pass
+
+    def to_dask(self) -> None:
+        pass
+
     def __repr__(self) -> str:
         output = ""
         for task, description in self.task_graph.items():
             output += f"{description[1]} -> {task} \n"
         return output
+
+
+class ParslWorkflow:
+    def __init__(self, workflow: Workflow):
+        self.workflow = workflow
+        self.task_graph = self.workflow.task_graph
+        self.final_task = None
 
 
 class ParslConnector:
