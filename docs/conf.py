@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # fast-carpenter documentation build configuration file, created by
 # sphinx-quickstart on Thu Jul 13 09:48:02 2017.
@@ -12,15 +11,16 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+import inspect
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
 import sys
-import inspect
-import fast_carpenter
 
+import fast_carpenter
 
 # Get the project root dir, which is the parent dir of this
 cwd = os.getcwd()
@@ -41,35 +41,36 @@ sys.path.insert(0, project_root)
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinxcontrib.apidoc',
-    'sphinxcontrib.programoutput',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.todo',
-    'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.linkcode',
-    'sphinx.ext.napoleon',
+    "sphinxcontrib.apidoc",
+    "sphinxcontrib.programoutput",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.todo",
+    "sphinx.ext.coverage",
+    "sphinx.ext.mathjax",
+    # 'sphinxcontrib.mermaid'
+    "sphinx.ext.linkcode",
+    "sphinx.ext.napoleon",
     # 'sphinx.ext.githubpages',
-    'm2r',
+    "m2r",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-source_suffix = ['.rst', '.md']
-#source_suffix = '.rst'
+source_suffix = [".rst", ".md"]
+# source_suffix = '.rst'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = "index"
 
 # General information about the project.
-project = u'fast-carpenter'
-copyright = u'2019, Ben Krikler'
-author = u'Ben Krikler'
+project = "fast-carpenter"
+copyright = "2019, Ben Krikler"
+author = "Ben Krikler"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -90,15 +91,14 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # List of modules to be mocked up. This is useful when some external
 # dependencies are not met at build time and break the building process.
-autodoc_mock_imports = [
-]
+autodoc_mock_imports = []
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
@@ -110,37 +110,38 @@ todo_include_todos = True
 # a list of builtin themes.
 #
 
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 
 # Increase width of main content by overriding corresponding parameter in rtd theme's css
 #   Solution from http://blog.deimos.fr/2014/10/02/sphinxdoc-and-readthedocs-theme-tricks-2/
 #            and  http://stackoverflow.com/questions/23211695/modifying-content-width-of-the-sphinx-theme-read-the-docs
 import sphinx_rtd_theme
+
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
-#html_theme = 'alabaster'
+# html_theme = 'alabaster'
 #
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-#html_theme_options = {
+# html_theme_options = {
 #    'page_width': '1200px',
 #    'show_related': 'true',
 #    'fixed_sidebar': 'true',
 #    'font_family': 'Georgia'
-#}
+# }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'fast-carpenter-doc'
+htmlhelp_basename = "fast-carpenter-doc"
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -149,15 +150,12 @@ latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',
-
     # The font size ('10pt', '11pt' or '12pt').
     #
     # 'pointsize': '10pt',
-
     # Additional stuff for the LaTeX preamble.
     #
     # 'preamble': '',
-
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
@@ -167,8 +165,13 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'fast-carpenter.tex', u'fast-carpenter Documentation',
-     [author], 'manual'),
+    (
+        master_doc,
+        "fast-carpenter.tex",
+        "fast-carpenter Documentation",
+        [author],
+        "manual",
+    ),
 ]
 
 
@@ -177,8 +180,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'fast-carpenter', u'fast-carpenter Documentation',
-     [author], 1)
+    (master_doc, "fast-carpenter", "fast-carpenter Documentation", [author], 1)
 ]
 
 
@@ -188,21 +190,28 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'fast-carpenter', u'fast-carpenter Documentation',
-     author, 'fast-carpenter', 'One line description of project.',
-     'Miscellaneous'),
+    (
+        master_doc,
+        "fast-carpenter",
+        "fast-carpenter Documentation",
+        author,
+        "fast-carpenter",
+        "One line description of project.",
+        "Miscellaneous",
+    ),
 ]
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'python': ('https://docs.python.org/3', None),
-                       'matplotlib': ('http://matplotlib.sourceforge.net', None),
-                       'pandas': ('http://pandas.pydata.org/pandas-docs/stable', None),
-                      }
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "matplotlib": ("http://matplotlib.sourceforge.net", None),
+    "pandas": ("http://pandas.pydata.org/pandas-docs/stable", None),
+}
 
 
 # Configure the sphinxcontrib.apidoc extension
-apidoc_module_dir = '../fast_carpenter'
+apidoc_module_dir = "../fast_carpenter"
 apidoc_toc_file = False
 apidoc_module_first = True
 apidoc_separate_modules = True
@@ -212,18 +221,18 @@ pidoc_extra_args = ["-e"]
 # linkcode control, inspired by numpy's approach:
 #   - https://github.com/numpy/numpy/blob/master/doc/source/conf.py#L286
 def linkcode_resolve(domain, info):
-    if domain != 'py':
+    if domain != "py":
         return None
 
-    modname = info['module']
-    fullname = info['fullname']
+    modname = info["module"]
+    fullname = info["fullname"]
 
     submod = sys.modules.get(modname)
     if submod is None:
         return None
 
     obj = submod
-    for part in fullname.split('.'):
+    for part in fullname.split("."):
         try:
             obj = getattr(obj, part)
         except Exception:
@@ -264,17 +273,16 @@ def linkcode_resolve(domain, info):
     else:
         tgt_version = version
     url_root = "https://github.com/FAST-HEP/fast-carpenter/tree/"
-    return url_root + "%s/fast_carpenter/%s%s" % (tgt_version, fn, linespec)
+    return url_root + f"{tgt_version}/fast_carpenter/{fn}{linespec}"
 
 
 # Control the napoleon extension for nicer docstrings
 # napoleon_include_init_with_doc = True
 
 
-
 # -- Modify sphinx app -------------------------------------------
-#from docutils.parsers.rst import Directive, directives
-#class AutodocWithoutDocstring(Directive):
+# from docutils.parsers.rst import Directive, directives
+# class AutodocWithoutDocstring(Directive):
 #
 #    from sphinx.ext.autodoc import cut_lines
 #    first_line = cut_lines(1)
@@ -283,9 +291,9 @@ def linkcode_resolve(domain, info):
 #        del options["first-line"]
 #        first_line(app, what, name, obj, options, lines)
 
+
 def setup(app):
     # Override default css to get a larger width for local build
-    #app.add_javascript("custom.js")
-    app.add_stylesheet('custom.css')
+    # app.add_javascript("custom.js")
+    app.add_stylesheet("custom.css")
     # app.connect('autodoc-without-docstring', AutodocWithoutDocstring)
-
