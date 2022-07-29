@@ -1,3 +1,4 @@
+from collections import abc
 from itertools import chain
 from typing import Any, List, Protocol
 
@@ -16,8 +17,10 @@ class TreeLike(Protocol):
     pass
 
 
-class DataConnectorProtocol(Protocol):
+class DataConnector(abc.MutableMapping):
     """Read-only data connector"""
+
+    _methods: ArrayMethodsProtocol = None
 
     def __init__(self, **kwargs):
         pass
@@ -38,8 +41,11 @@ class DataConnectorProtocol(Protocol):
     def keys(self) -> List[str]:
         pass
 
+    def evaluate(self, expression, **kwargs):
+        return self._methods.evaluate(self, expression, **kwargs)
 
-class TreeConnector(DataConnectorProtocol):
+
+class TreeConnector(DataConnector):
     _tree: TreeLike
     _methods: ArrayMethodsProtocol
 
@@ -64,7 +70,7 @@ class TreeConnector(DataConnectorProtocol):
         return list(self._tree.keys())
 
 
-class FileConnector(DataConnectorProtocol):
+class FileConnector(DataConnector):
     _file_handle: FileLike
     _methods: ArrayMethodsProtocol
     _treenames: List[str]
@@ -82,7 +88,7 @@ class FileConnector(DataConnectorProtocol):
             value = self._file_handle[key]
             if value is not None:
                 return True
-        except Exception:
+        except KeyError:
             pass
         return key in self._file_handle.keys()
 
@@ -105,3 +111,18 @@ class FileConnector(DataConnectorProtocol):
         tree_keys = [self._file_handle[treename].keys() for treename in self._treenames]
         all_keys = chain(self._file_handle.keys(), *tree_keys)
         yield from all_keys
+
+    def __delitem__(self, __v) -> None:
+        return super().__delitem__(__v)
+
+    def __setitem__(self, __k, __v) -> None:
+        return super().__setitem__(__k, __v)
+
+    def __getitem__(self, __k) -> Any:
+        return super().__getitem__(__k)
+
+    def __iter__(self) -> Any:
+        return super().__iter__()
+
+    def __len__(self) -> int:
+        return self.num_entries

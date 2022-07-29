@@ -15,7 +15,7 @@ class MultiTreeImport(DataImportPlugin):
 
         import uproot
 
-        uproot.XRootDSource.defaults["parallel"] = False
+        # uproot.XRootDSource.defaults["parallel"] = False
 
         if len(paths) != 1:
             # TODO - support multiple paths

@@ -4,19 +4,24 @@ from functools import partial
 from typing import Any, Dict, List, Protocol
 
 from .array_methods import ArrayMethodsProtocol, Uproot3Methods, Uproot4Methods
-from .connectors import (ArrayLike, DataConnectorProtocol, FileConnector,
-                         FileLike, TreeConnector, TreeLike)
-from .indexing import (IndexProtocol, IndexWithAliases, MultiTreeIndex,
-                       TokenMapIndex)
+from .connectors import (
+    ArrayLike,
+    DataConnector,
+    FileConnector,
+    FileLike,
+    TreeConnector,
+    TreeLike,
+)
+from .indexing import IndexProtocol, IndexWithAliases, MultiTreeIndex, TokenMapIndex
 
-DATA_CONNECTORS: Dict[str, DataConnectorProtocol] = {}
+DATA_CONNECTORS: Dict[str, DataConnector] = {}
 ARRAY_METHODS: Dict[str, ArrayMethodsProtocol] = {}
 
 __all__ = [
     "DATA_CONNECTORS",
     "register_data_connector",
     "unregister_data_connector",
-    "DataConnectorProtocol",
+    "DataConnector",
     "DataMapping",
     "IndexProtocol",
     "ArrayLike",
@@ -90,7 +95,7 @@ class MaskedDataWrapper(DataWrapperProtocol):
 
 
 class DataMapping(abc.MutableMapping):
-    _connector: DataConnectorProtocol
+    _connector: DataConnector
     _methods: ArrayMethodsProtocol
     _data_wrappers: List[DataWrapperProtocol]
     _extra_variables: Dict[str, ArrayLike]
@@ -98,7 +103,7 @@ class DataMapping(abc.MutableMapping):
 
     def __init__(
         self,
-        connector: DataConnectorProtocol,
+        connector: DataConnector,
         methods: ArrayMethodsProtocol,
         data_wrappers: List[DataWrapperProtocol] = None,
         indices=None,
@@ -115,9 +120,16 @@ class DataMapping(abc.MutableMapping):
             self._indices = indices
 
     def __contains__(self, name):
-        in_extra = name in self._extra_variables
-        in_connector = name in self._connector
-        return in_extra or in_connector
+        if name in self._extra_variables:
+            return True
+        if self._indices:
+            lookup = name
+            for index in reversed(self._indices):
+                lookup = index.resolve_index(lookup)
+                if lookup in self._connector:
+                    return True
+
+        return name in self._connector
 
     def __getitem__(self, key):
         if key in self._extra_variables:
@@ -145,6 +157,10 @@ class DataMapping(abc.MutableMapping):
     @property
     def num_entries(self):
         return self._connector.num_entries
+
+    @property
+    def tree(self):
+        return self._connector
 
 
 def __create_mapping_with_tree_connector__(
