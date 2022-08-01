@@ -30,6 +30,11 @@ class MultiTreeImport(DataImportPlugin):
             rootfile = uproot.open(input_file, file_handler=uproot.source.chunk.Source)
 
         trees = []
+        if "defaults" in self.config:
+            if "treenames" in self.config["defaults"]:
+                trees = self.config["defaults"]["treenames"]
+            if "tree" in self.config["defaults"]:
+                trees = [self.config["defaults"]["tree"]]
         if "treename" in self.config:
             if isinstance(self.config["treename"], str):
                 trees.append(self.config["treename"])
@@ -39,6 +44,11 @@ class MultiTreeImport(DataImportPlugin):
                 raise AttributeError("treename must be a string or list of strings")
                 # trees = self.config["treename"]
 
+        if not trees:
+            try:
+                trees = [self.config[0].tree]
+            except Exception:
+                raise AttributeError(f"No treename specified in {self.config}")
         data_mapping = create_mapping(
             input_file=rootfile,
             treenames=trees,
