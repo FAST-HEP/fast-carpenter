@@ -175,7 +175,6 @@ class DataMapping(abc.MutableMapping):
         return self.add_variable(name, value)
 
     def evaluate(self, expression, **kwargs):
-        print(f"Evaluating {expression}")
         return self._methods.evaluate(self, expression, **kwargs)
 
     @property
