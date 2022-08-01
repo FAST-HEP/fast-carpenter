@@ -119,6 +119,17 @@ class DataMapping(abc.MutableMapping):
         if indices is not None:
             self._indices = indices
 
+    def __resolve_key__(self, key):
+        if key in self._extra_variables:
+            return key
+        if self._indices:
+            lookup = key
+            for index in reversed(self._indices):
+                lookup = index.resolve_index(lookup)
+                if lookup in self._connector:
+                    return lookup
+        return key
+
     def __contains__(self, name):
         if name in self._extra_variables:
             return True
@@ -134,7 +145,12 @@ class DataMapping(abc.MutableMapping):
     def __getitem__(self, key):
         if key in self._extra_variables:
             return self._extra_variables[key]
-        return self._connector.get(key)
+        lookup = key
+        for index in reversed(self._indices):
+            lookup = index.resolve_index(lookup)
+            if lookup in self._connector:
+                return self._connector[lookup]
+        raise KeyError(f"{key} not found in {self._connector}")
 
     def __setitem__(self, key, value):
         pass
@@ -154,13 +170,17 @@ class DataMapping(abc.MutableMapping):
         else:
             raise ValueError(f"Trying to overwrite existing variable: {name}")
 
+    def evaluate(self, expression, **kwargs):
+        print(f"Evaluating {expression}")
+        return self._methods.evaluate(self, expression, **kwargs)
+
     @property
     def num_entries(self):
         return self._connector.num_entries
 
     @property
     def tree(self):
-        return self._connector
+        return self
 
 
 def __create_mapping_with_tree_connector__(

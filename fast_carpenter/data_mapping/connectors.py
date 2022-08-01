@@ -41,9 +41,6 @@ class DataConnector(abc.MutableMapping):
     def keys(self) -> List[str]:
         pass
 
-    def evaluate(self, expression, **kwargs):
-        return self._methods.evaluate(self, expression, **kwargs)
-
 
 class TreeConnector(DataConnector):
     _tree: TreeLike
@@ -68,6 +65,21 @@ class TreeConnector(DataConnector):
 
     def keys(self) -> List[str]:
         return list(self._tree.keys())
+
+    def __delitem__(self, __v) -> None:
+        return super().__delitem__(__v)
+
+    def __setitem__(self, __k, __v) -> None:
+        return super().__setitem__(__k, __v)
+
+    def __getitem__(self, __k) -> Any:
+        return self._tree[__k].array()
+
+    def __iter__(self) -> Any:
+        return super().__iter__()
+
+    def __len__(self) -> int:
+        return self.num_entries
 
 
 class FileConnector(DataConnector):
@@ -119,7 +131,7 @@ class FileConnector(DataConnector):
         return super().__setitem__(__k, __v)
 
     def __getitem__(self, __k) -> Any:
-        return super().__getitem__(__k)
+        return self._file_handle[__k].array()
 
     def __iter__(self) -> Any:
         return super().__iter__()
