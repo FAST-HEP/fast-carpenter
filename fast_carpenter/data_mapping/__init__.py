@@ -170,6 +170,10 @@ class DataMapping(abc.MutableMapping):
         else:
             raise ValueError(f"Trying to overwrite existing variable: {name}")
 
+    def new_variable(self, name, value):
+        """Adapter for legacy method"""
+        return self.add_variable(name, value)
+
     def evaluate(self, expression, **kwargs):
         print(f"Evaluating {expression}")
         return self._methods.evaluate(self, expression, **kwargs)
