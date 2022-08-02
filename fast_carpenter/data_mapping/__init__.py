@@ -143,6 +143,8 @@ class DataMapping(abc.MutableMapping):
         return name in self._connector
 
     def __getitem__(self, key):
+        if isinstance(key, abc.Sequence) and not isinstance(key, str):
+            return self.__getitems__(key)
         if key in self._extra_variables:
             return self._extra_variables[key]
         lookup = key
@@ -151,6 +153,11 @@ class DataMapping(abc.MutableMapping):
             if lookup in self._connector:
                 return self._connector[lookup]
         raise KeyError(f"{key} not found in {self._connector}")
+
+    def __getitems__(self, keys):
+        all_string = all(isinstance(key, str) for key in keys)
+        if all_string:
+            return self.arrays(keys)
 
     def __setitem__(self, key, value):
         pass
@@ -184,6 +191,14 @@ class DataMapping(abc.MutableMapping):
     @property
     def tree(self):
         return self
+
+    def arrays(self, keys: abc.Sequence[str], **kwargs) -> List[ArrayLike]:
+        if "outputtype" in kwargs:
+            # renamed uproot3 -> uproot4
+            outputtype = kwargs.pop("outputtype")
+            kwargs["how"] = outputtype
+        kwargs["how"] = kwargs.get("how", tuple)
+        return self._methods.arrays(self, keys, **kwargs)
 
 
 def __create_mapping_with_tree_connector__(

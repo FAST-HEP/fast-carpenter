@@ -2,6 +2,8 @@ import numpy as np
 import pytest
 from pytest_lazyfixture import lazy_fixture
 
+from fast_carpenter.data_mapping.array_methods import Uproot3Methods
+
 
 @pytest.mark.parametrize(
     "data_mapping, expected_num_entries",
@@ -49,3 +51,21 @@ def test_getitem(data_mapping_with_tree):
         data_mapping_with_tree[var_name] == raw_access,
         axis=None,
     )
+
+
+def test_arrays(data_mapping_with_tree):
+    vars = ["Muon_Px", "Muon_Py", "Muon_Pz"]
+    for var in vars:
+        assert var in data_mapping_with_tree
+    px, py, pz = data_mapping_with_tree[vars]
+    kwargs = dict(how=dict)
+    if data_mapping_with_tree._methods == Uproot3Methods:
+        kwargs = dict(outputtype=dict)
+    raw_access = data_mapping_with_tree._connector._tree.arrays(vars, **kwargs)
+    for var, data in zip(vars, [px, py, pz]):
+        if var not in raw_access.keys():
+            var = bytes(var, "utf-8")
+        assert data_mapping_with_tree._methods.all(
+            data == raw_access[var],
+            axis=None,
+        )
