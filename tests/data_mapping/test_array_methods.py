@@ -127,3 +127,26 @@ def test_extract_array_dict_with_extra_variables(methods, jagged_list):
     assert list(result.keys()) == ["a", "c"]
     assert methods.all(result["a"] == array_dict["a"], axis=None)
     assert methods.all(result["c"] == array, axis=None)
+
+
+@pytest.mark.parametrize(
+    "methods",
+    [
+        # Uproot3Methods,
+        Uproot4Methods,
+    ],
+)
+def test_arrays(methods, jagged_list):
+    array = methods.awkward_from_iter(jagged_list)
+    array_dict = {
+        "a": array,
+        "b": array,
+    }
+    data = Extra(array_dict, {"c": array})
+    result = methods.arrays(
+        data,
+        ["a", "c"],
+    )
+    assert list(result.keys()) == ["a", "c"]
+    assert methods.all(result["a"] == array_dict["a"], axis=None)
+    assert methods.all(result["c"] == array, axis=None)

@@ -222,6 +222,19 @@ class Uproot4Methods(ArrayMethodsProtocol):
         return tree.num_entries
 
     @staticmethod
+    def arrays(data: Any, expressions: str, *args, **kwargs) -> Any:
+        if "outputtype" in kwargs:
+            # renamed uproot3 -> uproot4
+            outputtype = kwargs.pop("outputtype")
+            kwargs["how"] = outputtype
+        operations = kwargs.get("operations", [])
+        array_dict = Uproot4Methods.extract_array_dict(data, expressions)
+        for operation in operations:
+            for key, value in array_dict.items():
+                array_dict[key] = operation(value)
+        return Uproot4Methods.array_exporter(array_dict, **kwargs)
+
+    @staticmethod
     def extract_array_dict(data: Any, keys: List[str]) -> Dict[str, Any]:
         """
         Returns a dictionary of arrays for the given keys.
