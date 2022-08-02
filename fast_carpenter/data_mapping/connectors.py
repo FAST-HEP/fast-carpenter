@@ -35,7 +35,7 @@ class DataConnector(abc.MutableMapping):
     def num_entries(self) -> int:
         pass
 
-    def arrays(self, keys: List[str], **kwargs) -> Any:
+    def array_dict(self, keys: List[str], **kwargs) -> Any:
         pass
 
     def keys(self) -> List[str]:
@@ -60,7 +60,7 @@ class TreeConnector(DataConnector):
     def num_entries(self) -> int:
         return self._methods.num_entries(self._tree)
 
-    def arrays(self, keys: List[str], **kwargs) -> Any:
+    def array_dict(self, keys: List[str], **kwargs) -> Any:
         pass
 
     def keys(self) -> List[str]:
@@ -116,8 +116,12 @@ class FileConnector(DataConnector):
         ]
         return max(lengths)
 
-    def arrays(self, keys: List[str], **kwargs) -> Any:
-        pass
+    def array_dict(self, keys: List[str], **kwargs) -> Any:
+        results = {}
+        for key in keys:
+            results[key] = self._file_handle[key].array()
+        print(results)
+        return results
 
     def keys(self) -> List[str]:
         tree_keys = [self._file_handle[treename].keys() for treename in self._treenames]
