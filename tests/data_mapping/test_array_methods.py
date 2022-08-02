@@ -45,3 +45,35 @@ def test_to_pandas(methods, jagged_list):
     array = methods.awkward_from_iter(jagged_list)
     result = methods.arraydict_to_pandas(dict(a=array, b=array))
     assert (result.keys() == ["a", "b"]).all()
+
+
+@pytest.mark.parametrize(
+    "methods, library, how",
+    [
+        # (Uproot3Methods,dict),
+        (Uproot4Methods, "ak", dict),
+        (Uproot4Methods, "ak", list),
+        (Uproot4Methods, "ak", tuple),
+        (Uproot4Methods, "pandas", None),
+    ],
+)
+def test_array_exporter(methods, library, how, jagged_list):
+    array = methods.awkward_from_iter(jagged_list)
+    array_dict = {
+        "a": array,
+        "b": array,
+    }
+    result = methods.array_exporter(array_dict, library=library, how=how)
+    if library == "pandas":
+        assert (result.keys() == ["a", "b"]).all()
+        return
+    assert isinstance(result, how)
+    if isinstance(result, dict):
+        assert result.keys() == array_dict.keys()
+        assert methods.all(result["a"] == array_dict["a"], axis=None)
+    if isinstance(result, list):
+        assert len(result) == len(array_dict)
+        assert methods.all(result[0] == array_dict["a"], axis=None)
+    if isinstance(result, tuple):
+        assert len(result) == len(array_dict)
+        assert methods.all(result[0] == array_dict["a"], axis=None)

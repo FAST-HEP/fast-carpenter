@@ -120,7 +120,6 @@ class FileConnector(DataConnector):
         results = {}
         for key in keys:
             results[key] = self._file_handle[key].array()
-        print(results)
         return results
 
     def keys(self) -> List[str]:

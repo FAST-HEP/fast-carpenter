@@ -220,3 +220,23 @@ class Uproot4Methods(ArrayMethodsProtocol):
     @staticmethod
     def num_entries(tree: Any) -> int:
         return tree.num_entries
+
+    @staticmethod
+    def array_exporter(dict_of_arrays: Any, **kwargs) -> Any:
+        LIBRARIES = {
+            "awkward": ["ak", "ak.Array", "awkward"],
+            "numpy": ["np", "np.ndarray", "numpy"],
+            "pandas": ["pd", "pd.DataFrame", "pandas"],
+        }
+        library = kwargs.get("library", "ak")
+        how = kwargs.get("how", dict)
+        if library in LIBRARIES["awkward"]:
+            if how == dict:
+                return dict_of_arrays
+            elif how == list:
+                return [value for value in dict_of_arrays.values()]
+            elif how == tuple:
+                return tuple(value for value in dict_of_arrays.values())
+
+        if library in LIBRARIES["pandas"]:
+            return Uproot4Methods.arraydict_to_pandas(dict_of_arrays)
