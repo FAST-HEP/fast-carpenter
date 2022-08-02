@@ -222,6 +222,30 @@ class Uproot4Methods(ArrayMethodsProtocol):
         return tree.num_entries
 
     @staticmethod
+    def extract_array_dict(data: Any, keys: List[str]) -> Dict[str, Any]:
+        """
+        Returns a dictionary of arrays for the given keys.
+        """
+        extra_arrays = None
+        _keys = keys.copy()
+        if hasattr(data, "_extra_variables") and data._extra_variables:
+            # check if any of the extra variables are included in the expressions
+            extra_vars = []
+            for name in data._extra_variables:
+                if name in keys:
+                    extra_vars.append(name)
+                    _keys.remove(name)
+            if extra_vars:
+                extra_arrays = {key: data._extra_variables[key] for key in extra_vars}
+
+        data_arrays = {}
+        for key in _keys:
+            data_arrays[key] = data[key]
+        if extra_arrays is not None:
+            data_arrays.update(extra_arrays)
+        return data_arrays
+
+    @staticmethod
     def array_exporter(dict_of_arrays: Any, **kwargs) -> Any:
         LIBRARIES = {
             "awkward": ["ak", "ak.Array", "awkward"],
