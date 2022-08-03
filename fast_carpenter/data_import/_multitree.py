@@ -55,5 +55,7 @@ class MultiTreeImport(DataImportPlugin):
             connector="file",
             methods="uproot4",
         )
+        if self.dataset_name and self.dataset_eventtype:
+            data_mapping.add_dataset_info(self.dataset_name, self.dataset_eventtype)
 
         return data_mapping
