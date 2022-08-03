@@ -132,13 +132,11 @@ class BEvents:
         )
         self.size = self.stop_entry - self.start_entry
         try:
-            branch = "asdsd"
-            print(branch)
-            # branch = self.tree.array(
-            #     name,
-            #     entrystart=self.start_entry,
-            #     entrystop=self.stop_entry,
-            # )
+            branch = self.tree.array(
+                name,
+                entrystart=self.start_entry,
+                entrystop=self.stop_entry,
+            )
         except KeyError as e:
             raise AttributeError(e)
         return branch
