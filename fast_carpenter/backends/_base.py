@@ -1,3 +1,5 @@
+import functools
+from collections import Sequence
 from dataclasses import dataclass
 from typing import Any, Dict, List, Protocol, Tuple
 
@@ -86,7 +88,20 @@ class Workflow:
         previous = None
 
         def task_wrapper(task):
-            return task.event
+            @functools.wraps(task.event)
+            def wrapper(previous_results):
+                chunk = (
+                    previous_results[0]
+                    if isinstance(previous_results, Sequence)
+                    else previous_results
+                )
+                result = task.event(chunk)
+
+                if isinstance(previous_results, Sequence):
+                    return chunk, result, *previous_results[1:]
+                return chunk, result
+
+            return wrapper
 
         for task_name, task in self.sequence.items():
             if previous is not None:
@@ -104,6 +119,7 @@ class Workflow:
         task_graph = {}
         for dataset in input_data.datasets:
             dataset_suffix = dataset.name
+            data_import_plugin.add_dataset_info(dataset.name, dataset.eventtype)
             for i, file_name in enumerate(dataset.files):
                 file_suffix = f"file-{i}"
                 task_suffix = f"{dataset_suffix}-{file_suffix}"
