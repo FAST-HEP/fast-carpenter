@@ -1,5 +1,5 @@
 from collections import abc
-from dataclasses import field
+from dataclasses import dataclass, field
 from functools import partial
 from typing import Any, Dict, List, Protocol
 
@@ -65,6 +65,19 @@ register_array_methods("uproot3", Uproot3Methods)
 register_array_methods("uproot4", Uproot4Methods)
 
 
+@dataclass
+class DatasetConfig:
+    # TODO: to be simplified/removed later
+    name: str
+    eventtype: str
+
+
+@dataclass
+class ConfigProxy:
+    # TODO: to be simplified/removed later
+    dataset: DatasetConfig
+
+
 class DataWrapperProtocol(Protocol):
     pass
 
@@ -100,6 +113,7 @@ class DataMapping(abc.MutableMapping):
     _data_wrappers: List[DataWrapperProtocol]
     _extra_variables: Dict[str, ArrayLike]
     _indices: List[IndexProtocol] = field(default_factory=list)
+    _config: ConfigProxy
 
     def __init__(
         self,
@@ -118,6 +132,7 @@ class DataMapping(abc.MutableMapping):
         self._extra_variables = {}
         if indices is not None:
             self._indices = indices
+        self._config = None
 
     def __resolve_key__(self, key):
         if key in self._extra_variables:
@@ -202,6 +217,13 @@ class DataMapping(abc.MutableMapping):
 
     def keys(self):
         return self._connector.keys()
+
+    def set_config(self, dataset_name: str, dataset_eventtype: str) -> None:
+        self._config = ConfigProxy(DatasetConfig(dataset_name, dataset_eventtype))
+
+    @property
+    def config(self):
+        return self._config
 
 
 def __create_mapping_with_tree_connector__(

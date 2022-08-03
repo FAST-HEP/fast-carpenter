@@ -79,3 +79,10 @@ def test_keys(data_mapping_with_tree):
 def test_keys_via_tree(data_mapping_with_tree):
     all_keys = data_mapping_with_tree.tree.keys()
     assert len(all_keys) == 51
+
+
+def test_config(data_mapping_with_tree):
+    """Legacy test"""
+    config = data_mapping_with_tree.config
+    dataset = config.dataset
+    assert dataset.eventtype == "mc"
