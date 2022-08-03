@@ -8,6 +8,8 @@ class DataImportPlugin(ABC):
     """
 
     config: Dict[str, Any]
+    dataset_name: str
+    dataset_eventtype: str
 
     def __init__(self, config: Dict[str, Any]) -> None:
         self.config = config
@@ -25,3 +27,7 @@ class DataImportPlugin(ABC):
         This method is called by the importer to open the files.
         """
         pass
+
+    def add_dataset_info(self, dataset_name: str, dataset_eventtype: str) -> None:
+        self.dataset_name = dataset_name
+        self.dataset_eventtype = dataset_eventtype
