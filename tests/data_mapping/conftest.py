@@ -16,7 +16,7 @@ def data_mapping_with_tree(request, test_input_file):
         methods=uproot_version,
         connector="tree",
     )
-    mapping.set_config("tree_test", "mc")
+    mapping.add_dataset_info("tree_test", "mc")
     return mapping
 
 
@@ -32,7 +32,7 @@ def data_mapping_with_file(request, test_input_file):
         methods=uproot_version,
         connector="file",
     )
-    mapping.set_config("file_test", "mc")
+    mapping.add_dataset_info("file_test", "mc")
     return mapping
 
 
@@ -48,5 +48,5 @@ def data_mapping_with_multi_tree(request, multi_tree_input_file):
         methods=uproot_version,
         connector="file",
     )
-    mapping.set_config("multi_tree_test", "mc")
+    mapping.add_dataset_info("multi_tree_test", "mc")
     return mapping
