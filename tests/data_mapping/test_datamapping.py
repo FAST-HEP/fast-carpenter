@@ -69,3 +69,13 @@ def test_arrays(data_mapping_with_tree):
             data == raw_access[var],
             axis=None,
         )
+
+
+def test_keys(data_mapping_with_tree):
+    all_keys = data_mapping_with_tree.keys()
+    assert len(all_keys) == 51
+
+
+def test_keys_via_tree(data_mapping_with_tree):
+    all_keys = data_mapping_with_tree.tree.keys()
+    assert len(all_keys) == 51

@@ -200,6 +200,9 @@ class DataMapping(abc.MutableMapping):
         kwargs["how"] = kwargs.get("how", tuple)
         return self._methods.arrays(self, keys, **kwargs)
 
+    def keys(self):
+        return self._connector.keys()
+
 
 def __create_mapping_with_tree_connector__(
     input_file: FileLike, treenames: str, methods: str
