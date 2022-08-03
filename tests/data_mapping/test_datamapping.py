@@ -81,6 +81,15 @@ def test_keys_via_tree(data_mapping_with_tree):
     assert len(all_keys) == 51
 
 
+def test_keys_with_extra_variables(data_mapping_with_tree):
+    """Legacy test"""
+    data_mapping_with_tree.add_variable(
+        "extra_variable", np.ones(data_mapping_with_tree.num_entries)
+    )
+    all_keys = data_mapping_with_tree.keys()
+    assert len(all_keys) == 52
+
+
 def test_config(data_mapping_with_tree):
     """Legacy test"""
     config = data_mapping_with_tree.config

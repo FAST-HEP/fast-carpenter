@@ -216,9 +216,11 @@ class DataMapping(abc.MutableMapping):
         return self._methods.arrays(self, keys, **kwargs)
 
     def keys(self):
-        return self._connector.keys()
+        all_keys = set(self._connector.keys())
+        all_keys.update(self._extra_variables.keys())
+        return all_keys
 
-    def set_config(self, dataset_name: str, dataset_eventtype: str) -> None:
+    def add_dataset_info(self, dataset_name: str, dataset_eventtype: str) -> None:
         self._config = ConfigProxy(DatasetConfig(dataset_name, dataset_eventtype))
 
     @property
