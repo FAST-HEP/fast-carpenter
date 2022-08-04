@@ -1,5 +1,4 @@
 from dask.distributed import Client
-from dask.multiprocessing import get
 
 from ._base import InputData, ProcessingBackend, Workflow
 
@@ -43,7 +42,7 @@ class DaskBackend(ProcessingBackend):
         # delayed_dsk = Delayed("w", workflow.task_graph)
         # dask.compute(delayed_dsk)
 
-        get(workflow.task_graph, "__reduce__")
+        dask_client.get(workflow.task_graph, "__reduce__")
         # workflow.final_task().result()
         dask_client.close()
         return (0, 0)
