@@ -207,7 +207,7 @@ class DataMapping(abc.MutableMapping):
     def tree(self):
         return self
 
-    def arrays(self, keys: abc.Sequence[str], **kwargs) -> List[ArrayLike]:
+    def arrays(self, keys: abc.Sequence, **kwargs) -> List[ArrayLike]:
         if "outputtype" in kwargs:
             # renamed uproot3 -> uproot4
             outputtype = kwargs.pop("outputtype")
@@ -226,6 +226,9 @@ class DataMapping(abc.MutableMapping):
     @property
     def config(self):
         return self._config
+
+    def apply_mask(self, mask):
+        self._data_wrappers = [MaskedDataWrapper(mask=mask)] + self._data_wrappers
 
 
 def __create_mapping_with_tree_connector__(
