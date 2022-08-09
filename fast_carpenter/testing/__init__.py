@@ -1,15 +1,16 @@
 from collections import namedtuple
+
 import numpy as np
 
 FakeEventRange = namedtuple("FakeEventRange", "start_entry stop_entry entries_in_block")
 
 
-class Namespace():
+class Namespace:
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 
 
-class FakeBEEvent(object):
+class FakeBEEvent:
     def __init__(self, tree, eventtype):
         self.tree = tree
         self.config = Namespace(dataset=Namespace(eventtype=eventtype))
@@ -28,8 +29,8 @@ class FakeTree(dict):
     length: int = 101
 
     def __init__(self, length=101):
-        super(FakeTree, self).__init__(
-            NMuon=np.linspace(0, 5., length),
+        super().__init__(
+            NMuon=np.linspace(0, 5.0, length),
             NElectron=np.linspace(0, 10, length),
             NJet=np.linspace(2, -18, length),
         )
@@ -40,3 +41,10 @@ class FakeTree(dict):
 
     def arrays(self, array_names, library="np", outputtype=list):
         return [self[name] for name in array_names]
+
+
+class DummyDataset:
+    def __init__(self, name, eventtype, files):
+        self.name = name
+        self.eventtype = eventtype
+        self.files = files

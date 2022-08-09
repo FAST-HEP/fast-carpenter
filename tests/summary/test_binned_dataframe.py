@@ -1,31 +1,33 @@
-import pandas as pd
 import copy
+
 import numpy as np
+import pandas as pd
 import pytest
+
 import fast_carpenter.summary.binned_dataframe as bdf
-from . import dummy_binning_descriptions as binning
+import fast_carpenter.testing.dummy_binning_descriptions as binning
+
 from ..conftest import FakeBEEvent
 
 
 @pytest.fixture
 def config_1():
-    return dict(binning=[binning.bins_met_px,
-                         binning.bins_py],
-                weights=binning.weight_list)
+    return dict(
+        binning=[binning.bins_met_px, binning.bins_py], weights=binning.weight_list
+    )
 
 
 @pytest.fixture
 def config_2():
-    return dict(binning=[binning.bins_py,
-                         binning.bins_met_px,
-                         binning.bins_nmuon],
-                weights=binning.weight_dict)
+    return dict(
+        binning=[binning.bins_py, binning.bins_met_px, binning.bins_nmuon],
+        weights=binning.weight_dict,
+    )
 
 
 @pytest.fixture
 def config_3():
-    return dict(binning=[binning.bins_electron_pT],
-                weights=binning.weight_dict)
+    return dict(binning=[binning.bins_electron_pT], weights=binning.weight_dict)
 
 
 @pytest.fixture
@@ -55,8 +57,9 @@ def binned_df_2(tmpdir, config_2):
 
 @pytest.fixture
 def binned_df_2_weightData(tmpdir, config_2):
-    return bdf.BinnedDataframe("binned_df_2_weightData", out_dir="somewhere",
-                               weight_data=True, **config_2)
+    return bdf.BinnedDataframe(
+        "binned_df_2_weightData", out_dir="somewhere", weight_data=True, **config_2
+    )
 
 
 def test_BinnedDataframe_run_mc(binned_df_1, tmpdir, input_tree):
@@ -147,15 +150,21 @@ def run_twice_data_mc(config_1, input_tree, observed):
     binned_dfs[2].event(chunk_data)
     binned_dfs[3].event(chunk_data)
 
-    return binned_dfs[0], (("test_mc", (binned_dfs[0], binned_dfs[1])),
-                           ("test_data", (binned_dfs[2], binned_dfs[3])))
+    return binned_dfs[0], (
+        ("test_mc", (binned_dfs[0], binned_dfs[1])),
+        ("test_data", (binned_dfs[2], binned_dfs[3])),
+    )
 
 
-@pytest.mark.skipif(int(pd.__version__.split(".")[0]) < 1, reason="requires Pandas 1.0 or higher")
+@pytest.mark.skipif(
+    int(pd.__version__.split(".")[0]) < 1, reason="requires Pandas 1.0 or higher"
+)
 @pytest.mark.parametrize("dataset_col", [True, False])
 @pytest.mark.parametrize("pad_missing", [True, False])
 @pytest.mark.parametrize("observed", [True, False])
-def test_binneddataframe_run_twice_data_mc(run_twice_data_mc, dataset_col, pad_missing, observed):
+def test_binneddataframe_run_twice_data_mc(
+    run_twice_data_mc, dataset_col, pad_missing, observed
+):
     binned_df_1, dataset_readers_list = run_twice_data_mc
     binned_df_1._pad_missing = pad_missing
     binned_df_1._dataset_col = dataset_col
@@ -164,7 +173,7 @@ def test_binneddataframe_run_twice_data_mc(run_twice_data_mc, dataset_col, pad_m
 
     assert results.index.nlevels == 2 + int(dataset_col)
     if pad_missing or not observed:
-        length = (4 * 31)
+        length = 4 * 31
     elif observed:
         length = 111
 
@@ -212,8 +221,8 @@ def test_BinnedDataframe_user_var_run(config_3, tmpdir, full_wrapped_tree):
     dataset_readers_list = (("test_dataset", (binned_df_4,)),)
     results = collector._prepare_output(dataset_readers_list)
 
-    bin_centers = pd.IntervalIndex(results.index.get_level_values('electron_pT')).mid
-    mean = np.sum((bin_centers[1:-1] * results['n'][1:-1]) / results['n'][1:-1].sum())
+    bin_centers = pd.IntervalIndex(results.index.get_level_values("electron_pT")).mid
+    mean = np.sum((bin_centers[1:-1] * results["n"][1:-1]) / results["n"][1:-1].sum())
     assert mean == pytest.approx(44.32584)
 
 
@@ -225,8 +234,8 @@ def test_BinnedDataframe_numexpr_run_mc(binned_df_3, tmpdir, input_tree):
     dataset_readers_list = (("test_dataset", (binned_df_3,)),)
     results = collector._prepare_output(dataset_readers_list)
 
-    bin_centers = pd.IntervalIndex(results.index.get_level_values('electron_pT')).mid
-    mean = np.sum((bin_centers[1:-1] * results['n'][1:-1]) / results['n'][1:-1].sum())
+    bin_centers = pd.IntervalIndex(results.index.get_level_values("electron_pT")).mid
+    mean = np.sum((bin_centers[1:-1] * results["n"][1:-1]) / results["n"][1:-1].sum())
     assert mean == pytest.approx(44.32584)
 
 
@@ -240,13 +249,13 @@ def test_BinnedDataframe_numexpr_similar_branch(binned_df_3, tmpdir, full_wrappe
     dataset_readers_list = (("test_dataset", (binned_df_3,)),)
     results = collector._prepare_output(dataset_readers_list)
 
-    bin_centers = pd.IntervalIndex(results.index.get_level_values('electron_pT')).mid
-    mean = np.sum((bin_centers[1:-1] * results['n'][1:-1]) / results['n'][1:-1].sum())
+    bin_centers = pd.IntervalIndex(results.index.get_level_values("electron_pT")).mid
+    mean = np.sum((bin_centers[1:-1] * results["n"][1:-1]) / results["n"][1:-1].sum())
     assert mean == pytest.approx(44.32584)
 
 
 def test_explode():
-    df = pd.DataFrame({'A': [[1, 2, 3], [9], [], [3, 4]], 'B': 1})
+    df = pd.DataFrame({"A": [[1, 2, 3], [9], [], [3, 4]], "B": 1})
     exploded = bdf.explode(df)
     assert len(exploded) == 6
     assert all(df.B == 1)
@@ -263,13 +272,16 @@ def test_explode():
         exploded = bdf.explode(df)
     assert "different jaggedness" in str(e)
 
-    df2 = pd.DataFrame({'A': [[np.arange(i + 1) + j for i in range((j % 2) + 1)] for j in range(4)],
-                        'B': np.arange(4)[::-1],
-                        })
+    df2 = pd.DataFrame(
+        {
+            "A": [[np.arange(i + 1) + j for i in range((j % 2) + 1)] for j in range(4)],
+            "B": np.arange(4)[::-1],
+        }
+    )
     exploded = bdf.explode(df2)
     assert len(exploded) == 8
 
-    df = pd.DataFrame({'number': [1, 8, 3], 'string': ['one', 'eight', 'three']})
+    df = pd.DataFrame({"number": [1, 8, 3], "string": ["one", "eight", "three"]})
     exploded = bdf.explode(df)
     assert len(exploded) == 3
 
@@ -290,7 +302,7 @@ def test_explode():
 def test_densify_dataframe_integers():
     index = [("one", 1), ("one", 3), ("two", 2), ("three", 1), ("three", 2)]
     index = pd.MultiIndex.from_tuples(index, names=["foo", "bar"])
-    df = pd.DataFrame({'A': np.arange(5, 0, -1), 'B': list("abcde")}, index=index)
+    df = pd.DataFrame({"A": np.arange(5, 0, -1), "B": list("abcde")}, index=index)
     out_df = bdf.densify_dataframe(df, {"bar": list(range(1, 4))})
 
     assert len(out_df) == 9
@@ -304,8 +316,10 @@ def test_densify_dataframe_intervals():
     index = [("one", 1), ("one", 3), ("two", 2), ("three", 1), ("three", 2)]
     index = [(a, pd.Interval(b, b + 1)) for a, b in index]
     index = pd.MultiIndex.from_tuples(index, names=["foo", "bar"])
-    df = pd.DataFrame({'A': np.arange(5, 0, -1), 'B': list("abcde")}, index=index)
-    out_df = bdf.densify_dataframe(df, {"bar": pd.IntervalIndex.from_breaks(range(1, 5))})
+    df = pd.DataFrame({"A": np.arange(5, 0, -1), "B": list("abcde")}, index=index)
+    out_df = bdf.densify_dataframe(
+        df, {"bar": pd.IntervalIndex.from_breaks(range(1, 5))}
+    )
 
     assert len(out_df) == 9
     assert out_df.loc[("one", pd.Interval(2, 3))].isna().all()

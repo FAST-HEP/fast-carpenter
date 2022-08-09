@@ -5,6 +5,8 @@ Each backend is wrapped in a function so that it is only imported if requested
 """
 from functools import partial
 
+from ._base import InputData, ProcessingBackend, ProcessingStep, Workflow
+
 
 def get_alphatwirl():
     from . import _alphatwirl
@@ -59,3 +61,14 @@ def get_backend(name):
             f"Unknown backend requested, '{name}'. Known backends: {KNOW_BACKENDS_NAMES}"
         )
     return KNOWN_BACKENDS[name]()
+
+
+__all__ = [
+    "InputData",
+    "ProcessingBackend",
+    "ProcessingStep",
+    "Workflow",
+    "get_backend",
+    "KNOWN_BACKENDS",
+    "KNOW_BACKENDS_NAMES",
+]
