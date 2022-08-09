@@ -1,6 +1,8 @@
-from dask.distributed import Client
+from typing import List
 
-from ._base import InputData, ProcessingBackend, Workflow
+from dask.distributed import Client, performance_report
+
+from ._base import InputData, ProcessingBackend, ProcessingStep, Workflow
 
 
 def configure_dask(client, **kwargs):
@@ -25,7 +27,7 @@ class DaskBackend(ProcessingBackend):
         # set sensible defaults
         self._config.update(kwargs)
 
-    def execute(self, sequence, datasets, args, plugins):
+    def execute(self, sequence: List[ProcessingStep], datasets, args, plugins):
         dask_client = configure_dask(client=None)
         # sequence is a list of steps, we need a dict of steps
         sequence = {s.name: s for s in sequence}
@@ -39,10 +41,8 @@ class DaskBackend(ProcessingBackend):
         workflow.add_collector()
         workflow.to_image("carpenter-with-data-import-and-collector.png")
 
-        # delayed_dsk = Delayed("w", workflow.task_graph)
-        # dask.compute(delayed_dsk)
+        with performance_report(filename="dask-report.html"):
+            dask_client.get(workflow.task_graph, "__reduce__")
 
-        dask_client.get(workflow.task_graph, "__reduce__")
-        # workflow.final_task().result()
         dask_client.close()
         return (0, 0)
