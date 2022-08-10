@@ -43,6 +43,7 @@ class DaskBackend(ProcessingBackend):
 
         with performance_report(filename="dask-report.html"):
             dask_client.get(workflow.task_graph, "__reduce__")
+        # TODO: final selection (combining all selection steps) is not correct
 
         dask_client.close()
         return (0, 0)

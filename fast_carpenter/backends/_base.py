@@ -1,9 +1,15 @@
-import functools
-from collections import Sequence
+import itertools
+from collections.abc import Sequence
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any, Dict, List, Protocol, Tuple
 
 from ..data_import._base import DataImportPlugin
+
+
+class ProcessingStep(Protocol):
+    def event(self, data):
+        pass
 
 
 class ProcessingBackend(Protocol):
@@ -14,7 +20,11 @@ class ProcessingBackend(Protocol):
         pass
 
     def execute(
-        self, sequence: Dict[str, Any], datasets: Dict[str, Any], args, plugins
+        self,
+        sequence: Dict[str, ProcessingStep],
+        datasets: Dict[str, Any],
+        args,
+        plugins,
     ) -> Tuple[Any, Any]:
         pass
 
@@ -24,15 +34,17 @@ class ResultsCollector(Protocol):
         pass
 
 
-def postprocess(sequence):
-    results = {}
-    for i, step in enumerate(sequence):
-        if not hasattr(step, "collector"):
-            continue
-        collector: ResultsCollector = step.collector()
-        output = collector.collect([(d, (s[i],)) for d, s in sequence.items()])
-        results[step.name] = output
-    return results
+# def postprocess(sequence):
+#     results = {}
+#     print("Running postprocess", sequence)
+#     for i, step in enumerate(sequence):
+#         print(f"Collecting results from step {i}: {step.__class__.__name__}")
+#         if not hasattr(step, "collector"):
+#             continue
+#         collector: ResultsCollector = step.collector()
+#         output = collector.collect([(d, (s[i],)) for d, s in sequence.items()])
+#         results[step.name] = output
+#     return results
 
 
 @dataclass
@@ -52,12 +64,77 @@ class InputData:
         return "data" if dataset.name == "data" else "mc"
 
 
+class TaskWrapper:
+    """We need a task that can be copied"""
+
+    def __init__(self, task):
+        self.task = deepcopy(task)
+
+    def __call__(self, previous_results):
+        chunk = (
+            previous_results[0]
+            if isinstance(previous_results, Sequence)
+            else previous_results
+        )
+        result = self.task.event(chunk)
+
+        if isinstance(previous_results, Sequence):
+            return chunk, result, *previous_results[1:], self.task
+        return chunk, result, self.task
+
+
+class CollectionWrapper:
+    dataset: str
+    sequence: Dict[str, ProcessingStep]
+
+    def __init__(self, dataset: str, sequence: Dict[str, ProcessingStep]) -> None:
+        self.dataset = dataset
+        self.sequence = sequence
+
+    def __get_relevant_tasks(self, previous_results) -> List[ProcessingStep]:
+        local_tasks = []
+        for results in previous_results:
+            position_in_queue = 0
+            for result in results:
+                if hasattr(result, "event"):
+                    local_tasks.append((result, position_in_queue))
+                    position_in_queue += 1
+        return local_tasks
+
+    def __get_collectors(
+        self, previous_results
+    ) -> Dict[str, Tuple[ResultsCollector, int]]:
+        collectors: dict[str, tuple[ResultsCollector, int]] = {}
+        for i, (name, step) in enumerate(self.sequence.items()):
+            if not hasattr(step, "collector"):
+                continue
+            collectors[name] = (step.collector(), i)
+        return collectors
+
+    def __call__(self, previous_results):
+        local_tasks = self.__get_relevant_tasks(previous_results)
+        collectors = self.__get_collectors(previous_results)
+
+        output = {}
+        for _, (_, position) in collectors.items():
+            tasks_to_collect = []
+            for task, position_in_queue in local_tasks:
+                if position_in_queue == position:
+                    tasks_to_collect.append((self.dataset, (task,)))
+            print(f"{self.dataset}: tasks to collect: {tasks_to_collect}")
+
+            # output[name] = collector.collect(tasks_to_collect)
+        # print(previous_results, results)
+        return previous_results, output
+
+
 class Workflow:
     # TODO: to be moved to fast-flow
     # workflow = fast_flow.from_carpenter_config(carpenter_config)
     # workflow = fast_flow.from_gitlab_ci_config(".gitlab-ci.yml")
     data_import_prefix = "data_import"
     collector_prefix = "collect_results"
+    sequence: Dict[str, ProcessingStep]
 
     def __init__(self, sequence):
         self.sequence = sequence
@@ -87,29 +164,17 @@ class Workflow:
         task_graph = {}
         previous = None
 
-        def task_wrapper(task):
-            @functools.wraps(task.event)
-            def wrapper(previous_results):
-                chunk = (
-                    previous_results[0]
-                    if isinstance(previous_results, Sequence)
-                    else previous_results
-                )
-                result = task.event(chunk)
-
-                if isinstance(previous_results, Sequence):
-                    return chunk, result, *previous_results[1:]
-                return chunk, result
-
-            return wrapper
-
         for task_name, task in self.sequence.items():
             if previous is not None:
-                task_graph[task_name] = (task_wrapper(task), previous)
+                task_graph[task_name] = (TaskWrapper(task), previous)
             else:
-                task_graph[task_name] = (task_wrapper(task), "data_import")
+                task_graph[task_name] = (TaskWrapper(task), "data_import")
             previous = task_name
-        task_graph[self.collector_prefix] = (postprocess, previous)
+
+        def collector_placeholder(previous_results):
+            return previous_results
+
+        task_graph[self.collector_prefix] = (collector_placeholder, previous)
         return task_graph
 
     def add_data_stage(
@@ -133,7 +198,7 @@ class Workflow:
                     else:
                         previous = f"{previous}-{task_suffix}"
                     task_graph[f"{task}-{task_suffix}"] = (
-                        payload,
+                        deepcopy(payload),
                         previous,
                     )
         self.task_graph = task_graph
@@ -141,18 +206,101 @@ class Workflow:
         return self
 
     def add_collector(self) -> None:
-        def final_collector(inputs: List[Any]) -> List[Any]:
-            # TODO: merge results from all datasets
-            # TODO: if there are more than X results, merge in multiple steps
-            return inputs
+        # def collect(previous_results):
+        #     """Collects results for a specific dataset"""
+        #     # take the first result from each sublist
+        #     data = [results[0] for results in previous_results]
+        #     datasets = [data.config.dataset.name for data in data]
+        #     print(datasets)
+        #     # local_tasks = [result for results in previous_results for result in results if hasattr(result, "event")]
+        #     local_tasks = []
+        #     for results in previous_results:
+        #         position_in_queue = 0
+        #         for result in results:
+        #             data = results[0]
+        #             dataset = data.config.dataset.name
+        #             if hasattr(result, "event"):
+        #                 local_tasks.append((result, position_in_queue, dataset))
+        #                 position_in_queue += 1
+        #     # for step in local_tasks:
+        #     #     if hasattr(step, "selection"):
+        #     #         print(f"{step.name} has selection")
+        #     #         selection = step.selection
+        #     #         if selection is not None:
+        #     #             print(f"{step=}")
+        #     #             print(selection.to_dataframe())
 
-        final_task = final_collector
+        #     collectors: dict[str, tuple[ResultsCollector, int]] = {}
+        #     for i, (name, step) in enumerate(self.sequence.items()):
+        #         if not hasattr(step, "collector"):
+        #             continue
+        #         collectors[name] = (step.collector(), i)
+
+        #     output = {}
+        #     for name, (collector, position) in collectors.items():
+        #         tasks_to_collect = []
+        #         for task, position_in_queue, dataset in local_tasks:
+        #             if position_in_queue == position:
+        #                 tasks_to_collect.append((dataset, (task,)))
+        #         print(f"tasks to collect:")
+        #         for dataset, tasks in tasks_to_collect:
+        #             print(f"{dataset}: {tasks}")
+        #         # output[name] = collector.collect(tasks_to_collect)
+
+        #     # print(previous_results, results)
+        #     return previous_results, output
+
         collection_tasks = [
             task
             for task in self.task_graph.keys()
             if task.startswith(self.collector_prefix)
         ]
-        self.task_graph["__reduce__"] = (final_task, collection_tasks)
+        # group collection tasks by dataset into a tuple of (dataset, list of collection tasks)
+        grouped_tasks = itertools.groupby(
+            collection_tasks, lambda task: task.split("-")[1]
+        )
+        dataset_collectors = []
+        for dataset, tasks in grouped_tasks:
+            # print(dataset)
+            new_task = f"{self.collector_prefix}-{dataset}"
+            collect = CollectionWrapper(dataset, self.sequence)
+            self.task_graph[new_task] = (collect, list(tasks))
+            dataset_collectors.append(new_task)
+        # def postprocess(previous_results):
+        #     results = {}
+        #     print("Running postprocess", self.sequence)
+        #     collectors: dict[str, ResultsCollector] = {}
+        #     mergeable_stages = {}
+        #     for i, (name, step) in enumerate(self.sequence.items()):
+        #         print(f"Collecting results from step {i}: {step}")
+        #         if hasattr(step, "merge"):
+        #             mergeable_stages[name] = step
+        #         if not hasattr(step, "collector"):
+        #             continue
+        #         collectors[name] = step.collector()
+        #     #     if collector is None:
+        #     #         collector =  step.collector()
+        #     # TODO: each collector should collect from the previous results?
+        #     # collectors expect tuples of (dataset, results)
+        #     # this line looks like it is collecting horizontally for each dataset
+        #     # output = collector.collect([(d, (s[i],)) for d, s in self.sequence.items()])
+        #     # results[step.name] = output
+        #     print("Found collectors:", collectors)
+        #     print("Found mergeable stages:", mergeable_stages)
+        #     return results
+        # this task has only access to one file stream.
+        # we need another level that groups datasets by dataset name
+
+        def final_collector(inputs: List[Any]) -> List[Any]:
+            # TODO: merge results from all datasets
+            # TODO: if there are more than X results, merge in multiple steps
+            # TODO: output files should be communicated here
+            # print("Trying to merge results", inputs)
+            return inputs
+
+        final_task = final_collector
+
+        self.task_graph["__reduce__"] = (final_task, dataset_collectors)
         self.final_task = final_task
         return self
 
