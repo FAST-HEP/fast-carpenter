@@ -190,7 +190,9 @@ class DataMapping(abc.MutableMapping):
         if name not in self:
             self._extra_variables[name] = value
         else:
-            raise ValueError(f"Trying to overwrite existing variable: {name}")
+            # TODO: change to a warning by default and raise an error if explicitly requested
+            # raise ValueError(f"Trying to overwrite existing variable: {name}")
+            print(f"Trying to overwrite existing variable: {name} ... skipping")
 
     def new_variable(self, name, value):
         """Adapter for legacy method"""
