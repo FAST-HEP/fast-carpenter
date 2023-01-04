@@ -4,8 +4,12 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any, Dict, List, Protocol, Tuple
 
+from fasthep_logging import get_logger, TRACE
+
 from ..data_import._base import DataImportPlugin
 
+log = get_logger("FASTHEP::Carpenter")
+log.setLevel(TRACE)
 
 class ProcessingStep(Protocol):
     def event(self, data):
@@ -32,19 +36,6 @@ class ProcessingBackend(Protocol):
 class ResultsCollector(Protocol):
     def collect(self, *args, **kwargs):
         pass
-
-
-# def postprocess(sequence):
-#     results = {}
-#     print("Running postprocess", sequence)
-#     for i, step in enumerate(sequence):
-#         print(f"Collecting results from step {i}: {step.__class__.__name__}")
-#         if not hasattr(step, "collector"):
-#             continue
-#         collector: ResultsCollector = step.collector()
-#         output = collector.collect([(d, (s[i],)) for d, s in sequence.items()])
-#         results[step.name] = output
-#     return results
 
 
 @dataclass
@@ -86,17 +77,25 @@ class TaskWrapper:
 class CollectionWrapper:
     dataset: str
     sequence: Dict[str, ProcessingStep]
+    final: bool = False
 
-    def __init__(self, dataset: str, sequence: Dict[str, ProcessingStep]) -> None:
+    def __init__(self, dataset: str, sequence: Dict[str, ProcessingStep], final:bool = False) -> None:
         self.dataset = dataset
         self.sequence = sequence
+        self.final = final
 
     def __get_relevant_tasks(self, previous_results) -> List[ProcessingStep]:
         local_tasks = []
         for results in previous_results:
             position_in_queue = 0
+            if self.dataset == "all":
+                print(results)
             for result in results:
+                if self.dataset == "all":
+                    log.trace("Found a task %s", result)
                 if hasattr(result, "event"):
+                    if self.dataset == "all":
+                        print("  --> passed event check")
                     local_tasks.append((result, position_in_queue))
                     position_in_queue += 1
         return local_tasks
@@ -108,22 +107,34 @@ class CollectionWrapper:
         for i, (name, step) in enumerate(self.sequence.items()):
             if not hasattr(step, "collector"):
                 continue
-            collectors[name] = (step.collector(), i)
+            collectors[name] = (step.collector(), i, step)
         return collectors
 
     def __call__(self, previous_results):
         local_tasks = self.__get_relevant_tasks(previous_results)
         collectors = self.__get_collectors(previous_results)
+        log.debug("Found {} local tasks".format(len(local_tasks)))
+        log.debug("Found {} collectors".format(len(collectors)))
 
         output = {}
-        for _, (_, position) in collectors.items():
+        for name, (collector, position, step) in collectors.items():
             tasks_to_collect = []
             for task, position_in_queue in local_tasks:
                 if position_in_queue == position:
                     tasks_to_collect.append((self.dataset, (task,)))
+                    if hasattr(step, "merge"):
+                        log.debug("Found a step with merge %s", step)
+                        step.merge(task)
             print(f"{self.dataset}: tasks to collect: {tasks_to_collect}")
 
-            # output[name] = collector.collect(tasks_to_collect)
+            # Problem: this does write the output files instead of just collecting them
+            # Solution: split the collection into two steps:
+            # 1. merge all related steps
+            # 2. collect the results
+            # 3. write the output files
+
+            output[name] = collector.collect(tasks_to_collect, writeFiles=self.final)
+
         # print(previous_results, results)
         return previous_results, output
 
@@ -134,6 +145,7 @@ class Workflow:
     # workflow = fast_flow.from_gitlab_ci_config(".gitlab-ci.yml")
     data_import_prefix = "data_import"
     collector_prefix = "collect_results"
+    final_task_name = "__reduce__"
     sequence: Dict[str, ProcessingStep]
 
     def __init__(self, sequence):
@@ -295,12 +307,19 @@ class Workflow:
             # TODO: merge results from all datasets
             # TODO: if there are more than X results, merge in multiple steps
             # TODO: output files should be communicated here
-            # print("Trying to merge results", inputs)
-            return inputs
+            # for results in inputs:
+            #     for result in results:
+            #         print(result)
+            collector = CollectionWrapper("all", self.sequence, final=True)
+            # flatten inputs
+            flat_inputs = [item for sublist in inputs for item in sublist]
+            log.debug("Trying to merge results %s", flat_inputs)
+            return collector(flat_inputs)
+            return flat_inputs
 
         final_task = final_collector
 
-        self.task_graph["__reduce__"] = (final_task, dataset_collectors)
+        self.task_graph[self.final_task_name] = (final_task, dataset_collectors)
         self.final_task = final_task
         return self
 
