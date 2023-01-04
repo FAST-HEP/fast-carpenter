@@ -3,12 +3,13 @@ Summarize the data by producing binned and possibly weighted counts of the data.
 """
 import os
 import re
+
 import numpy as np
 import pandas as pd
 from pandas.api.types import is_object_dtype
-from . import binning_config as cfg
 
-from fast_carpenter.tree_adapter import ArrayMethods
+from ..tree_adapter import ArrayMethods
+from . import binning_config as cfg
 
 
 class Collector():
@@ -38,9 +39,9 @@ class Collector():
                 try:
                     getattr(output, "to_%s" % save_func)(self.filename + file_ext, **file_dict)
                 except AttributeError as err:
-                    print("Incorrect file format: %s" % err)
+                    print("Incorrect file format: %s" % err)  # noqa: T201
                 except TypeError as err:
-                    print("Incorrect args: %s" % err)
+                    print("Incorrect args: %s" % err)  # noqa: T201
 
         if doReturn:
             return output

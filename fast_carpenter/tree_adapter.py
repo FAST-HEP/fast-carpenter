@@ -9,18 +9,8 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import awkward as ak
 import numpy as np
 
-from fast_carpenter.data_mapping import (
-    ArrayLike,
-    DataMapping,
-    FileLike,
-    IndexProtocol,
-    TreeLike,
-)
-from fast_carpenter.data_mapping.indexing import (
-    IndexWithAliases,
-    MultiTreeIndex,
-    TokenMapIndex,
-)
+from .data_mapping import ArrayLike, DataMapping, FileLike, IndexProtocol, TreeLike
+from .data_mapping.indexing import IndexWithAliases, MultiTreeIndex, TokenMapIndex
 
 adapters: Dict[str, Callable] = {}
 DEFAULT_TREE_TO_DICT_ADAPTOR = "uproot4"
