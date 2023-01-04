@@ -205,6 +205,7 @@ class BinnedDataframe():
         return Collector(outfilename, self._dataset_col, binnings=binnings, file_format=self._file_format)
 
     def event(self, chunk):
+        # TODO: this is the slowest part of the code, might be useful to use boost_histogram
         all_inputs = [key for key in chunk.tree.keys() if key in self.potential_inputs]
         if chunk.config.dataset.eventtype == "mc" or self.weight_data:
             weights = list(self._weights.values())
