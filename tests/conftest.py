@@ -1,9 +1,8 @@
 import pytest
-import uproot3
-import uproot as uproot4
 
-import fast_carpenter.selection.stage as stage
-from fast_carpenter.testing import FakeBEEvent, FakeEventRange
+from fasthep_carpenter.data_mapping import create_mapping
+from fasthep_carpenter.data_import import get_data_import_plugin
+from fasthep_carpenter.protocols import EventRange
 
 
 @pytest.fixture
@@ -12,110 +11,71 @@ def test_input_file():
 
 
 @pytest.fixture
-def uproot3_tree(test_input_file):
-    return uproot3.open(test_input_file)["events"]
-
-
-@pytest.fixture
-def uproot4_tree(test_input_file):
-    return uproot4.open(test_input_file)["events"]
-
-
-@pytest.fixture
-def size_of_test_sample(uproot4_tree):
-    return uproot4_tree.num_entries
+def test_multi_tree_input_file():
+    return "tests/data/2kmu.root"
 
 
 @pytest.fixture
 def event_range():
-    return FakeEventRange(100, 200, 100)
-
-
-@pytest.fixture
-def full_event_range(size_of_test_sample):
-    return FakeEventRange(0, size_of_test_sample, 0)
-
-
-def wrap_uproot3_tree(input_tree, event_range):
-    import fast_carpenter.tree_wrapper as tree_w
-    tree = tree_w.WrappedTree(input_tree, event_range)
-    return tree
-
-
-@pytest.fixture
-def wrapped_uproot3_tree(input_tree, event_range):
-    return wrap_uproot3_tree(input_tree, event_range)
-
-
-@pytest.fixture
-def full_wrapped_uproot3_tree(input_tree, full_event_range):
-    return wrap_uproot3_tree(input_tree, full_event_range)
-
-
-def wrap_uproot4_tree(input_tree, event_range):
-    from fast_carpenter import tree_adapter
-    tree = tree_adapter.create_ranged(
-        {
-            "adapter": "uproot4", "tree": input_tree,
-            "start": event_range.start_entry, "stop": event_range.stop_entry,
-        }
-    )
-    return tree
-
-
-@pytest.fixture
-def wrapped_uproot4_tree(uproot4_tree, event_range):
-    return wrap_uproot4_tree(uproot4_tree, event_range)
-
-
-@pytest.fixture
-def full_wrapped_uproot4_tree(uproot4_tree, full_event_range):
-    return wrap_uproot4_tree(uproot4_tree, full_event_range)
-
-
-@pytest.fixture
-def full_wrapped_masked_uproot4_tree(uproot4_tree, full_event_range):
-    from fast_carpenter import tree_adapter
-    return tree_adapter.create_masked(
-        {
-            "adapter": "uproot4", "tree": uproot4_tree,
-            "start": full_event_range.start_entry, "stop": full_event_range.stop_entry,
-        })
-
-
-@pytest.fixture
-def at_least_two_muons(tmpdir):
-    return stage.CutFlow("cut_at_least_one_muon", str(tmpdir), selection="NMuon > 1", weights="EventWeight")
-
-
-@pytest.fixture
-def at_least_two_muons_plus(tmpdir):
-    return stage.CutFlow(
-        "cutflow_2",
-        str(tmpdir),
-        selection={
-            "All": [
-                "NMuon > 1",
-                {"Any": ["NElectron > 1", "NJet > 1"]},
-                {"reduce": 1, "formula": "Muon_Px > 0.3"}
-            ]
-        },
-        weights="EventWeight"
+    return EventRange(
+        start=100,
+        stop=200,
+        block_size=100,
     )
 
 
 @pytest.fixture
-def fake_data_events(full_wrapped_masked_uproot4_tree):
-    return FakeBEEvent(full_wrapped_masked_uproot4_tree, "data")
+def full_event_range():
+    return EventRange(
+        start=0,
+        stop=-1,
+        block_size=0,
+    )
 
 
-@pytest.fixture
-def fake_sim_events(full_wrapped_masked_uproot4_tree):
-    return FakeBEEvent(full_wrapped_masked_uproot4_tree, "mc")
+@pytest.fixture(params=["uproot4"])
+def data_mapping_with_tree(request, test_input_file):
+    uproot_version = request.param
+    data_import_plugin = get_data_import_plugin(uproot_version)
+    f = data_import_plugin.open([test_input_file])
+
+    mapping = create_mapping(
+        input_file=f,
+        treenames=["events"],
+        methods=uproot_version,
+        connector="tree",
+    )
+    mapping.add_dataset_info("tree_test", "mc")
+    return mapping
 
 
-# setting the default to uproot4
-input_tree = uproot4_tree
-wrapped_tree = wrapped_uproot4_tree
-full_wrapped_tree = full_wrapped_uproot4_tree
-masked_tree = full_wrapped_masked_uproot4_tree
+@pytest.fixture(params=["uproot4"])
+def data_mapping_with_file(request, test_input_file):
+    uproot_version = request.param
+    data_import_plugin = get_data_import_plugin(uproot_version)
+    f = data_import_plugin.open([test_input_file])
+
+    mapping = create_mapping(
+        input_file=f,
+        treenames=["events"],
+        methods=uproot_version,
+        connector="file",
+    )
+    mapping.add_dataset_info("file_test", "mc")
+    return mapping
+
+
+@pytest.fixture(params=["uproot4"])
+def data_mapping_with_multi_tree(request, test_multi_tree_input_file):
+    uproot_version = request.param
+    data_import_plugin = get_data_import_plugin(uproot_version)
+    f = data_import_plugin.open([test_multi_tree_input_file])
+
+    mapping = create_mapping(
+        input_file=f,
+        treenames=["l1CaloTowerEmuTree/L1CaloTowerTree", "l1EventTree/L1EventTree"],
+        methods=uproot_version,
+        connector="file",
+    )
+    mapping.add_dataset_info("multi_tree_test", "mc")
+    return mapping

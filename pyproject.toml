@@ -1,0 +1,123 @@
+[build-system]
+requires = ["flit_core >=3.3"]
+build-backend = "flit_core.buildapi"
+
+
+[project]
+name = "fasthep_carpenter"
+authors = [
+  { name = "Ben Krikler", email = "fast-hep@cern.ch" },
+  { name = "Luke Kreczko", email = "fast-hep@cern.ch" },
+]
+maintainers = [
+  { name = "FAST-HEP", email = "fast-hep@cern.ch" },
+]
+license = { file = "LICENSE" }
+
+description = "FAST-HEP package for summarizing ROOT TTrees"
+readme = "README.md"
+
+requires-python = ">=3.6"
+
+classifiers = [
+  "License :: OSI Approved :: BSD License",
+  "Topic :: Scientific/Engineering",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.6",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Development Status :: 4 - Beta",
+]
+
+
+dynamic = ["version"]
+dependencies = [
+  "fast-flow>0.5.0",
+  "fast-curator",
+  "fasthep-logging",
+  "awkward",
+  "coffea<0.9.0",
+  "pandas>=1.1",
+  "numpy==1.21.0; python_version < \"3.9\"",
+  "numpy>= 1.18.5; python_version > \"3.8\"",
+  "numexpr",
+  "typing-extensions>=4.1.1",
+  "uproot<6.0.0",
+  "uproot3>=3.14.0",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest >=6",
+  "pytest-runner",
+  "flake8",
+  "pytest-cov",
+  "pytest-lazy-fixture",
+]
+dev = [
+  "pytest >=6",
+]
+docs = [
+  "Sphinx~=3.0",
+  "myst_parser>=0.13",
+  "sphinx-book-theme>=0.1.0",
+  "sphinx_copybutton",
+]
+
+[project.urls]
+homepage = "https://github.com/FAST-HEP/fasthep-carpenter"
+
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
+xfail_strict = true
+filterwarnings = ["error"]
+testpaths = ["tests"]
+
+
+[tool.pycln]
+all = true
+
+
+[tool.mypy]
+files = "src"
+python_version = "3.8"
+warn_unused_configs = true
+
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+# [[tool.mypy.overrides]] not working, setting this to false instead
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+no_implicit_reexport = true
+strict_equality = true
+
+# mypy per-module options:
+
+[[tool.mypy.overrides]]
+module = "typer.*"
+implicit_reexport = true
+
+
+
+[tool.isort]
+profile = "black"
+known_third_party = ["typer", "click"]
+
+[project.scripts]
+fasthep_carpenter = "fasthep_carpenter.main:app"
