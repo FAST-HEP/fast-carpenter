@@ -10,7 +10,7 @@ from typing import Any, Dict
 import awkward as awk
 import numpy as np
 
-from fast_carpenter.data_import import DataImportBase
+from fast_carpenter.data_import import DataImportBase, get_data_import_plugin
 from fast_carpenter.tree_adapter import create_masked
 
 
@@ -221,6 +221,8 @@ class EventBuilder(object):
         )
 
     def __call__(self):
+        if EventBuilder.data_import_plugin is None:
+            EventBuilder.data_import_plugin = get_data_import_plugin("uproot4", None)
         data = EventBuilder.data_import_plugin.open(self.config.inputPaths)
         tree = data[self.config.treeName]
 
