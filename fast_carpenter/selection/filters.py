@@ -54,6 +54,8 @@ class Counter():
 
     @property
     def counts(self) -> Tuple[int, float]:
+        if not self._weight_names:
+            return (self._counts,)
         return (self._counts,) + tuple(self._w_counts)
 
     def add(self, rhs) -> None:
