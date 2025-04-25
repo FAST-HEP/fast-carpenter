@@ -32,7 +32,7 @@ requirements = [
     'awkward',
     'coffea==0.7.9',
     'pandas>=1.1',
-    'numpy==1.21.0; python_version < "3.9"',
+    'numpy==1.22.0; python_version < "3.9"',
     'numpy>= 1.18.5; python_version > "3.8"',
     'numexpr',
     'typing-extensions>=4.1.1',
